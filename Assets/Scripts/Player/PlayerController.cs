@@ -1,182 +1,142 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
-    public float rayCastLength;
-    public float rotationSpeed;
-    private float tmpRotationSpeed;
-    public float speed;
-    public float gravity;
-    private float tmpGravity;
-    public float jumpForce;
-    private Rigidbody rb;
+    [Header("Movement")]
+    public float speed = 8f;
+    public float acceleration = 60f;
+    public float jumpForce = 10f;
+    public float gravity = 25f;
+
+    [Header("Rotation")]
+    public float alignSpeed = 10f;
+    public float visualTurnSpeed = 15f;
+
+    [Header("References")]
     public Transform currentPlanet;
     public Transform playerVisual;
+    public Transform cameraTransform;
 
-    RaycastHit[] hits;
-    Vector3 planetDir;
-    Vector3 normalVector;
-    Vector3 input;
+    public bool isTouchingPlanetSurface { get; private set; }
 
-    public bool isTouchingPlanetSurface = false;
-    private Transform MainCameraTransform;
-    public Transform CameraArmTransform;
+    Rigidbody rb;
+    PlayerInputActions input;
+    Vector3 gravityUp;
+    bool grounded;
+    bool jumpQueued;
+    float baseGravity;
 
-    PlayerInputActions playerInputActions;
-  
-
-    bool CanJump = true;
-    bool slowDown = false;
-
-    private void Awake()
+    void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        MainCameraTransform = Camera.main.transform;
-        tmpGravity = gravity;
-        tmpRotationSpeed = rotationSpeed;
+        rb.useGravity = false;
+        rb.freezeRotation = true;
+        rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
+        rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-        playerInputActions = new PlayerInputActions();
-        playerInputActions.PlayerActionMap.Jump.performed += Jump;
+        baseGravity = gravity;
+
+        input = new PlayerInputActions();
+        input.PlayerActionMap.Jump.performed += _ => { if (grounded) jumpQueued = true; };
     }
 
-    private void OnEnable()
-    {
-        playerInputActions.Enable();
-    }
+    void OnEnable()  => input.Enable();
+    void OnDisable() => input.Disable();
 
-    private void OnDisable()
+    void FixedUpdate()
     {
-        playerInputActions.Disable();
-    }
+        if (currentPlanet == null) return;
 
-    private void FixedUpdate()
-    {
-        Movement();
+        UpdateGravityUp();
         ApplyGravity();
-        ApplyPlanetRotation();
+        AlignToSurface();
+        Move();
+
+        if (jumpQueued) DoJump();
     }
 
-    void Jump(InputAction.CallbackContext context)
+    void UpdateGravityUp()
     {
-        if (!CanJump) return;
-        rb.linearVelocity *= 0;
-        rb.AddForce(normalVector * jumpForce, ForceMode.Impulse);
-        gravity = tmpGravity / 2f;
-        Invoke(nameof(RestoreGravity), 1f);
-        CanJump = false;
-        rotationSpeed = tmpRotationSpeed / 2f;
-    }
-
-    void RestoreGravity()
-    {
-        gravity = tmpGravity;
-        CanJump = true;
-        slowDown = false;
-    }
-
-    public void EnterNewGravityField()
-    {
-        gravity = tmpGravity / 4f;
-        rb.linearVelocity *= .5f;
-        rotationSpeed = tmpRotationSpeed / 10f;
-        slowDown = true;
-        CanJump = false;
-        Invoke(nameof(RestoreGravity), .5f);
-    }
-
-    void Movement()
-    {
-        input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-        Vector3 cameraRotation = new Vector3(0, MainCameraTransform.localEulerAngles.y + CameraArmTransform.localEulerAngles.y, 0);
-        Vector3 Dir = Quaternion.Euler(cameraRotation) * input;
-        Vector3 movement_dir = (transform.forward * Dir.z + transform.right * Dir.x);
-        Vector3 currentNormalVelocity = Vector3.Project(rb.linearVelocity, normalVector.normalized);
-        rb.linearVelocity = currentNormalVelocity + (movement_dir * speed);
-
-        if (movement_dir != Vector3.zero)
-        {
-            playerVisual.localRotation = Quaternion.LookRotation(Dir);
-        }
-
-        if (slowDown)
-            rb.linearVelocity *= .5f;
+        gravityUp = (transform.position - currentPlanet.position).normalized;
     }
 
     void ApplyGravity()
     {
-        if (currentPlanet == null) return;
-
-        hits = Physics.RaycastAll(transform.position, -transform.up, rayCastLength);
-
-        if (hits.Length == 0)
-        {
-            hits = Physics.RaycastAll(transform.position, transform.forward, rayCastLength);
-        }
-
-        if (hits.Length == 0)
-        {
-            hits = Physics.RaycastAll(transform.position, -transform.forward, rayCastLength);
-        }
-
-        if (hits.Length == 0)
-        {
-            hits = Physics.RaycastAll(transform.position, transform.right, rayCastLength);
-        }
-
-        if (hits.Length == 0)
-        {
-            hits = Physics.RaycastAll(transform.position, -transform.right, rayCastLength);
-        }
-
-        if (hits.Length == 0)
-        {
-            planetDir = currentPlanet.position - transform.position;
-            hits = Physics.RaycastAll(transform.position, planetDir, rayCastLength);
-        }
-
-        GetPlanetNormal();
-        rb.AddForce(normalVector.normalized * gravity, ForceMode.Acceleration);
-        hits = new RaycastHit[0];
+        rb.AddForce(-gravityUp * gravity, ForceMode.Acceleration);
     }
 
-    void ApplyPlanetRotation()
+    void AlignToSurface()
     {
-        Quaternion targetRotation = Quaternion.FromToRotation(transform.up, normalVector) * transform.rotation;
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
-        if (isTouchingPlanetSurface && CanJump)
-            rotationSpeed = tmpRotationSpeed;
+        Quaternion target = Quaternion.FromToRotation(transform.up, gravityUp) * transform.rotation;
+        rb.MoveRotation(Quaternion.Slerp(transform.rotation, target, alignSpeed * Time.fixedDeltaTime));
     }
 
-    void GetPlanetNormal()
+    void Move()
     {
-        if (currentPlanet == null) return;
-        normalVector = (transform.position - currentPlanet.position).normalized;
-        for (int i = 0; i < hits.Length; i++)
+        Vector2 raw = input.PlayerActionMap.Movement.ReadValue<Vector2>();
+
+        Vector3 verticalVel   = Vector3.Project(rb.linearVelocity, gravityUp);
+        Vector3 horizontalVel = rb.linearVelocity - verticalVel;
+
+        Vector3 targetHorizontal = Vector3.zero;
+        if (raw.sqrMagnitude > 0.01f)
         {
-            if (hits[i].transform == currentPlanet)
-            {
-                normalVector = hits[i].normal.normalized;
-                break;
-            }
+            Vector3 camForward = cameraTransform != null ? cameraTransform.forward : transform.forward;
+            Vector3 camRight   = cameraTransform != null ? cameraTransform.right   : transform.right;
+            Vector3 forward    = Vector3.ProjectOnPlane(camForward, gravityUp).normalized;
+            Vector3 right      = Vector3.ProjectOnPlane(camRight,   gravityUp).normalized;
+            Vector3 moveDir    = (forward * raw.y + right * raw.x).normalized;
+
+            targetHorizontal = moveDir * speed;
+
+            Quaternion targetRot = Quaternion.LookRotation(moveDir, gravityUp);
+            playerVisual.rotation = Quaternion.Slerp(
+                playerVisual.rotation, targetRot, visualTurnSpeed * Time.fixedDeltaTime);
         }
-        return;
+
+        Vector3 newHorizontal = Vector3.MoveTowards(
+            horizontalVel, targetHorizontal, acceleration * Time.fixedDeltaTime);
+
+        rb.linearVelocity = verticalVel + newHorizontal;
     }
 
-    private void OnTriggerEnter(Collider other)
+    void DoJump()
     {
-        if (other.transform == currentPlanet)
-        {
-            isTouchingPlanetSurface = true;
-        }
+        jumpQueued = false;
+        grounded   = false;
+
+        Vector3 vel = rb.linearVelocity;
+        vel -= Vector3.Project(vel, gravityUp);
+        rb.linearVelocity = vel;
+
+        rb.AddForce(gravityUp * jumpForce, ForceMode.Impulse);
     }
 
-    private void OnTriggerExit(Collider other)
+    public void EnterNewGravityField()
     {
-        if (other.transform == currentPlanet)
-        {
-            isTouchingPlanetSurface = false;
-        }
+        gravity = baseGravity * 0.25f;
+        rb.linearVelocity *= 0.5f;
+        grounded = false;
+        CancelInvoke(nameof(RestoreGravity));
+        Invoke(nameof(RestoreGravity), 0.5f);
     }
 
+    void RestoreGravity() => gravity = baseGravity;
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.transform != currentPlanet) return;
+        grounded = true;
+        isTouchingPlanetSurface = true;
+        GameEventBus.Raise(currentPlanet, landed: true);
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.transform != currentPlanet) return;
+        grounded = false;
+        isTouchingPlanetSurface = false;
+        GameEventBus.Raise(currentPlanet, landed: false);
+    }
 }
