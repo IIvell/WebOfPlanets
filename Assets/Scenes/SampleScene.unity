@@ -271,7 +271,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlanetCameraController
   player: {fileID: 1078422983}
   planetCenter: {fileID: 862720136}
-  distance: 8
+  distance: 1
   heightOffset: 20
   followSmoothTime: 0.001
   rotationSmoothing: 100
@@ -551,7 +551,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1078422983}
   - component: {fileID: 1078422982}
-  - component: {fileID: 1078422981}
   - component: {fileID: 1078422984}
   - component: {fileID: 1078422985}
   m_Layer: 0
@@ -561,27 +560,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!65 &1078422981
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1078422980}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1.3062134, z: 0.2684878}
-  m_Center: {x: 0, y: -1.4460125, z: 0.48483968}
 --- !u!54 &1078422982
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -618,7 +596,7 @@ Transform:
   m_GameObject: {fileID: 1078422980}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.08263, y: 18.94361, z: -0.48416}
+  m_LocalPosition: {x: -0.08263, y: 88.31, z: -0.48416}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -666,10 +644,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 1
+  m_Radius: 0.6
+  m_Height: 2.2
   m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: -0.5917702, z: 0.48995554}
 --- !u!1 &1418943699
 GameObject:
   m_ObjectHideFlags: 0
@@ -681,7 +659,6 @@ GameObject:
   - component: {fileID: 1418943703}
   - component: {fileID: 1418943702}
   - component: {fileID: 1418943701}
-  - component: {fileID: 1418943700}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: PlayerCollider
@@ -689,29 +666,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!136 &1418943700
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1418943699}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1418943701
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -794,15 +748,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1000
+      value: 5000
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -810,11 +764,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0.0000074474
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -851,6 +805,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_Name
       value: Planet
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
