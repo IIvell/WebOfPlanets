@@ -13,19 +13,20 @@ public class PlayerController : MonoBehaviour
     public float alignSpeed = 10f;
     public float visualTurnSpeed = 15f;
 
+    [Header("Input Smoothing")]
+    public float inputSmoothing = 12f;
+
     [Header("References")]
     public Transform currentPlanet;
     public Transform playerVisual;
     public Transform cameraTransform;
 
-    public bool isTouchingPlanetSurface { get; private set; }
-
     Rigidbody rb;
     PlayerInputActions input;
     Vector3 gravityUp;
+    Vector2 smoothedInput;
     bool grounded;
     bool jumpQueued;
-    float baseGravity;
 
     void Awake()
     {
@@ -34,8 +35,6 @@ public class PlayerController : MonoBehaviour
         rb.freezeRotation = true;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
-
-        baseGravity = gravity;
 
         input = new PlayerInputActions();
         input.PlayerActionMap.Jump.performed += _ => { if (grounded) jumpQueued = true; };
@@ -75,18 +74,23 @@ public class PlayerController : MonoBehaviour
     void Move()
     {
         Vector2 raw = input.PlayerActionMap.Movement.ReadValue<Vector2>();
+        smoothedInput = Vector2.Lerp(smoothedInput, raw, inputSmoothing * Time.fixedDeltaTime);
 
         Vector3 verticalVel   = Vector3.Project(rb.linearVelocity, gravityUp);
         Vector3 horizontalVel = rb.linearVelocity - verticalVel;
 
+        // Kad je igrač na tlu, odbaci nakupljenu brzinu prema planetu kako bi se spriječilo glitchanje
+        if (grounded && Vector3.Dot(verticalVel, gravityUp) < 0f)
+            verticalVel = Vector3.zero;
+
         Vector3 targetHorizontal = Vector3.zero;
-        if (raw.sqrMagnitude > 0.01f)
+        if (smoothedInput.sqrMagnitude > 0.01f)
         {
             Vector3 camForward = cameraTransform != null ? cameraTransform.forward : transform.forward;
             Vector3 camRight   = cameraTransform != null ? cameraTransform.right   : transform.right;
             Vector3 forward    = Vector3.ProjectOnPlane(camForward, gravityUp).normalized;
             Vector3 right      = Vector3.ProjectOnPlane(camRight,   gravityUp).normalized;
-            Vector3 moveDir    = (forward * raw.y + right * raw.x).normalized;
+            Vector3 moveDir    = (forward * smoothedInput.y + right * smoothedInput.x).normalized;
 
             targetHorizontal = moveDir * speed;
 
@@ -113,22 +117,10 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(gravityUp * jumpForce, ForceMode.Impulse);
     }
 
-    public void EnterNewGravityField()
-    {
-        gravity = baseGravity * 0.25f;
-        rb.linearVelocity *= 0.5f;
-        grounded = false;
-        CancelInvoke(nameof(RestoreGravity));
-        Invoke(nameof(RestoreGravity), 0.5f);
-    }
-
-    void RestoreGravity() => gravity = baseGravity;
-
     void OnTriggerEnter(Collider other)
     {
         if (other.transform != currentPlanet) return;
         grounded = true;
-        isTouchingPlanetSurface = true;
         GameEventBus.Raise(currentPlanet, landed: true);
     }
 
@@ -136,7 +128,6 @@ public class PlayerController : MonoBehaviour
     {
         if (other.transform != currentPlanet) return;
         grounded = false;
-        isTouchingPlanetSurface = false;
         GameEventBus.Raise(currentPlanet, landed: false);
     }
 }

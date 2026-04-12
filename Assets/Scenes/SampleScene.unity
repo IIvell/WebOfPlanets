@@ -119,60 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &177122231
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 177122232}
-  - component: {fileID: 177122233}
-  m_Layer: 0
-  m_Name: PlanetZone
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &177122232
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 177122231}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.66, y: 1.66, z: 1.66}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 543475852}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!64 &177122233
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 177122231}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -5495902117074765545, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -327,8 +273,8 @@ MonoBehaviour:
   planetCenter: {fileID: 862720136}
   distance: 8
   heightOffset: 20
-  followSmoothing: 8
-  rotationSmoothing: 10
+  followSmoothTime: 0.001
+  rotationSmoothing: 100
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -574,7 +520,7 @@ GameObject:
   m_Component:
   - component: {fileID: 862720136}
   m_Layer: 0
-  m_Name: Center
+  m_Name: PlanetCenter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -697,6 +643,7 @@ MonoBehaviour:
   gravity: 25
   alignSpeed: 10
   visualTurnSpeed: 15
+  inputSmoothing: 12
   currentPlanet: {fileID: 543475852}
   playerVisual: {fileID: 1418943703}
   cameraTransform: {fileID: 330585546}
@@ -908,9 +855,6 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 177122232}
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 862720136}

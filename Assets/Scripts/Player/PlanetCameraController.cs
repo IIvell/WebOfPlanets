@@ -14,7 +14,7 @@ public class PlanetCameraController : MonoBehaviour
     public float heightOffset = 20f;
 
     [Header("Smoothing")]
-    public float followSmoothing = 8f;
+    public float followSmoothTime  = 0.25f;
     public float rotationSmoothing = 10f;
 
     static Vector3 s_CameraForward;
@@ -27,6 +27,7 @@ public class PlanetCameraController : MonoBehaviour
         => Vector3.ProjectOnPlane(s_CameraRight, gravityUp).normalized;
 
     Vector3 camBack;
+    Vector3 posVelocity;
     bool initialized;
 
     void Awake()
@@ -54,8 +55,8 @@ public class PlanetCameraController : MonoBehaviour
             + camBack * distance
             + gravityUp * heightOffset;
 
-        transform.position = Vector3.Lerp(
-            transform.position, targetPos, followSmoothing * Time.deltaTime);
+        transform.position = Vector3.SmoothDamp(
+            transform.position, targetPos, ref posVelocity, followSmoothTime);
 
         Vector3 lookTarget = player.position + gravityUp * 0.5f;
         Vector3 lookDir = lookTarget - transform.position;
