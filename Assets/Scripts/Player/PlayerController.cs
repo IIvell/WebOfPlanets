@@ -45,6 +45,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private void Ini()
         {
             rig.useGravity = false;
+            rig.interpolation = RigidbodyInterpolation.Interpolate;
             if (freezeRotation)
                 rig.constraints = RigidbodyConstraints.FreezeRotation;
             else
@@ -64,10 +65,8 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             Vector2 input = _input.PlayerActionmap.Movement.ReadValue<Vector2>();
 
-            var x = input.x * Time.deltaTime * 3.0f;
-            var z = input.y * Time.deltaTime * 3.0f;
-
-            transform.Translate(x, 0, z);
+            Vector3 move = (transform.right * input.x + transform.forward * input.y) * (Time.fixedDeltaTime * 3.0f);
+            rig.MovePosition(rig.position + move);
         }
     }
 }

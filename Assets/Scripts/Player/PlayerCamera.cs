@@ -19,8 +19,12 @@ public class PlayerCamera : MonoBehaviour
             - player.forward * distance
             + planetUp * height;
 
-        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
+        float t = 1f - Mathf.Exp(-smoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPos, t);
 
-        transform.LookAt(player.position + planetUp * 1.5f, planetUp);
+        Quaternion targetRot = Quaternion.LookRotation(
+            (player.position + planetUp * 1.5f) - transform.position,
+            planetUp);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, t);
     }
 }

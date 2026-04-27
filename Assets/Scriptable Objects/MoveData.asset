@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e3711f25f391d04fb57917693532be4, type: 3}
   m_Name: MoveData
   m_EditorClassIdentifier: Assembly-CSharp::MoveData
-  moveSpeed: 5
+  moveSpeed: 10
   surfaceRotationSpeed: 2
-  groundColSize: 0.55
-  surfaceGravity: 1
-  stickToSurface: 0.5
+  groundColSize: 0.51
+  surfaceGravity: 0.087
+  stickToSurface: 0.504
   jumpForce: 5
   jumpDuration: 0.4

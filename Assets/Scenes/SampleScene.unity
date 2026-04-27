@@ -207,7 +207,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.02665, y: 19.23, z: -8.23}
+  m_LocalPosition: {x: 0.026650004, y: 88.47639, z: 0.21999997}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -266,15 +266,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5f486caeae4bf24787eff8e1b71ee01, type: 3}
+  m_Script: {fileID: 11500000, guid: 3a52f9a7c8b6d31489351df0dcf353af, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlanetCameraController
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCamera
   player: {fileID: 1078422983}
-  planetCenter: {fileID: 862720136}
-  distance: 1
-  heightOffset: 20
-  followSmoothTime: 0.001
-  rotationSmoothing: 100
+  planet: {fileID: 543475852}
+  distance: 6
+  height: 4
+  smoothSpeed: 8
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,6 +460,19 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: -5495902117074765545, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
+--- !u!114 &543475856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 543475844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6772ed442a06aa4593b4d1134e57546, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Attractor
+  gravity: -10
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -510,37 +522,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &862720135
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 862720136}
-  m_Layer: 0
-  m_Name: PlanetCenter
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &862720136
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 862720135}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 543475852}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1078422980
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,8 +532,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1078422983}
   - component: {fileID: 1078422982}
-  - component: {fileID: 1078422984}
   - component: {fileID: 1078422985}
+  - component: {fileID: 1078422987}
+  - component: {fileID: 1078422986}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -569,7 +551,7 @@ Rigidbody:
   m_GameObject: {fileID: 1078422980}
   serializedVersion: 5
   m_Mass: 1
-  m_LinearDamping: 0
+  m_LinearDamping: 10
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -596,35 +578,13 @@ Transform:
   m_GameObject: {fileID: 1078422980}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.08263, y: 88.31, z: -0.48416}
+  m_LocalPosition: {x: -0.08263, y: 19.04, z: -0.48416}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1418943703}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1078422984
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1078422980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b0c3ba758a01dff42b015b0fffbc2c68, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  speed: 8
-  acceleration: 60
-  jumpForce: 10
-  gravity: 25
-  alignSpeed: 10
-  visualTurnSpeed: 15
-  inputSmoothing: 12
-  currentPlanet: {fileID: 543475852}
-  playerVisual: {fileID: 1418943703}
-  cameraTransform: {fileID: 330585546}
 --- !u!136 &1078422985
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -648,6 +608,34 @@ CapsuleCollider:
   m_Height: 2.2
   m_Direction: 1
   m_Center: {x: 0, y: -0.5917702, z: 0.48995554}
+--- !u!114 &1078422986
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078422980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6772ed442a06aa4593b4d1134e57546, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Attractor
+  gravity: -10
+--- !u!114 &1078422987
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078422980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0c3ba758a01dff42b015b0fffbc2c68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.PlayerController
+  rig: {fileID: 1078422982}
+  freezeRotation: 1
+  forceConst: 4
 --- !u!1 &1418943699
 GameObject:
   m_ObjectHideFlags: 0
@@ -748,15 +736,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalScale.x
-      value: 5000
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalScale.y
-      value: 5000
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalScale.z
-      value: 5000
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -812,10 +800,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 862720136}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       insertIndex: -1
@@ -823,6 +808,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 543475849}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 543475856}
   m_SourcePrefab: {fileID: 100100000, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -830,6 +818,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 410087041}
   - {fileID: 832575519}
-  - {fileID: 1078422983}
   - {fileID: 330585546}
   - {fileID: 2111479574}
+  - {fileID: 1078422983}
