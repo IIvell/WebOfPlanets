@@ -14,6 +14,18 @@ public class PlayerCamera : MonoBehaviour
     public float maxHeight = 20f;
     public float scrollSpeed = 1.5f;
 
+    public void SetPlanet(Transform newPlanet)
+    {
+        planet = newPlanet;
+        if (player == null || planet == null) return;
+
+        Vector3 planetUp = (player.position - planet.position).normalized;
+        transform.position = player.position - player.forward * distance + planetUp * height;
+        transform.rotation = Quaternion.LookRotation(
+            (player.position + planetUp * 1.5f) - transform.position,
+            planetUp);
+    }
+
     void LateUpdate()
     {
         float scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
