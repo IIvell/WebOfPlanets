@@ -1,16 +1,17 @@
 using UnityEngine;
-using System.Collections;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
     public class PlayerController : MonoBehaviour
     {
         public Rigidbody rig;
-        RaycastHit hit;
+        public Transform currentPlanet;
         public bool freezeRotation = true;
 
-        public int forceConst = 4;
+        [SerializeField] private float jumpForce = 20f;
+        private Planet _planet;
         private bool canJump;
+        private bool isGrounded;
 
         PlayerInputActions _input;
 
@@ -26,20 +27,31 @@ namespace xyz.germanfica.unity.planet.gravity
         void Start()
         {
             Ini();
+            if (currentPlanet != null)
+                _planet = currentPlanet.GetComponent<Planet>();
         }
 
-        void Update()
+        public void SetPlanet(Transform planet)
         {
-            if (Physics.Raycast(transform.position, -transform.up, out hit))
-            {
-                Debug.DrawLine(transform.position, hit.point, Color.cyan);
-            }
+            currentPlanet = planet;
+            _planet = planet != null ? planet.GetComponent<Planet>() : null;
         }
+
+        void OnCollisionStay(Collision col)  => isGrounded = true;
+        void OnCollisionExit(Collision col)  => isGrounded = false;
 
         void FixedUpdate()
         {
+            ApplyGravity();
             Move();
             Jump();
+        }
+
+        private void ApplyGravity()
+        {
+            if (_planet == null) return;
+            Vector3 down = (currentPlanet.position - transform.position).normalized;
+            rig.AddForce(down * _planet.Gravity, ForceMode.Acceleration);
         }
 
         private void Ini()
@@ -54,11 +66,10 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void Jump()
         {
-            if (canJump)
-            {
-                canJump = false;
-                rig.AddRelativeForce(0, forceConst, 0, ForceMode.Impulse);
-            }
+            if (!canJump) return;
+            canJump = false;
+            if (!isGrounded) return;
+            rig.AddRelativeForce(0, jumpForce, 0, ForceMode.Impulse);
         }
 
         private void Move()

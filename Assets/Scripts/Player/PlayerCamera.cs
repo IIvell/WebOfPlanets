@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerCamera : MonoBehaviour
 {
@@ -9,8 +10,16 @@ public class PlayerCamera : MonoBehaviour
     public float height = 4f;
     public float smoothSpeed = 8f;
 
+    public float minHeight = 4f;
+    public float maxHeight = 20f;
+    public float scrollSpeed = 1.5f;
+
     void LateUpdate()
     {
+        float scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
+        if (Mathf.Abs(scroll) > 0.01f)
+            height = Mathf.Clamp(height - Mathf.Sign(scroll) * scrollSpeed, minHeight, maxHeight);
+
         if (player == null || planet == null) return;
 
         Vector3 planetUp = (player.position - planet.position).normalized;

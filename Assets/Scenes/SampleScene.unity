@@ -274,6 +274,9 @@ MonoBehaviour:
   distance: 6
   height: 4
   smoothSpeed: 8
+  minHeight: 4
+  maxHeight: 20
+  scrollSpeed: 1.5
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -473,6 +476,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Attractor
   gravity: -10
+--- !u!114 &543475859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 543475844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f772aa1551deb74a84d7eb0b5afd78d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Planet
+  Type: 0
+  IsHub: 0
+  Gravity: 20
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -634,8 +652,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.PlayerController
   rig: {fileID: 1078422982}
+  currentPlanet: {fileID: 543475852}
   freezeRotation: 1
-  forceConst: 4
+  jumpForce: 20
 --- !u!1 &1418943699
 GameObject:
   m_ObjectHideFlags: 0
@@ -811,6 +830,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 543475856}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 543475859}
   m_SourcePrefab: {fileID: 100100000, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

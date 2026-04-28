@@ -7,6 +7,7 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         public PlanetType Type;
         public bool IsHub;
+        public float Gravity = 20f;
 
         void Awake()
         {
