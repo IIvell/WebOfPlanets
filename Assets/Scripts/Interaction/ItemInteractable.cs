@@ -7,6 +7,8 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Item referenceItem;
         [SerializeField] private bool destroyAfterPickup = true;
 
+        public override float HoldTime => referenceItem != null ? referenceItem.miningTime : 0f;
+
         public override void Interact()
         {
             if (referenceItem == null)

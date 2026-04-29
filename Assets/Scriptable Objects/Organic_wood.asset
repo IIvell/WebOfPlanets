@@ -10,8 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b808164fa9d6bc145bcae3548f73c02c, type: 3}
-  m_Name: Item_sphere
+  m_Name: Organic_wood
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
   id: 1
-  displayName: Sphere
+  displayName: Wood
   icon: {fileID: 0}
+  miningTime: 0

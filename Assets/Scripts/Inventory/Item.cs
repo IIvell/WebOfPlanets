@@ -8,5 +8,6 @@ namespace xyz.germanfica.unity.planet.gravity
         public string id;
         public string displayName;
         public Sprite icon;
+        [Min(0f)] public float miningTime = 0f;
     }
 }

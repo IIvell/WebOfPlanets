@@ -85,4 +85,10 @@ namespace xyz.germanfica.unity.planet.gravity
         public MilestoneType Type;
         public string StoryFragment;
     }
+
+    public struct MiningProgressEvent
+    {
+        public float Progress; // 0–1
+        public bool IsMining;
+    }
 }
