@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b808164fa9d6bc145bcae3548f73c02c, type: 3}
-  m_Name: Mining_ore
+  m_Name: Organic_wood
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
-  id: 
-  displayName: 
-  icon: {fileID: 0}
+  id: 0
+  displayName: Wood
+  prefab: {fileID: 919132149155446097, guid: 1c8dcd7a434a0b543b8043e201a4a82a, type: 3}
   miningTime: 0
+  worldScale: {x: 100, y: 100, z: 100}

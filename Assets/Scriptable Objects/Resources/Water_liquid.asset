@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b808164fa9d6bc145bcae3548f73c02c, type: 3}
-  m_Name: Water_ice
+  m_Name: Water_liquid
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
-  id: 
-  displayName: 
-  icon: {fileID: 0}
+  id: 4
+  displayName: Water
+  prefab: {fileID: 0}
   miningTime: 0
+  worldScale: {x: 1, y: 1, z: 1}

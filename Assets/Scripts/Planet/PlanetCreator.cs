@@ -8,17 +8,30 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlayerController player;
         [SerializeField] private PlayerCamera playerCamera;
 
-        [SerializeField] private float minScale = 500f;
-        [SerializeField] private float maxScale = 1500f;
+        [SerializeField] private float minScale = 800f;
+        [SerializeField] private float maxScale = 1200f;
         [SerializeField] private float minGravity = 10f;
         [SerializeField] private float maxGravity = 40f;
-        [SerializeField] private float spawnDistance = 4000f;
+        [SerializeField] private float spawnDistance = 1800f;
 
         private Transform _currentPlanet;
+        private float _planetScale;
 
         void Start()
         {
             _currentPlanet = player.currentPlanet;
+
+            if (_currentPlanet != null)
+            {
+                Renderer r = _currentPlanet.GetComponentInChildren<Renderer>();
+                _planetScale = r != null ? r.bounds.size.x : _currentPlanet.lossyScale.x;
+                Debug.Log($"PlanetCreator: planet skala = {_planetScale}");
+            }
+            else
+            {
+                _planetScale = 1000f;
+                Debug.LogWarning("PlanetCreator: player.currentPlanet nije postavljen.");
+            }
         }
 
         void Update()
@@ -36,7 +49,7 @@ namespace xyz.germanfica.unity.planet.gravity
                     oldAttractor.enabled = false;
             }
 
-            float scale = Random.Range(minScale, maxScale);
+            float scale = Random.Range(35f, 100f);
             float gravity = Random.Range(minGravity, maxGravity);
 
             Vector3 origin = _currentPlanet != null ? _currentPlanet.position : Vector3.zero;
