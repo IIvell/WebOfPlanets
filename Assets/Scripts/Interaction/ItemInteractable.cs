@@ -9,6 +9,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public override float HoldTime => referenceItem != null ? referenceItem.miningTime : 0f;
 
+        public void Init(Item item, bool destroy = true)
+        {
+            referenceItem = item;
+            destroyAfterPickup = destroy;
+        }
+
         public override void Interact()
         {
             if (referenceItem == null)

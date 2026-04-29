@@ -76,6 +76,13 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             Vector2 input = _input.PlayerActionmap.Movement.ReadValue<Vector2>();
 
+            if (input == Vector2.zero)
+            {
+                // Zadrži samo vertikalnu brzinu (gravitacija), makni horizontal sliding
+                rig.linearVelocity = Vector3.Project(rig.linearVelocity, transform.up);
+                return;
+            }
+
             Vector3 move = (transform.right * input.x + transform.forward * input.y) * (Time.fixedDeltaTime * 3.0f);
             rig.MovePosition(rig.position + move);
         }
