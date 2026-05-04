@@ -64,7 +64,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private IInteractable FindClosest()
         {
-            Collider[] nearby = Physics.OverlapSphere(interactorSource.position, interactRange);
+            Collider[] nearby = Physics.OverlapSphere(interactorSource.position, interactRange, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
             IInteractable closest = null;
             float closestDist = Mathf.Infinity;
 

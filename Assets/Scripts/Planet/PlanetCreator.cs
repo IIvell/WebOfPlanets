@@ -17,6 +17,8 @@ namespace xyz.germanfica.unity.planet.gravity
         private Transform _currentPlanet;
         private float _planetScale;
 
+        [SerializeField] private int startingPlanets = 3;
+
         void Start()
         {
             _currentPlanet = player.currentPlanet;
@@ -32,6 +34,9 @@ namespace xyz.germanfica.unity.planet.gravity
                 _planetScale = 1000f;
                 Debug.LogWarning("PlanetCreator: player.currentPlanet nije postavljen.");
             }
+
+            for (int i = 0; i < startingPlanets; i++)
+                SpawnPlanet(_currentPlanet != null ? _currentPlanet.position : Vector3.zero);
         }
 
         void Update()
@@ -40,21 +45,12 @@ namespace xyz.germanfica.unity.planet.gravity
                 CreatePlanetAndTeleport();
         }
 
-        private void CreatePlanetAndTeleport()
+        private Transform SpawnPlanet(Vector3 origin)
         {
-            // Disable attractor on the planet player is leaving
-            if (_currentPlanet != null)
-            {
-                if (_currentPlanet.TryGetComponent(out Attractor oldAttractor))
-                    oldAttractor.enabled = false;
-            }
-
             float scale = Random.Range(35f, 100f);
             float gravity = Random.Range(minGravity, maxGravity);
 
-            Vector3 origin = _currentPlanet != null ? _currentPlanet.position : Vector3.zero;
-            Vector3 spawnDir = Random.onUnitSphere;
-            Vector3 planetPos = origin + spawnDir * spawnDistance;
+            Vector3 planetPos = origin + Random.onUnitSphere * spawnDistance;
 
             GameObject planetGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             planetGO.name = "GeneratedPlanet";
@@ -65,18 +61,35 @@ namespace xyz.germanfica.unity.planet.gravity
             rb.isKinematic = true;
             rb.useGravity = false;
 
-            planetGO.AddComponent<Attractor>();
+            Attractor attractor = planetGO.AddComponent<Attractor>();
+            attractor.enabled = false;
 
             Planet planet = planetGO.AddComponent<Planet>();
             planet.Gravity = gravity;
-            // Add planet types 
             PlanetType[] availableTypes = { PlanetType.Mining, PlanetType.Organic };
             planet.Type = availableTypes[Random.Range(0, availableTypes.Length)];
 
-            float radius = scale * 0.5f;
-            Vector3 surfaceNormal = (planetPos - origin).normalized;
-            Vector3 playerPos = planetPos - surfaceNormal * (radius + 2f);
+            Debug.Log($"Kreiran novi planet: scale={scale:F0}, gravity={gravity:F1}, type={planet.Type}");
+            return planetGO.transform;
+        }
 
+        private void CreatePlanetAndTeleport()
+        {
+            if (_currentPlanet != null)
+            {
+                if (_currentPlanet.TryGetComponent(out Attractor oldAttractor))
+                    oldAttractor.enabled = false;
+            }
+
+            Vector3 origin = _currentPlanet != null ? _currentPlanet.position : Vector3.zero;
+            Transform newPlanet = SpawnPlanet(origin);
+            if (newPlanet.TryGetComponent(out Attractor newAttractor))
+                newAttractor.enabled = true;
+
+            float scale = newPlanet.localScale.x;
+            float radius = scale * 0.5f;
+            Vector3 surfaceNormal = (newPlanet.position - origin).normalized;
+            Vector3 playerPos = newPlanet.position - surfaceNormal * (radius + 2f);
             Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, -surfaceNormal);
 
             Rigidbody playerRb = player.rig;
@@ -85,14 +98,12 @@ namespace xyz.germanfica.unity.planet.gravity
             playerRb.position = playerPos;
             playerRb.rotation = playerRot;
 
-            _currentPlanet = planetGO.transform;
+            _currentPlanet = newPlanet;
             player.SetPlanet(_currentPlanet);
             if (playerCamera != null) playerCamera.SetPlanet(_currentPlanet);
-
-            Debug.Log($"Kreiran novi planet: scale={scale:F0}, gravity={gravity:F1}");
         }
 
-        public void TeleportToPlanet(Transform targetPlanet)
+        public void TeleportToPlanet(Transform targetPlanet, Transform fromPlanet = null)
         {
             if (_currentPlanet != null)
             {
@@ -103,9 +114,20 @@ namespace xyz.germanfica.unity.planet.gravity
             if (targetPlanet.TryGetComponent(out Attractor newAttractor))
                 newAttractor.enabled = true;
 
-            float radius = targetPlanet.localScale.x * 0.5f;
-            Vector3 surfaceNormal = Random.onUnitSphere;
-            Vector3 playerPos = targetPlanet.position + surfaceNormal * (radius + 2f);
+            Renderer rend = targetPlanet.GetComponentInChildren<Renderer>();
+            float radius = rend != null ? rend.bounds.size.x * 0.5f : targetPlanet.localScale.x * 0.5f;
+
+            Vector3 surfaceNormal = fromPlanet != null
+                ? (fromPlanet.position - targetPlanet.position).normalized
+                : Random.onUnitSphere;
+
+            Vector3 rayOrigin = targetPlanet.position + surfaceNormal * (radius * 1.5f);
+            Vector3 playerPos;
+            if (Physics.Raycast(rayOrigin, -surfaceNormal, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                playerPos = hit.point + hit.normal * 1f;
+            else
+                playerPos = targetPlanet.position + surfaceNormal * (radius + 1f);
+
             Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, surfaceNormal);
 
             Rigidbody playerRb = player.rig;
