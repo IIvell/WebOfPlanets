@@ -30,9 +30,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator)
         {
             Vector3 dir = (toward.position - from.position).normalized;
-            Renderer rend = from.GetComponentInChildren<Renderer>();
-            float radius = rend != null ? rend.bounds.size.x * 0.5f : from.localScale.x * 0.5f;
-            Vector3 pos = from.position + dir * radius;
+            Vector3 pos = SurfacePoint(from, dir);
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
 
             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -45,6 +43,22 @@ namespace xyz.germanfica.unity.planet.gravity
 
             ConnectionInteractable interactable = marker.AddComponent<ConnectionInteractable>();
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
+        }
+
+        // Cast a ray from far outside the planet toward its center.
+        // This finds the exact surface point in any direction, regardless of mesh shape or scale.
+        private static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
+        {
+            const float castDistance = 2000f;
+            Vector3 origin = planet.position + directionFromPlanet * castDistance;
+
+            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, castDistance + 100f))
+                return hit.point;
+
+            // Fallback: use largest bounds extent as radius
+            Renderer rend = planet.GetComponentInChildren<Renderer>();
+            float radius = rend != null ? rend.bounds.extents.magnitude : planet.localScale.x * 0.5f;
+            return planet.position + directionFromPlanet * radius;
         }
 
         private void UpdateVisual()
