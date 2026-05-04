@@ -14,6 +14,10 @@ public class PlayerCamera : MonoBehaviour
     public float maxHeight = 20f;
     public float scrollSpeed = 1.5f;
 
+    private bool _inputEnabled = true;
+
+    public void SetInputEnabled(bool enabled) => _inputEnabled = enabled;
+
     public void SetPlanet(Transform newPlanet)
     {
         planet = newPlanet;
@@ -28,9 +32,12 @@ public class PlayerCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        float scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
-        if (Mathf.Abs(scroll) > 0.01f)
-            height = Mathf.Clamp(height - Mathf.Sign(scroll) * scrollSpeed, minHeight, maxHeight);
+        if (_inputEnabled)
+        {
+            float scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
+            if (Mathf.Abs(scroll) > 0.01f)
+                height = Mathf.Clamp(height - Mathf.Sign(scroll) * scrollSpeed, minHeight, maxHeight);
+        }
 
         if (player == null || planet == null) return;
 

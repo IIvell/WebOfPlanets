@@ -24,6 +24,12 @@ namespace xyz.germanfica.unity.planet.gravity
         void OnEnable()  => _input.Enable();
         void OnDisable() => _input.Disable();
 
+        public void SetInputEnabled(bool enabled)
+        {
+            if (enabled) _input.Enable();
+            else _input.Disable();
+        }
+
         void Start()
         {
             Ini();

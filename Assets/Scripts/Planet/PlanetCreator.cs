@@ -15,28 +15,34 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private float spawnDistance = 1800f;
 
         private Transform _currentPlanet;
-        private float _planetScale;
 
-        [SerializeField] private int startingPlanets = 3;
+        [SerializeField] private int startingPlanets = 30;
+        [SerializeField] private float minSpawnDistance = 1500f;
+        [SerializeField] private float maxSpawnDistance = 5000f;
+        [SerializeField] private float minPlanetSeparation = 200f;
+        [SerializeField] private int maxPlacementAttempts = 30;
+
+        private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
+
+        private static readonly PlanetType[] AllTypes =
+        {
+            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice,
+            PlanetType.Gaseous, PlanetType.Volcanic, PlanetType.Abandoned
+        };
 
         void Start()
         {
             _currentPlanet = player.currentPlanet;
 
-            if (_currentPlanet != null)
-            {
-                Renderer r = _currentPlanet.GetComponentInChildren<Renderer>();
-                _planetScale = r != null ? r.bounds.size.x : _currentPlanet.lossyScale.x;
-                Debug.Log($"PlanetCreator: planet skala = {_planetScale}");
-            }
-            else
-            {
-                _planetScale = 1000f;
+            if (_currentPlanet == null)
                 Debug.LogWarning("PlanetCreator: player.currentPlanet nije postavljen.");
-            }
+
+            Vector3 origin = _currentPlanet != null ? _currentPlanet.position : Vector3.zero;
+            if (_currentPlanet != null)
+                _spawnedPositions.Add(origin);
 
             for (int i = 0; i < startingPlanets; i++)
-                SpawnPlanet(_currentPlanet != null ? _currentPlanet.position : Vector3.zero);
+                SpawnPlanet(origin, i);
         }
 
         void Update()
@@ -45,15 +51,17 @@ namespace xyz.germanfica.unity.planet.gravity
                 CreatePlanetAndTeleport();
         }
 
-        private Transform SpawnPlanet(Vector3 origin)
+        private Transform SpawnPlanet(Vector3 origin, int index = -1)
         {
-            float scale = Random.Range(35f, 100f);
+            float scale   = Random.Range(35f, 100f);
             float gravity = Random.Range(minGravity, maxGravity);
+            float minSep  = minPlanetSeparation + scale;
 
-            Vector3 planetPos = origin + Random.onUnitSphere * spawnDistance;
+            Vector3 planetPos = FindOpenPosition(origin, minSep);
+            _spawnedPositions.Add(planetPos);
 
             GameObject planetGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            planetGO.name = "GeneratedPlanet";
+            planetGO.name = index >= 0 ? $"Planet_{index:D2}" : "GeneratedPlanet";
             planetGO.transform.position = planetPos;
             planetGO.transform.localScale = Vector3.one * scale;
 
@@ -66,11 +74,33 @@ namespace xyz.germanfica.unity.planet.gravity
 
             Planet planet = planetGO.AddComponent<Planet>();
             planet.Gravity = gravity;
-            PlanetType[] availableTypes = { PlanetType.Mining, PlanetType.Organic };
-            planet.Type = availableTypes[Random.Range(0, availableTypes.Length)];
+            planet.Type = AllTypes[Random.Range(0, AllTypes.Length)];
 
-            Debug.Log($"Kreiran novi planet: scale={scale:F0}, gravity={gravity:F1}, type={planet.Type}");
             return planetGO.transform;
+        }
+
+        private Vector3 FindOpenPosition(Vector3 origin, float minSep)
+        {
+            for (int attempt = 0; attempt < maxPlacementAttempts; attempt++)
+            {
+                float dist = Random.Range(minSpawnDistance, maxSpawnDistance);
+                Vector3 candidate = origin + Random.onUnitSphere * dist;
+
+                bool tooClose = false;
+                foreach (Vector3 existing in _spawnedPositions)
+                {
+                    if (Vector3.Distance(candidate, existing) < minSep)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+
+                if (!tooClose) return candidate;
+            }
+
+            // All attempts failed — just place at a random far distance
+            return origin + Random.onUnitSphere * maxSpawnDistance;
         }
 
         private void CreatePlanetAndTeleport()
