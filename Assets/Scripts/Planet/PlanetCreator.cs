@@ -69,6 +69,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
             Planet planet = planetGO.AddComponent<Planet>();
             planet.Gravity = gravity;
+            // Add planet types 
+            PlanetType[] availableTypes = { PlanetType.Mining, PlanetType.Organic };
+            planet.Type = availableTypes[Random.Range(0, availableTypes.Length)];
 
             float radius = scale * 0.5f;
             Vector3 surfaceNormal = (planetPos - origin).normalized;

@@ -1,20 +1,10 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
     public class HubResourceSpawner : MonoBehaviour
     {
-        [System.Serializable]
-        public class ResourceConfig
-        {
-            public Item item;
-            public int count = 3;
-            [Tooltip("Fallback boja ako item nema prefab")]
-            public Color color = Color.gray;
-        }
-
-        [SerializeField] private List<ResourceConfig> resources = new();
+        [SerializeField] private PlanetResourceSettings settings;
         [SerializeField] private float surfaceOffset = 1.5f;
 
         void Start()
@@ -38,18 +28,26 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void SpawnAll(Transform hub)
         {
-            foreach (var cfg in resources)
+            if (settings == null) return;
+
+            if (!hub.TryGetComponent(out Planet planet)) return;
+
+            PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
+            if (config == null) return;
+
+            float scale = hub.localScale.x;
+            foreach (var entry in config.resources)
             {
-                if (cfg.item == null) continue;
-                for (int i = 0; i < cfg.count; i++)
-                    SpawnOne(cfg, hub);
+                if (entry.item == null) continue;
+                int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * scale));
+                for (int i = 0; i < count; i++)
+                    SpawnOne(entry, hub);
             }
         }
 
-        private void SpawnOne(ResourceConfig cfg, Transform hub)
+        private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform hub)
         {
             Vector3 normal = Random.onUnitSphere;
-            // Raycast od van prema centru planete da nađemo točnu površinu
             float castStart = hub.localScale.x;
             Vector3 rayOrigin = hub.position + normal * castStart;
 
@@ -63,18 +61,16 @@ namespace xyz.germanfica.unity.planet.gravity
             }
             else
             {
-                // Fallback ako raycast ne pogodi
                 spawnPos = hub.position + normal * (hub.localScale.x * 0.5f + surfaceOffset);
                 spawnRot = Quaternion.FromToRotation(Vector3.up, normal);
             }
 
-            // Spawn u world spaceu (bez parenta) da se izbjegnu scale problemi
-            GameObject go = cfg.item.prefab != null
-                ? Instantiate(cfg.item.prefab, spawnPos, spawnRot)
-                : CreateFallbackCube(spawnPos, spawnRot, cfg.color);
+            GameObject go = entry.item.prefab != null
+                ? Instantiate(entry.item.prefab, spawnPos, spawnRot)
+                : CreateFallbackCube(spawnPos, spawnRot, entry.fallbackColor);
 
-            go.name = cfg.item.displayName;
-            go.transform.localScale = cfg.item.worldScale;
+            go.name = entry.item.displayName;
+            go.transform.localScale = entry.item.worldScale;
 
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
@@ -85,7 +81,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (!go.TryGetComponent<ItemInteractable>(out var interactable))
                 interactable = go.AddComponent<ItemInteractable>();
 
-            interactable.Init(cfg.item);
+            interactable.Init(entry.item);
         }
 
         private GameObject CreateFallbackCube(Vector3 pos, Quaternion rot, Color color)

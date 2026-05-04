@@ -10,8 +10,8 @@ namespace xyz.germanfica.unity.planet.gravity
         public class ResourceEntry
         {
             public Item item;
-            [Min(1)] public int minCount = 2;
-            [Min(1)] public int maxCount = 5;
+            [Min(0f)] public float minDensity = 0.1f;
+            [Min(0f)] public float maxDensity = 0.2f;
             public Color fallbackColor = Color.gray;
         }
 

@@ -20,10 +20,12 @@ namespace xyz.germanfica.unity.planet.gravity
             PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
             if (config == null) return;
 
+            Renderer rend = planetTransform.GetComponentInChildren<Renderer>();
+            float scale = rend != null ? rend.bounds.size.x : planetTransform.localScale.x;
             foreach (var entry in config.resources)
             {
                 if (entry.item == null) continue;
-                int count = Random.Range(entry.minCount, entry.maxCount + 1);
+                int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * scale));
                 for (int i = 0; i < count; i++)
                     SpawnOne(entry, planetTransform);
             }
