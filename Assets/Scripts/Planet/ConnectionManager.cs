@@ -8,17 +8,50 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [SerializeField] private PlanetCreator planetCreator;
         [SerializeField] private float maxConnectionRange = 5000f;
-        [SerializeField] private ConnectionRequirement[] buildCost;
+
+        [Header("Slaba veza (crvena)")]
+        [SerializeField] private ConnectionRequirement[] weakCost;
+        [SerializeField] private float weakLifespan = 60f;
+
+        [Header("Srednja veza (narančasta)")]
+        [SerializeField] private ConnectionRequirement[] midCost;
+        [SerializeField] private float midLifespan = 180f;
+
+        [Header("Jaka veza (zelena)")]
+        [SerializeField] private ConnectionRequirement[] strongCost;
+        [SerializeField] private float strongLifespan = 600f;
 
         private readonly List<PlanetConnection> _connections = new();
+        private readonly Dictionary<(int, int), List<GameObject>> _potentialMarkers = new();
 
         private IEnumerator Start()
         {
-            yield return null; // wait for PlanetCreator.Start() to finish spawning planets
+            yield return null;
             SpawnPotentialMarkers();
         }
 
-        private void SpawnPotentialMarkers()
+        void OnEnable()  => GameEventBus.OnConnectionDestroyed += OnConnectionDestroyed;
+        void OnDisable() => GameEventBus.OnConnectionDestroyed -= OnConnectionDestroyed;
+
+        private void OnConnectionDestroyed(ConnectionEvent e)
+        {
+            _connections.RemoveAll(c => c == null || c.Connects(e.PlanetA, e.PlanetB));
+
+            if (e.ConnectionType == ConnectionType.Ancient) return;
+            if (e.PlanetA == null || e.PlanetB == null) return;
+
+            SetPotentialMarkersActive(e.PlanetA, e.PlanetB, true);
+        }
+
+        private void SetPotentialMarkersActive(Transform a, Transform b, bool active)
+        {
+            var key = PairKey(a, b);
+            if (!_potentialMarkers.TryGetValue(key, out var markers)) return;
+            foreach (var m in markers)
+                if (m != null) m.SetActive(active);
+        }
+
+private void SpawnPotentialMarkers()
         {
             Planet[] all = FindObjectsByType<Planet>(FindObjectsSortMode.None);
             int count = 0;
@@ -43,17 +76,18 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void SpawnPotentialPair(Transform a, Transform b)
         {
-            GameObject markerOnA = CreatePotentialMarker(a, b);
-            GameObject markerOnB = CreatePotentialMarker(b, a);
-
-            markerOnA.GetComponent<PotentialConnectionInteractable>().SetMirror(markerOnB);
-            markerOnB.GetComponent<PotentialConnectionInteractable>().SetMirror(markerOnA);
+            var key = PairKey(a, b);
+            _potentialMarkers[key] = new List<GameObject>
+            {
+                CreatePotentialMarker(a, b),
+                CreatePotentialMarker(b, a)
+            };
         }
 
         private GameObject CreatePotentialMarker(Transform from, Transform toward)
         {
             Vector3 dir = (toward.position - from.position).normalized;
-            Vector3 pos = SurfacePoint(from, dir);
+            Vector3 pos = PlanetConnection.SurfacePoint(from, dir);
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
 
             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -63,26 +97,58 @@ namespace xyz.germanfica.unity.planet.gravity
             marker.transform.localScale = Vector3.one * 3f;
             marker.GetComponent<Collider>().isTrigger = true;
 
-            PotentialConnectionInteractable interactable = marker.AddComponent<PotentialConnectionInteractable>();
+            var interactable = marker.AddComponent<PotentialConnectionInteractable>();
             interactable.Init(this, from, toward);
 
             return marker;
         }
 
-        public bool TryBuildConnection(Transform a, Transform b)
+        public bool TryBuildConnection(Transform a, Transform b, ConnectionType quality)
         {
             if (AlreadyConnected(a, b)) return false;
-            if (!HasRequiredResources()) return false;
 
-            ConsumeResources();
-            CreateConnection(a, b, ConnectionType.PlayerBuilt);
+            ConnectionRequirement[] cost = GetCost(quality);
+            if (!HasResources(cost)) return false;
+
+            ConsumeResources(cost);
+            CreateConnection(a, b, quality, GetLifespan(quality));
+            SetPotentialMarkersActive(a, b, false);
             return true;
         }
 
-        private bool HasRequiredResources()
+        public ConnectionRequirement[] GetCost(ConnectionType quality) => quality switch
         {
-            if (InventorySystem.current == null) return true;
-            foreach (var req in buildCost)
+            ConnectionType.Weak   => weakCost,
+            ConnectionType.Mid    => midCost,
+            ConnectionType.Strong => strongCost,
+            _                     => null
+        };
+
+        public float GetLifespan(ConnectionType quality) => quality switch
+        {
+            ConnectionType.Weak   => weakLifespan,
+            ConnectionType.Mid    => midLifespan,
+            ConnectionType.Strong => strongLifespan,
+            _                     => 0f
+        };
+
+        public bool CanAfford(ConnectionType quality) => HasResources(GetCost(quality));
+
+        private void RemovePotentialGroup(Transform a, Transform b)
+        {
+            var key = PairKey(a, b);
+            if (!_potentialMarkers.TryGetValue(key, out var markers)) return;
+
+            foreach (var m in markers)
+                if (m != null) Destroy(m);
+
+            _potentialMarkers.Remove(key);
+        }
+
+        private bool HasResources(ConnectionRequirement[] cost)
+        {
+            if (cost == null || InventorySystem.current == null) return true;
+            foreach (var req in cost)
             {
                 if (req.item == null) continue;
                 var item = InventorySystem.current.Get(req.item);
@@ -91,10 +157,10 @@ namespace xyz.germanfica.unity.planet.gravity
             return true;
         }
 
-        private void ConsumeResources()
+        private void ConsumeResources(ConnectionRequirement[] cost)
         {
-            if (InventorySystem.current == null) return;
-            foreach (var req in buildCost)
+            if (cost == null || InventorySystem.current == null) return;
+            foreach (var req in cost)
             {
                 if (req.item == null) continue;
                 for (int i = 0; i < req.amount; i++)
@@ -102,13 +168,13 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
-        private void CreateConnection(Transform a, Transform b, ConnectionType type)
+        private void CreateConnection(Transform a, Transform b, ConnectionType type, float lifespan)
         {
             GameObject go = new GameObject($"Connection_{a.name}_{b.name}");
             go.transform.SetParent(transform);
 
             PlanetConnection conn = go.AddComponent<PlanetConnection>();
-            conn.Init(a, b, type, planetCreator);
+            conn.Init(a, b, type, planetCreator, lifespan);
             _connections.Add(conn);
 
             GameEventBus.RaiseConnectionCreated(new ConnectionEvent
@@ -126,15 +192,10 @@ namespace xyz.germanfica.unity.planet.gravity
             return false;
         }
 
-        private static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
+        private (int, int) PairKey(Transform a, Transform b)
         {
-            float radius = planet.localScale.x * 0.5f;
-            Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);
-
-            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                return hit.point;
-
-            return planet.position + directionFromPlanet * radius;
+            int ia = a.GetInstanceID(), ib = b.GetInstanceID();
+            return ia < ib ? (ia, ib) : (ib, ia);
         }
 
         public IReadOnlyList<PlanetConnection> Connections => _connections;

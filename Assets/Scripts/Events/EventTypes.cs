@@ -4,7 +4,7 @@ namespace xyz.germanfica.unity.planet.gravity
 {
     public enum ResourceType { Ore, Crystal, Biomass, Ice, Gas, VolcanicMatter }
     public enum PlanetType { Mining, Organic, Ice, Gaseous, Volcanic, Abandoned }
-    public enum ConnectionType { Ancient, PlayerBuilt }
+    public enum ConnectionType { Ancient, Weak, Mid, Strong }
     public enum ArtifactType { Blueprint, Enhancer, NetworkFragment, EnergyCore, PairedArtifact }
     public enum MachineState { Active, Idle, Broken }
     public enum HubLevel { Basic, Upgraded, Advanced }

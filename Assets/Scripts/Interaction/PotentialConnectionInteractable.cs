@@ -7,7 +7,6 @@ namespace xyz.germanfica.unity.planet.gravity
         private ConnectionManager _connectionManager;
         private Transform _sourcePlanet;
         private Transform _targetPlanet;
-        private GameObject _mirrorMarker;
 
         public void Init(ConnectionManager connectionManager, Transform source, Transform target)
         {
@@ -16,15 +15,9 @@ namespace xyz.germanfica.unity.planet.gravity
             _targetPlanet = target;
         }
 
-        public void SetMirror(GameObject mirror) => _mirrorMarker = mirror;
-
         public override void Interact()
         {
-            if (!_connectionManager.TryBuildConnection(_sourcePlanet, _targetPlanet)) return;
-
-            if (_mirrorMarker != null)
-                Destroy(_mirrorMarker);
-            Destroy(gameObject);
+            ConnectionChoiceUI.Instance?.Show(_connectionManager, _sourcePlanet, _targetPlanet);
         }
     }
 }

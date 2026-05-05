@@ -10,21 +10,46 @@ namespace xyz.germanfica.unity.planet.gravity
         public ConnectionType Type { get; private set; }
 
         private GameObject _cylinder;
+        private float _lifespan;
 
-        public void Init(Transform a, Transform b, ConnectionType type, PlanetCreator planetCreator)
+        public void Init(Transform a, Transform b, ConnectionType type, PlanetCreator planetCreator, float lifespan = 0f)
         {
             PlanetA = a;
             PlanetB = b;
             Type = type;
+            _lifespan = lifespan;
 
             _cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             _cylinder.transform.SetParent(transform);
             Destroy(_cylinder.GetComponent<Collider>());
 
+            ApplyTypeColor();
             UpdateVisual();
 
             SpawnMarker(from: a, toward: b, planetCreator);
             SpawnMarker(from: b, toward: a, planetCreator);
+        }
+
+        void Update()
+        {
+            if (_lifespan <= 0f) return;
+            float damagePerSecond = 100f / _lifespan;
+            ApplyDamage(damagePerSecond * Time.deltaTime);
+        }
+
+        private void ApplyTypeColor()
+        {
+            Color color = Type switch
+            {
+                ConnectionType.Weak   => Color.red,
+                ConnectionType.Mid    => new Color(1f, 0.5f, 0f),
+                ConnectionType.Strong => Color.green,
+                _                     => Color.white
+            };
+
+            var mat = _cylinder.GetComponent<Renderer>().material;
+            mat.color = color;
+            mat.SetColor("_BaseColor", color);
         }
 
         private void SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator)
@@ -45,7 +70,7 @@ namespace xyz.germanfica.unity.planet.gravity
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
         }
 
-        private static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
+        internal static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
         {
             float radius = planet.localScale.x * 0.5f;
             Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);

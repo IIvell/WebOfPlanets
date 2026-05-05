@@ -22,8 +22,8 @@ namespace xyz.germanfica.unity.planet.gravity
             _input.PlayerActionmap.Jump.performed += _ => canJump = true;
         }
 
-        void OnEnable()  => _input.Enable();
-        void OnDisable() => _input.Disable();
+        void OnEnable()  => _input?.Enable();
+        void OnDisable() => _input?.Disable();
 
         public void SetInputEnabled(bool enabled)
         {
