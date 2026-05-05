@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace xyz.germanfica.unity.planet.gravity
@@ -7,15 +9,27 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlanetResourceSettings settings;
         [SerializeField] private float surfaceOffset = 1.5f;
 
+        private readonly HashSet<Transform> _processed = new();
+
         void OnEnable()  => GameEventBus.OnPlanetDiscovered += OnPlanetDiscovered;
         void OnDisable() => GameEventBus.OnPlanetDiscovered -= OnPlanetDiscovered;
 
+        private IEnumerator Start()
+        {
+            yield return null; // wait for PlanetCreator.Start() to finish spawning
+            foreach (var planet in FindObjectsByType<Planet>(FindObjectsSortMode.None))
+                OnPlanetDiscovered(planet.transform);
+        }
+
         private void OnPlanetDiscovered(Transform planetTransform)
         {
+            if (_processed.Contains(planetTransform)) return;
+            _processed.Add(planetTransform);
+
             if (settings == null) return;
 
             Planet planet = planetTransform.GetComponent<Planet>();
-            if (planet == null) return;
+            if (planet == null || planet.IsHub) return;
 
             PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
             if (config == null) return;

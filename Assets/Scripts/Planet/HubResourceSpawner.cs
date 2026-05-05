@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace xyz.germanfica.unity.planet.gravity
@@ -7,13 +8,15 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlanetResourceSettings settings;
         [SerializeField] private float surfaceOffset = 1.5f;
 
-        void Start()
+        private IEnumerator Start()
         {
+            yield return null;
+
             Planet hub = FindHub();
             if (hub == null)
             {
                 Debug.LogWarning("HubResourceSpawner: nije pronađen hub planet (IsHub = true).");
-                return;
+                yield break;
             }
 
             SpawnAll(hub.transform);
@@ -26,6 +29,12 @@ namespace xyz.germanfica.unity.planet.gravity
             return null;
         }
 
+        private float GetPlanetRadius(Transform hub)
+        {
+            Renderer rend = hub.GetComponentInChildren<Renderer>();
+            return rend != null ? rend.bounds.size.x * 0.5f : hub.localScale.x * 0.5f;
+        }
+
         private void SpawnAll(Transform hub)
         {
             if (settings == null) return;
@@ -35,11 +44,11 @@ namespace xyz.germanfica.unity.planet.gravity
             PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
             if (config == null) return;
 
-            float scale = hub.localScale.x;
+            float radius = GetPlanetRadius(hub);
             foreach (var entry in config.resources)
             {
                 if (entry.item == null) continue;
-                int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * scale));
+                int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * radius));
                 for (int i = 0; i < count; i++)
                     SpawnOne(entry, hub);
             }
@@ -48,20 +57,20 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform hub)
         {
             Vector3 normal = Random.onUnitSphere;
-            float castStart = hub.localScale.x;
-            Vector3 rayOrigin = hub.position + normal * castStart;
+            float radius = GetPlanetRadius(hub);
+            Vector3 rayOrigin = hub.position + normal * radius;
 
             Vector3 spawnPos;
             Quaternion spawnRot;
 
-            if (Physics.Raycast(rayOrigin, -normal, out RaycastHit hit, castStart * 2f))
+            if (Physics.Raycast(rayOrigin, -normal, out RaycastHit hit, radius * 2f))
             {
                 spawnPos = hit.point + hit.normal * surfaceOffset;
                 spawnRot = Quaternion.FromToRotation(Vector3.up, hit.normal);
             }
             else
             {
-                spawnPos = hub.position + normal * (hub.localScale.x * 0.5f + surfaceOffset);
+                spawnPos = hub.position + normal * (radius + surfaceOffset);
                 spawnRot = Quaternion.FromToRotation(Vector3.up, normal);
             }
 

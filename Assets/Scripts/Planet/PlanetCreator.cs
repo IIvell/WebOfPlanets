@@ -26,8 +26,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private static readonly PlanetType[] AllTypes =
         {
-            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice,
-            PlanetType.Gaseous, PlanetType.Volcanic, PlanetType.Abandoned
+            PlanetType.Mining, PlanetType.Organic
         };
 
         void Start()
