@@ -1,43 +1,77 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
     public class ConnectionManager : MonoBehaviour
     {
         [SerializeField] private PlanetCreator planetCreator;
+        [SerializeField] private float maxConnectionRange = 5000f;
 
         private readonly List<PlanetConnection> _connections = new();
 
-        void Update()
+        private IEnumerator Start()
         {
-            if (Keyboard.current.cKey.wasPressedThisFrame)
-                BuildConnectionsFromHub();
+            yield return null; // wait for PlanetCreator.Start() to finish spawning planets
+            SpawnPotentialMarkers();
         }
 
-        private void BuildConnectionsFromHub()
+        private void SpawnPotentialMarkers()
         {
-            Transform hub = FindHub();
-            if (hub == null)
-            {
-                Debug.LogWarning("ConnectionManager: nema hub planeta.");
-                return;
-            }
-
             Planet[] all = FindObjectsByType<Planet>(FindObjectsSortMode.None);
-            int built = 0;
+            int count = 0;
 
-            foreach (Planet p in all)
+            for (int i = 0; i < all.Length; i++)
             {
-                if (p.IsHub) continue;
-if (AlreadyConnected(hub, p.transform)) continue;
+                for (int j = i + 1; j < all.Length; j++)
+                {
+                    Transform a = all[i].transform;
+                    Transform b = all[j].transform;
 
-                CreateConnection(hub, p.transform, ConnectionType.PlayerBuilt);
-                built++;
+                    if (Vector3.Distance(a.position, b.position) > maxConnectionRange) continue;
+                    if (AlreadyConnected(a, b)) continue;
+
+                    SpawnPotentialPair(a, b);
+                    count++;
+                }
             }
 
-            Debug.Log($"ConnectionManager: izgrađeno {built} novih veza s huba.");
+            Debug.Log($"ConnectionManager: spawnirano {count} potencijalnih veza.");
+        }
+
+        private void SpawnPotentialPair(Transform a, Transform b)
+        {
+            GameObject markerOnA = CreatePotentialMarker(a, b);
+            GameObject markerOnB = CreatePotentialMarker(b, a);
+
+            markerOnA.GetComponent<PotentialConnectionInteractable>().SetMirror(markerOnB);
+            markerOnB.GetComponent<PotentialConnectionInteractable>().SetMirror(markerOnA);
+        }
+
+        private GameObject CreatePotentialMarker(Transform from, Transform toward)
+        {
+            Vector3 dir = (toward.position - from.position).normalized;
+            Vector3 pos = SurfacePoint(from, dir);
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
+
+            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            marker.name = "PotentialConnectionMarker";
+            marker.transform.SetParent(transform);
+            marker.transform.SetPositionAndRotation(pos, rot);
+            marker.transform.localScale = Vector3.one * 3f;
+            marker.GetComponent<Collider>().isTrigger = true;
+
+            PotentialConnectionInteractable interactable = marker.AddComponent<PotentialConnectionInteractable>();
+            interactable.Init(this, from, toward);
+
+            return marker;
+        }
+
+        public void BuildConnection(Transform a, Transform b)
+        {
+            if (AlreadyConnected(a, b)) return;
+            CreateConnection(a, b, ConnectionType.PlayerBuilt);
         }
 
         private void CreateConnection(Transform a, Transform b, ConnectionType type)
@@ -64,11 +98,15 @@ if (AlreadyConnected(hub, p.transform)) continue;
             return false;
         }
 
-        private Transform FindHub()
+        private static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
         {
-            foreach (Planet p in FindObjectsByType<Planet>(FindObjectsSortMode.None))
-                if (p.IsHub) return p.transform;
-            return null;
+            float radius = planet.localScale.x * 0.5f;
+            Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);
+
+            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                return hit.point;
+
+            return planet.position + directionFromPlanet * radius;
         }
 
         public IReadOnlyList<PlanetConnection> Connections => _connections;

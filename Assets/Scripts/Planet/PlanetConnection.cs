@@ -50,7 +50,7 @@ namespace xyz.germanfica.unity.planet.gravity
             float radius = planet.localScale.x * 0.5f;
             Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);
 
-            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f))
+            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 return hit.point;
 
             return planet.position + directionFromPlanet * radius;
