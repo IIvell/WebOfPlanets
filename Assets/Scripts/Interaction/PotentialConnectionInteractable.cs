@@ -20,7 +20,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public override void Interact()
         {
-            _connectionManager.BuildConnection(_sourcePlanet, _targetPlanet);
+            if (!_connectionManager.TryBuildConnection(_sourcePlanet, _targetPlanet)) return;
+
             if (_mirrorMarker != null)
                 Destroy(_mirrorMarker);
             Destroy(gameObject);

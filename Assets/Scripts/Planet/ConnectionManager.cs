@@ -8,6 +8,7 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [SerializeField] private PlanetCreator planetCreator;
         [SerializeField] private float maxConnectionRange = 5000f;
+        [SerializeField] private ConnectionRequirement[] buildCost;
 
         private readonly List<PlanetConnection> _connections = new();
 
@@ -68,10 +69,37 @@ namespace xyz.germanfica.unity.planet.gravity
             return marker;
         }
 
-        public void BuildConnection(Transform a, Transform b)
+        public bool TryBuildConnection(Transform a, Transform b)
         {
-            if (AlreadyConnected(a, b)) return;
+            if (AlreadyConnected(a, b)) return false;
+            if (!HasRequiredResources()) return false;
+
+            ConsumeResources();
             CreateConnection(a, b, ConnectionType.PlayerBuilt);
+            return true;
+        }
+
+        private bool HasRequiredResources()
+        {
+            if (InventorySystem.current == null) return true;
+            foreach (var req in buildCost)
+            {
+                if (req.item == null) continue;
+                var item = InventorySystem.current.Get(req.item);
+                if (item == null || item.GetStackSize() < req.amount) return false;
+            }
+            return true;
+        }
+
+        private void ConsumeResources()
+        {
+            if (InventorySystem.current == null) return;
+            foreach (var req in buildCost)
+            {
+                if (req.item == null) continue;
+                for (int i = 0; i < req.amount; i++)
+                    InventorySystem.current.Remove(req.item);
+            }
         }
 
         private void CreateConnection(Transform a, Transform b, ConnectionType type)
