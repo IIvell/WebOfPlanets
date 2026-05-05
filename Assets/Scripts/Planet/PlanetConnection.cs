@@ -45,19 +45,14 @@ namespace xyz.germanfica.unity.planet.gravity
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
         }
 
-        // Cast a ray from far outside the planet toward its center.
-        // This finds the exact surface point in any direction, regardless of mesh shape or scale.
         private static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
         {
-            const float castDistance = 2000f;
-            Vector3 origin = planet.position + directionFromPlanet * castDistance;
+            float radius = planet.localScale.x * 0.5f;
+            Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);
 
-            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, castDistance + 100f))
+            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f))
                 return hit.point;
 
-            // Fallback: use largest bounds extent as radius
-            Renderer rend = planet.GetComponentInChildren<Renderer>();
-            float radius = rend != null ? rend.bounds.extents.magnitude : planet.localScale.x * 0.5f;
             return planet.position + directionFromPlanet * radius;
         }
 
