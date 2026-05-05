@@ -8,6 +8,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public Transform currentPlanet;
         public bool freezeRotation = true;
 
+        [SerializeField] private float moveSpeed = 3f;
         [SerializeField] private float jumpForce = 20f;
         private Planet _planet;
         private bool canJump;
@@ -89,7 +90,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            Vector3 move = (transform.right * input.x + transform.forward * input.y) * (Time.fixedDeltaTime * 3.0f);
+            Vector3 move = (transform.right * input.x + transform.forward * input.y) * (Time.fixedDeltaTime * moveSpeed);
             rig.MovePosition(rig.position + move);
         }
     }
