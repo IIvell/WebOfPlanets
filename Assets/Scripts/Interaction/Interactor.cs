@@ -49,7 +49,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            _holdTimer += Time.deltaTime;
+            _holdTimer += Time.deltaTime * PlayerToolSystem.GetSpeedMultiplier();
             float progress = Mathf.Clamp01(_holdTimer / _currentTarget.HoldTime);
             GameEventBus.Raise(new MiningProgressEvent { Progress = progress, IsMining = true });
 

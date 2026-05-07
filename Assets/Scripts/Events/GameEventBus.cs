@@ -50,6 +50,10 @@ namespace xyz.germanfica.unity.planet.gravity
         // ── Mining ────────────────────────────────────────────────────────────
         public static event Action<MiningProgressEvent> OnMiningProgress;
 
+        // ── Tools ─────────────────────────────────────────────────────────────
+        public static event Action<ToolEquippedEvent>    OnToolEquipped;
+        public static event Action<ToolDurabilityEvent>  OnToolDurabilityChanged;
+
         // ── Raise overloads ───────────────────────────────────────────────────
         public static void Raise(PlayerPlanetEvent e)            => OnPlayerLandedOnPlanet?.Invoke(e);
         public static void RaiseLeftPlanet(PlayerPlanetEvent e)  => OnPlayerLeftPlanet?.Invoke(e);
@@ -89,5 +93,8 @@ namespace xyz.germanfica.unity.planet.gravity
         public static void RaiseStoryFragment(string fragment)      => OnStoryFragmentUnlocked?.Invoke(fragment);
 
         public static void Raise(MiningProgressEvent e)             => OnMiningProgress?.Invoke(e);
+
+        public static void RaiseToolEquipped(ToolEquippedEvent e)        => OnToolEquipped?.Invoke(e);
+        public static void RaiseToolDurabilityChanged(ToolDurabilityEvent e) => OnToolDurabilityChanged?.Invoke(e);
     }
 }

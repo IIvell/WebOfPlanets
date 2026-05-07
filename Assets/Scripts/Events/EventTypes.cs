@@ -91,4 +91,18 @@ namespace xyz.germanfica.unity.planet.gravity
         public float Progress; // 0–1
         public bool IsMining;
     }
+
+    public struct ToolEquippedEvent
+    {
+        public string ToolName;       // null ili prazan = odložen alat
+        public float SpeedMultiplier;
+        public int CurrentDurability;
+        public int MaxDurability;
+    }
+
+    public struct ToolDurabilityEvent
+    {
+        public int Current;
+        public int Max;
+    }
 }

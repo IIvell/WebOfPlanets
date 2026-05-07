@@ -24,6 +24,7 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             InventorySystem.current.Add(referenceItem);
+            PlayerToolSystem.current?.OnResourceMined();
             Debug.Log($"Picked up: {referenceItem.displayName}");
 
             if (destroyAfterPickup)
