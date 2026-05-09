@@ -21,6 +21,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private ConnectionRequirement[] strongCost;
         [SerializeField] private float strongLifespan = 600f;
 
+        [Header("Teleport (bez veze)")]
+        [SerializeField] private ConnectionRequirement[] teleportCost;
+
         private readonly List<PlanetConnection> _connections = new();
         private readonly Dictionary<(int, int), List<GameObject>> _potentialMarkers = new();
 
@@ -133,6 +136,17 @@ private void SpawnPotentialMarkers()
         };
 
         public bool CanAfford(ConnectionType quality) => HasResources(GetCost(quality));
+
+        public ConnectionRequirement[] GetTeleportCost() => teleportCost;
+        public bool CanAffordTeleport() => HasResources(teleportCost);
+
+        public bool TryTeleport(Transform from, Transform to)
+        {
+            if (!HasResources(teleportCost)) return false;
+            ConsumeResources(teleportCost);
+            planetCreator.TeleportToPlanet(to, from);
+            return true;
+        }
 
         private void RemovePotentialGroup(Transform a, Transform b)
         {

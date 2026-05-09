@@ -17,6 +17,8 @@ namespace xyz.germanfica.unity.planet.gravity
         private GameObject _panel;
         private Button[] _buttons;
         private TextMeshProUGUI[] _labels;
+        private Button _teleportButton;
+        private TextMeshProUGUI _teleportLabel;
 
         private ConnectionManager _mgr;
         private Transform _source, _target;
@@ -77,6 +79,13 @@ namespace xyz.germanfica.unity.planet.gravity
             Hide();
         }
 
+        private void ChooseTeleport()
+        {
+            if (_mgr == null) return;
+            _mgr.TryTeleport(_source, _target);
+            Hide();
+        }
+
         private void RefreshButtons()
         {
             if (_mgr == null) return;
@@ -95,6 +104,17 @@ namespace xyz.germanfica.unity.planet.gravity
 
                 _labels[i].text = BuildLabel(i);
             }
+
+            bool canTeleport = _mgr.CanAffordTeleport();
+            _teleportButton.interactable = canTeleport;
+            var tCol = new Color(0f, 0.55f, 1f);
+            var tBlock = _teleportButton.colors;
+            tBlock.normalColor      = canTeleport ? tCol : new Color(0f, 0.22f, 0.4f);
+            tBlock.highlightedColor = canTeleport ? Color.Lerp(tCol, Color.white, 0.3f) : tBlock.normalColor;
+            tBlock.selectedColor    = tBlock.normalColor;
+            tBlock.disabledColor    = tBlock.normalColor;
+            _teleportButton.colors  = tBlock;
+            _teleportLabel.text     = BuildTeleportLabel();
         }
 
         private string BuildLabel(int i)
@@ -120,6 +140,26 @@ namespace xyz.germanfica.unity.planet.gravity
             return sb.ToString();
         }
 
+        private string BuildTeleportLabel()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("<b>TELEPORT</b>");
+
+            var cost = _mgr.GetTeleportCost();
+            if (cost == null || cost.Length == 0)
+            {
+                sb.Append("Besplatno");
+            }
+            else
+            {
+                foreach (var req in cost)
+                    if (req.item != null)
+                        sb.Append($"{req.amount}x {req.item.displayName}");
+            }
+
+            return sb.ToString();
+        }
+
         // ── UI construction ───────────────────────────────────────────────────
 
         private void BuildUI()
@@ -131,24 +171,24 @@ namespace xyz.germanfica.unity.planet.gravity
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
             panelRT.anchorMax = new Vector2(0.5f, 0.5f);
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
-            panelRT.sizeDelta = new Vector2(560f, 220f);
+            panelRT.sizeDelta = new Vector2(560f, 310f);
 
             var bg = _panel.AddComponent<Image>();
             bg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
             // Title
-            var title = MakeText(_panel.transform, "Izaberi vrstu veze", 20,
-                new Vector2(0f, 80f), new Vector2(500f, 36f));
+            var title = MakeText(_panel.transform, "Izaberi akciju", 20,
+                new Vector2(0f, 128f), new Vector2(500f, 36f));
             title.alignment = TextAlignmentOptions.Center;
             title.color = Color.white;
 
-            // Hint
-            var hint = MakeText(_panel.transform, "ESC — odustani", 11,
-                new Vector2(0f, -90f), new Vector2(500f, 24f));
-            hint.alignment = TextAlignmentOptions.Center;
-            hint.color = new Color(0.6f, 0.6f, 0.6f);
+            // Connection section label
+            var connLabel = MakeText(_panel.transform, "— VEZA —", 11,
+                new Vector2(0f, 86f), new Vector2(500f, 22f));
+            connLabel.alignment = TextAlignmentOptions.Center;
+            connLabel.color = new Color(0.6f, 0.6f, 0.6f);
 
-            // 3 choice buttons
+            // 3 connection choice buttons
             _buttons = new Button[3];
             _labels  = new TextMeshProUGUI[3];
 
@@ -162,6 +202,22 @@ namespace xyz.germanfica.unity.planet.gravity
                 int captured = i;
                 btn.onClick.AddListener(() => Choose(Types[captured]));
             }
+
+            // Teleport section label
+            var teleLabel = MakeText(_panel.transform, "— TELEPORT —", 11,
+                new Vector2(0f, -82f), new Vector2(500f, 22f));
+            teleLabel.alignment = TextAlignmentOptions.Center;
+            teleLabel.color = new Color(0.6f, 0.6f, 0.6f);
+
+            // Teleport button
+            (_teleportButton, _teleportLabel) = MakeTeleportButton(_panel.transform);
+            _teleportButton.onClick.AddListener(ChooseTeleport);
+
+            // Hint
+            var hint = MakeText(_panel.transform, "ESC — odustani", 11,
+                new Vector2(0f, -148f), new Vector2(500f, 24f));
+            hint.alignment = TextAlignmentOptions.Center;
+            hint.color = new Color(0.6f, 0.6f, 0.6f);
         }
 
         private (Button btn, TextMeshProUGUI lbl) MakeButton(Transform parent, float x)
@@ -175,6 +231,36 @@ namespace xyz.germanfica.unity.planet.gravity
 
             var img = go.AddComponent<Image>();
             img.color = Color.white;
+
+            var btn = go.AddComponent<Button>();
+
+            var labelGO = new GameObject("Label");
+            labelGO.transform.SetParent(go.transform, false);
+            var labelRT = labelGO.AddComponent<RectTransform>();
+            labelRT.anchorMin = Vector2.zero;
+            labelRT.anchorMax = Vector2.one;
+            labelRT.offsetMin = new Vector2(6f, 6f);
+            labelRT.offsetMax = new Vector2(-6f, -6f);
+
+            var lbl = labelGO.AddComponent<TextMeshProUGUI>();
+            lbl.fontSize  = 13;
+            lbl.alignment = TextAlignmentOptions.Center;
+            lbl.color     = Color.white;
+
+            return (btn, lbl);
+        }
+
+        private (Button btn, TextMeshProUGUI lbl) MakeTeleportButton(Transform parent)
+        {
+            var go = new GameObject("TeleportBtn");
+            go.transform.SetParent(parent, false);
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchoredPosition = new Vector2(0f, -115f);
+            rt.sizeDelta        = new Vector2(220f, 50f);
+
+            var img = go.AddComponent<Image>();
+            img.color = new Color(0f, 0.55f, 1f);
 
             var btn = go.AddComponent<Button>();
 
