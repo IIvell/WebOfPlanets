@@ -26,6 +26,13 @@ namespace xyz.germanfica.unity.planet.gravity
                 _currentTarget = FindClosest();
                 _holdTimer = 0f;
 
+                if (_currentTarget is BaseInteractable bi && !bi.CanInteract)
+                {
+                    Debug.Log("Potreban je specifičan alat za minanje ovog resursa.");
+                    _currentTarget = null;
+                    return;
+                }
+
                 if (_currentTarget != null && _currentTarget.HoldTime <= 0f)
                 {
                     _currentTarget.Interact();
