@@ -738,6 +738,7 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
     amount: 1
   strongLifespan: 600
+  teleportCost: []
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1030,6 +1031,7 @@ GameObject:
   - component: {fileID: 1078422986}
   - component: {fileID: 1078422988}
   - component: {fileID: 1078422989}
+  - component: {fileID: 1078422990}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1161,6 +1163,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.PlayerToolSystem
   toolHoldPoint: {fileID: 57085728}
+--- !u!114 &1078422990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078422980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c4f83b7572a81c46b1542392bc78d52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachineBuilder
+  collectorData: {fileID: 11400000, guid: ddb9f51f0fa56fa40a093c686201f26f, type: 2}
+  storageData: {fileID: 11400000, guid: 61754e40333145d4f99c3cd71aa597a8, type: 2}
+  playerController: {fileID: 1078422987}
+  interactor: {fileID: 1078422988}
+  spawnForwardDistance: 4
 --- !u!1001 &1117808297
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1563,6 +1582,7 @@ GameObject:
   - component: {fileID: 1695095372}
   - component: {fileID: 1695095371}
   - component: {fileID: 1695095376}
+  - component: {fileID: 1695095377}
   m_Layer: 5
   m_Name: NetworkComputerCanvas
   m_TagString: Untagged
@@ -1686,6 +1706,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edcfc38e394d2604db19b37952eb6a23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.ConnectionChoiceUI
+  playerController: {fileID: 1078422987}
+  playerCamera: {fileID: 330585548}
+  interactor: {fileID: 1078422988}
+--- !u!114 &1695095377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1695095370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bbb553737187eb48a7f6f4d144eeaa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachineTeleporterUI
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}

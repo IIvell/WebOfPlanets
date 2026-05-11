@@ -8,6 +8,9 @@ namespace xyz.germanfica.unity.planet.gravity
         private Transform _sourcePlanet;
         private Transform _targetPlanet;
 
+        public Transform SourcePlanet => _sourcePlanet;
+        public Transform TargetPlanet => _targetPlanet;
+
         public void Init(PlanetCreator planetCreator, Transform sourcePlanet, Transform targetPlanet)
         {
             _planetCreator = planetCreator;

@@ -17,3 +17,5 @@ MonoBehaviour:
   prefab: {fileID: 919132149155446097, guid: 1c8dcd7a434a0b543b8043e201a4a82a, type: 3}
   miningTime: 0
   worldScale: {x: 100, y: 100, z: 100}
+  requiredTool: {fileID: 0}
+  regenerationTime: 10

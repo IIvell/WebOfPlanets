@@ -11,6 +11,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private bool _regenerating;
 
         public override float HoldTime => referenceItem != null ? referenceItem.miningTime : 0f;
+        public Item ReferenceItem => referenceItem;
 
         public override bool CanInteract
         {
@@ -45,6 +46,22 @@ namespace xyz.germanfica.unity.planet.gravity
                 StartCoroutine(RegenerateAfter(referenceItem.regenerationTime));
             else if (destroyAfterPickup)
                 Destroy(gameObject);
+        }
+
+        // Koristi stroj umjesto igrača — preskače tool provjeru, ne dodaje u player inventory
+        public bool TryCollectByMachine(out Item collected)
+        {
+            collected = null;
+            if (_regenerating || referenceItem == null) return false;
+
+            collected = referenceItem;
+
+            if (referenceItem.regenerationTime > 0f)
+                StartCoroutine(RegenerateAfter(referenceItem.regenerationTime));
+            else if (destroyAfterPickup)
+                Destroy(gameObject);
+
+            return true;
         }
 
         private IEnumerator RegenerateAfter(float seconds)

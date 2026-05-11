@@ -17,3 +17,5 @@ MonoBehaviour:
   prefab: {fileID: 0}
   miningTime: 0
   worldScale: {x: 1, y: 1, z: 1}
+  requiredTool: {fileID: 0}
+  regenerationTime: 5

@@ -8,6 +8,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Transform interactorSource;
         [SerializeField] private float interactRange = 3f;
 
+        public Transform InteractorSource => interactorSource;
+        public float InteractRange => interactRange;
+
         private IInteractable _currentTarget;
         private float _holdTimer;
 
