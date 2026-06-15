@@ -6,15 +6,12 @@ namespace xyz.germanfica.unity.planet.gravity
     public class Attractor : MonoBehaviour
     {
         public static List<Attractor> Attractors;
-        public float gravity = -10;
-        private Transform m_Transform;
         private Rigidbody m_Rigidbody;
         public void Attract(Transform body)
         {
             Vector3 gravityUp = (body.position - transform.position).normalized;
             Vector3 bodyUp = body.up;
             Rigidbody rb = body.GetComponent<Rigidbody>();
-            rb.AddForce(gravityUp * gravity);
             Quaternion targetRotation = Quaternion.FromToRotation(bodyUp, gravityUp) * body.rotation;
             rb.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 50f * Time.deltaTime));
         }
@@ -25,17 +22,16 @@ namespace xyz.germanfica.unity.planet.gravity
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
             m_Rigidbody.useGravity = false;
 
-            m_Transform = GetComponent<Transform>();
         }
 
         void FixedUpdate()
         {
-            if (m_Rigidbody != null && m_Transform != null)
+            if (m_Rigidbody != null && transform != null)
             {
                 foreach (Attractor attractor in Attractors)
                 {
                     if (attractor != this)
-                        attractor.Attract(m_Transform);
+                        attractor.Attract(transform);
                 }
             }
         }

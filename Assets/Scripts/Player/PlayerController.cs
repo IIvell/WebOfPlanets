@@ -9,17 +9,13 @@ namespace xyz.germanfica.unity.planet.gravity
         public bool freezeRotation = true;
 
         [SerializeField] private float moveSpeed = 3f;
-        [SerializeField] private float jumpForce = 20f;
         private Planet _planet;
-        private bool canJump;
-        private bool isGrounded;
 
         PlayerInputActions _input;
 
         void Awake()
         {
             _input = new PlayerInputActions();
-            _input.PlayerActionmap.Jump.performed += _ => canJump = true;
         }
 
         void OnEnable()  => _input?.Enable();
@@ -44,14 +40,10 @@ namespace xyz.germanfica.unity.planet.gravity
             _planet = planet != null ? planet.GetComponent<Planet>() : null;
         }
 
-        void OnCollisionStay(Collision col)  => isGrounded = true;
-        void OnCollisionExit(Collision col)  => isGrounded = false;
-
         void FixedUpdate()
         {
             ApplyGravity();
             Move();
-            Jump();
         }
 
         private void ApplyGravity()
@@ -69,14 +61,6 @@ namespace xyz.germanfica.unity.planet.gravity
                 rig.constraints = RigidbodyConstraints.FreezeRotation;
             else
                 rig.constraints = RigidbodyConstraints.None;
-        }
-
-        private void Jump()
-        {
-            if (!canJump) return;
-            canJump = false;
-            if (!isGrounded) return;
-            rig.AddRelativeForce(0, jumpForce, 0, ForceMode.Impulse);
         }
 
         private void Move()
