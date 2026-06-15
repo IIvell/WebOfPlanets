@@ -5,7 +5,7 @@ namespace xyz.germanfica.unity.planet.gravity
 {
     public class Attractor : MonoBehaviour
     {
-        public static List<Attractor> Attractors;
+        public static List<Attractor> Attractors = new();
         private Rigidbody m_Rigidbody;
         public void Attract(Transform body)
         {
@@ -13,7 +13,7 @@ namespace xyz.germanfica.unity.planet.gravity
             Vector3 bodyUp = body.up;
             Rigidbody rb = body.GetComponent<Rigidbody>();
             Quaternion targetRotation = Quaternion.FromToRotation(bodyUp, gravityUp) * body.rotation;
-            rb.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 50f * Time.deltaTime));
+            rb.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 50f * Time.fixedDeltaTime));
         }
 
         void Start()
@@ -21,7 +21,6 @@ namespace xyz.germanfica.unity.planet.gravity
             m_Rigidbody = GetComponent<Rigidbody>();
             m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
             m_Rigidbody.useGravity = false;
-
         }
 
         void FixedUpdate()
@@ -38,8 +37,6 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void OnEnable()
         {
-            if (Attractors == null)
-                Attractors = new List<Attractor>();
             Attractors.Add(this);
         }
 
