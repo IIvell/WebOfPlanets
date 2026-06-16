@@ -74,7 +74,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private IInteractable FindClosest()
         {
-            Collider[] nearby = Physics.OverlapSphere(interactorSource.position, interactRange, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+            Collider[] nearby = Physics.OverlapSphere(
+                interactorSource.position, 
+                interactRange, 
+                Physics.DefaultRaycastLayers, 
+                QueryTriggerInteraction.Collide);
+                
             IInteractable closest = null;
             float closestDist = Mathf.Infinity;
 
@@ -82,7 +87,7 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 if (col.TryGetComponent(out IInteractable interactable))
                 {
-                    float dist = Vector3.Distance(interactorSource.position, col.transform.position);
+                    float dist = Vector3.Distance(interactorSource.position, col.ClosestPoint(interactorSource.position));
                     if (dist < closestDist)
                     {
                         closestDist = dist;
