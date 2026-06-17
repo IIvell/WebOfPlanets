@@ -10,6 +10,10 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public GameState State { get; private set; } = GameState.Playing;
 
+        /*
+        Test
+        */
+
         void Awake()
         {
             if (Instance != null) { Destroy(gameObject); return; }
