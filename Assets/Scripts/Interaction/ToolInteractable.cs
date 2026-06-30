@@ -18,8 +18,13 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            PlayerToolSystem.current.EquipTool(tool);
-            Debug.Log($"Opremio alat: {tool.displayName}");
+            if (QuickSlotInventory.current == null || !QuickSlotInventory.current.TryAdd(tool, out _))
+            {
+                Debug.Log("Quick slot inventar je pun — alat se ne može pokupiti.");
+                return;
+            }
+
+            Debug.Log($"Pokupljen alat: {tool.displayName}");
             Destroy(gameObject);
         }
     }

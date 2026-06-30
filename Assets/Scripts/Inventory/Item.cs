@@ -7,6 +7,7 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         public string id;
         public string displayName;
+        public Sprite icon;
         public GameObject prefab;
         [Min(0f)] public float miningTime = 0f;
         public Vector3 worldScale = Vector3.one;

@@ -54,6 +54,9 @@ namespace xyz.germanfica.unity.planet.gravity
         public static event Action<ToolEquippedEvent>    OnToolEquipped;
         public static event Action<ToolDurabilityEvent>  OnToolDurabilityChanged;
 
+        // ── Quick Slots ───────────────────────────────────────────────────────
+        public static event Action OnQuickSlotsChanged;
+
         // ── Raise overloads ───────────────────────────────────────────────────
         public static void Raise(PlayerPlanetEvent e)            => OnPlayerLandedOnPlanet?.Invoke(e);
         public static void RaiseLeftPlanet(PlayerPlanetEvent e)  => OnPlayerLeftPlanet?.Invoke(e);
@@ -96,5 +99,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public static void RaiseToolEquipped(ToolEquippedEvent e)        => OnToolEquipped?.Invoke(e);
         public static void RaiseToolDurabilityChanged(ToolDurabilityEvent e) => OnToolDurabilityChanged?.Invoke(e);
+
+        public static void RaiseQuickSlotsChanged() => OnQuickSlotsChanged?.Invoke();
     }
 }
