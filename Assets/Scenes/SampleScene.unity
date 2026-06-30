@@ -937,7 +937,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6772ed442a06aa4593b4d1134e57546, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Attractor
-  gravity: -10
 --- !u!114 &543475859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1118,7 +1117,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6772ed442a06aa4593b4d1134e57546, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Attractor
-  gravity: -10
 --- !u!114 &1078422987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1134,8 +1132,7 @@ MonoBehaviour:
   rig: {fileID: 1078422982}
   currentPlanet: {fileID: 543475852}
   freezeRotation: 1
-  moveSpeed: 10
-  jumpForce: 20
+  moveSpeed: 7
 --- !u!114 &1078422988
 MonoBehaviour:
   m_ObjectHideFlags: 0

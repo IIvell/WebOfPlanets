@@ -7,6 +7,18 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         public override void Interact()
         {
+            if (HubStorageUI.Instance != null)
+            {
+                HubStorageUI.Instance.Show(this);
+                return;
+            }
+
+            Debug.LogWarning("HubStorageInteractable: HubStorageUI nije u sceni — deponiram sve odmah.");
+            DepositAll();
+        }
+
+        public void DepositAll()
+        {
             if (HubStorage.current == null)
             {
                 Debug.LogWarning("HubStorageInteractable: nema HubStorage instance u sceni.");

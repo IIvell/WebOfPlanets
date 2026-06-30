@@ -32,8 +32,20 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
-        // Igrač pritisne E da preuzme sve resurse iz storage-a
+        // Igrač pritisne E da otvori UI sa sadržajem storage-a
         public override void Interact()
+        {
+            if (StorageInventoryUI.Instance != null)
+            {
+                StorageInventoryUI.Instance.Show(this);
+                return;
+            }
+
+            Debug.LogWarning($"[{MachineName}] StorageInventoryUI nije u sceni — uzimam sve odmah.");
+            TakeAll();
+        }
+
+        public void TakeAll()
         {
             if (InventorySystem.current == null) return;
 
