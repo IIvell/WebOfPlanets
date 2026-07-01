@@ -9,6 +9,10 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlanetCreator planetCreator;
         [SerializeField] private float maxConnectionRange = 5000f;
 
+        [Header("Exclusion Zones (player spawn, chest, computer...)")]
+        [SerializeField] private Transform[] exclusionZones;
+        [SerializeField] private float exclusionRadius = 20f;
+
         [Header("Slaba veza (crvena)")]
         [SerializeField] private ConnectionRequirement[] weakCost;
         [SerializeField] private float weakLifespan = 60f;
@@ -80,17 +84,33 @@ private void SpawnPotentialMarkers()
         private void SpawnPotentialPair(Transform a, Transform b)
         {
             var key = PairKey(a, b);
-            _potentialMarkers[key] = new List<GameObject>
-            {
-                CreatePotentialMarker(a, b),
-                CreatePotentialMarker(b, a)
-            };
+            var markers = new List<GameObject>();
+
+            var ma = CreatePotentialMarker(a, b);
+            var mb = CreatePotentialMarker(b, a);
+
+            if (ma != null) markers.Add(ma);
+            if (mb != null) markers.Add(mb);
+
+            _potentialMarkers[key] = markers;
+        }
+
+        private bool IsInExclusionZone(Vector3 pos)
+        {
+            if (exclusionZones == null) return false;
+            foreach (var zone in exclusionZones)
+                if (zone != null && Vector3.Distance(pos, zone.position) < exclusionRadius)
+                    return true;
+            return false;
         }
 
         private GameObject CreatePotentialMarker(Transform from, Transform toward)
         {
             Vector3 dir = (toward.position - from.position).normalized;
             Vector3 pos = PlanetConnection.SurfacePoint(from, dir);
+
+            if (IsInExclusionZone(pos)) return null;
+
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
 
             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Capsule);
