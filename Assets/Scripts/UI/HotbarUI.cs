@@ -4,7 +4,8 @@ using TMPro;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
-    // Attach to a Canvas (Screen Space – Overlay). Uvijek vidljiv, dno ekrana sredina.
+    // Attach to a Canvas (Screen Space – Overlay). Uvijek vidljiv, vrh ekrana sredina.
+    [RequireComponent(typeof(RectTransform))]
     public class HotbarUI : MonoBehaviour
     {
         private const int SlotCount = QuickSlotInventory.SlotCount;
@@ -20,6 +21,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
+            var selfRT = (RectTransform)transform;
+            selfRT.anchorMin = Vector2.zero;
+            selfRT.anchorMax = Vector2.one;
+            selfRT.offsetMin = Vector2.zero;
+            selfRT.offsetMax = Vector2.zero;
+
             BuildUI();
         }
 
@@ -61,10 +68,10 @@ namespace xyz.germanfica.unity.planet.gravity
             var barGO = new GameObject("Hotbar_Bar");
             barGO.transform.SetParent(transform, false);
             var barRT = barGO.AddComponent<RectTransform>();
-            barRT.anchorMin = new Vector2(0.5f, 0f);
-            barRT.anchorMax = new Vector2(0.5f, 0f);
-            barRT.pivot = new Vector2(0.5f, 0f);
-            barRT.anchoredPosition = new Vector2(0f, 16f);
+            barRT.anchorMin = new Vector2(0.5f, 1f);
+            barRT.anchorMax = new Vector2(0.5f, 1f);
+            barRT.pivot = new Vector2(0.5f, 1f);
+            barRT.anchoredPosition = new Vector2(0f, -16f);
             barRT.sizeDelta = new Vector2(totalWidth, SlotSize);
 
             for (int i = 0; i < SlotCount; i++)
