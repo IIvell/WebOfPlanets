@@ -4,20 +4,19 @@ namespace xyz.germanfica.unity.planet.gravity
 {
     public class NetworkComputerInteractable : BaseInteractable
     {
-        [SerializeField] private NetworkMapUI networkMapUI;
-
         public override void Interact()
         {
-            if (networkMapUI == null)
+            var menu = ComputerMenuUI.Instance;
+            if (menu == null)
             {
-                Debug.LogWarning("NetworkComputerInteractable: nije dodijeljen NetworkMapUI.");
+                Debug.LogWarning("NetworkComputerInteractable: ComputerMenuUI nije u sceni.");
                 return;
             }
 
-            if (networkMapUI.IsOpen)
-                networkMapUI.Close();
+            if (menu.IsOpen)
+                menu.Hide();
             else
-                networkMapUI.Open();
+                menu.Show();
         }
     }
 }

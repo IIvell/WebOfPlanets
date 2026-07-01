@@ -21,12 +21,6 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
-            var selfRT = (RectTransform)transform;
-            selfRT.anchorMin = Vector2.zero;
-            selfRT.anchorMax = Vector2.one;
-            selfRT.offsetMin = Vector2.zero;
-            selfRT.offsetMax = Vector2.zero;
-
             BuildUI();
         }
 
@@ -65,12 +59,15 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             float totalWidth = SlotCount * SlotSize + (SlotCount - 1) * Spacing;
 
+            Canvas canvas = GetComponentInParent<Canvas>();
+            Transform uiRoot = canvas != null ? canvas.transform : transform;
+
             var barGO = new GameObject("Hotbar_Bar");
-            barGO.transform.SetParent(transform, false);
+            barGO.transform.SetParent(uiRoot, false);
             var barRT = barGO.AddComponent<RectTransform>();
             barRT.anchorMin = new Vector2(0.5f, 1f);
             barRT.anchorMax = new Vector2(0.5f, 1f);
-            barRT.pivot = new Vector2(0.5f, 1f);
+            barRT.pivot     = new Vector2(0.5f, 1f);
             barRT.anchoredPosition = new Vector2(0f, -16f);
             barRT.sizeDelta = new Vector2(totalWidth, SlotSize);
 
