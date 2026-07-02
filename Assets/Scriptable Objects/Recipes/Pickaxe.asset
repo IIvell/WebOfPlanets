@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
   m_Name: Pickaxe
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: 
+  displayName: Pickaxe
   resultType: 0
-  resultTool: {fileID: 0}
+  resultTool: {fileID: 11400000, guid: 1702e5e945e446d4c976698bbd31f1ff, type: 2}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
-  ingredients: []
+  ingredients:
+  - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+    amount: 1

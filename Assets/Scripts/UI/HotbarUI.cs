@@ -41,13 +41,13 @@ namespace xyz.germanfica.unity.planet.gravity
 
             for (int i = 0; i < SlotCount; i++)
             {
-                Tool tool = QuickSlotInventory.current.GetSlot(i);
-                bool hasTool = tool != null;
-                bool hasIcon = hasTool && tool.icon != null;
+                QuickSlotItem item = QuickSlotInventory.current.GetSlot(i);
+                bool hasItem = item != null;
+                bool hasIcon = hasItem && item.icon != null;
 
                 _icons[i].enabled = hasIcon;
-                _icons[i].sprite = hasIcon ? tool.icon : null;
-                _nameLabels[i].text = hasTool && !hasIcon ? tool.displayName : "";
+                _icons[i].sprite = hasIcon ? item.icon : null;
+                _nameLabels[i].text = hasItem && !hasIcon ? item.displayName : "";
 
                 _backgrounds[i].color = i == QuickSlotInventory.current.SelectedIndex
                     ? SelectedColor

@@ -4,9 +4,8 @@ using UnityEngine;
 namespace xyz.germanfica.unity.planet.gravity
 {
     [CreateAssetMenu(menuName = "Machines/Collector Machine")]
-    public class MachineData : ScriptableObject
+    public class MachineData : QuickSlotItem
     {
-        public string displayName;
         [Tooltip("Prefab vizuala stroja. Prazno = sfera.")]
         public GameObject prefab;
 

@@ -10,7 +10,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public static QuickSlotInventory current;
 
-        [SerializeField] private Tool[] slots = new Tool[SlotCount];
+        [SerializeField] private QuickSlotItem[] slots = new QuickSlotItem[SlotCount];
 
         private int _selectedIndex = -1;
 
@@ -34,16 +34,28 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
-        public Tool GetSlot(int index) => index >= 0 && index < SlotCount ? slots[index] : null;
+        public QuickSlotItem GetSlot(int index) => index >= 0 && index < SlotCount ? slots[index] : null;
 
-        public bool TryAdd(Tool tool, out int slotIndex)
+        public bool TryAdd(QuickSlotItem item, out int slotIndex)
         {
             slotIndex = GetFirstEmptySlot();
             if (slotIndex == -1) return false;
 
-            slots[slotIndex] = tool;
+            slots[slotIndex] = item;
             GameEventBus.RaiseQuickSlotsChanged();
             return true;
+        }
+
+        // Prazni slot nakon što je stroj iz njega postavljen u svijet.
+        public void RemoveSlot(int index)
+        {
+            if (index < 0 || index >= SlotCount) return;
+
+            slots[index] = null;
+            if (index == _selectedIndex)
+                PlayerToolSystem.current?.UnequipTool();
+
+            GameEventBus.RaiseQuickSlotsChanged();
         }
 
         public void SelectSlot(int index)
@@ -51,9 +63,9 @@ namespace xyz.germanfica.unity.planet.gravity
             if (index < 0 || index >= SlotCount) return;
 
             _selectedIndex = index;
-            Tool tool = slots[index];
+            QuickSlotItem item = slots[index];
 
-            if (tool != null)
+            if (item is Tool tool)
                 PlayerToolSystem.current?.EquipTool(tool);
             else
                 PlayerToolSystem.current?.UnequipTool();
