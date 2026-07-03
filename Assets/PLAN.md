@@ -158,4 +158,44 @@ Ožujak    Travanj       Svibanj       Lipanj        Srpanj    Kolovoz      Ruja
 
 ---
 
+## Dodatak (3.7.2026.) — Akcijski plan do 15.8.
+
+**Kontekst:** Audit koda na dan 3.7.2026. pokazao je da je sve KRITIČNO za R1 gotovo (uz jednu manju rupu), ali da je većina VAŽNO stavki za R3 ili djelomično odrađena ili postoji samo kao neiskorišten enum/event bez logike (artefakti, sekundarni hubovi, portal terminal, hub upgrade stablo, drevne veze, 4 od 6 tipova planeta). Rok za pisanje rada zahtijeva da igra bude funkcionalno gotova do **15.8.2026.**, ranije od izvornog R3 (2.9.) — sljedećih 6 tjedana svjesno reže opseg VAŽNO/POŽELJNO stavki po istoj logici kao tablica Rizika iznad (jednostavniji fallback umjesto pune verzije).
+
+### Tjedan 1 (3.7–9.7) — Zatvori R1, isporuči R2
+- Živi vizualni prikaz degradacije veze: boja veze prati trenutni `Health` (zelena→žuta→narančasta→crvena) uživo, ne samo pri kreiranju; treptanje ispod ~20%
+- Bugfixevi, prolaz kroz cijelu core petlju
+- **8.7. — R2 milestone**
+
+### Tjedan 2 (10.7–16.7) — Dovrši proceduralnu generaciju
+- Proširi generaciju planeta na svih 6 tipova (trenutno samo Rudarski/Organski)
+- Za 4 nova tipa: bez punih biome/teren shadera — material/boja tint po tipu + odgovarajuća resource konfiguracija je dovoljna
+- Flag "nestabilan" na Vulkanskim/Plinskim planetima (treba za tjedan 3 i degradaciju veza)
+
+### Tjedan 3 (17.7–23.7) — Alati i strojevi do kraja
+- Nacrti: veži otključavanje recepata za crafting uz hub napredak (2-3 praga)
+- Strojevi: implementiraj kvar (Broken stanje) — šansa po tick-u, veća na nestabilnim planetima
+- Skladišni stroj: dodaj kapacitet, zaustavi collector kad je pun
+
+### Tjedan 4 (24.7–30.7) — Artefakti (novi sustav)
+- Spawn logika vezana za "potencijal artefakta" po planetu, pronalazak isključivo ručnom interakcijom
+- Samo 3 tipa: Nacrti, Pojačivači, Energetski jezgri — Parnjaci (POŽELJNO) se preskaču
+- Poveži event sustav za pronalazak artefakta koji trenutno postoji ali se nigdje ne poziva
+
+### Tjedan 5 (31.7–6.8) — Drevne veze + Hub upgrade stablo
+- Skeniranje/otkrivanje i aktivacija drevnih veza s varijabilnim stanjem
+- Mrežni fragment (4. tip artefakta) otkriva drevne veze u okolici (jednostavna radius provjera)
+- Hub upgrade stablo: 3 nivoa računala + 2 nivoa skladišta sa stvarnim efektima (bez punog stabla iz GDD-a)
+
+### Tjedan 6 (7.8–13.8) — Sekundarni hubovi + Portal + buffer
+- Sekundarni hub: pretvorba jednog planeta, usporena degradacija i prošireno skladište u klasteru (bez pune klaster logike)
+- Portal Terminal: minimalna verzija — besplatan teleport hub → sekundarni hub
+- Ostatak tjedna: buffer za integracijske bugove, bez novih featurea
+- **15.8. — feature freeze, tag build, materijal za rad**
+
+### Svjesno izvan opsega do 15.8.
+Kozmetika huba, relej stanice, monitoring zdravlja mreže (Nivo 3), zvuk/glazba, priča/log fragmenti — ostaju neodrađeni; u radu se mogu opisati kao future work. Automatski transport ostaje na pojednostavljenoj 1:1 verziji (stroj→skladište), bez punog sustava konfigurabilnih ruta.
+
+---
+
 *Dokument se ažurira s napretkom projekta.*

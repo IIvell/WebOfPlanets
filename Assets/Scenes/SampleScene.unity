@@ -846,6 +846,9 @@ MonoBehaviour:
     amount: 1
   strongLifespan: 600
   teleportCost: []
+  potentialConnectionMarkerPrefab: {fileID: 919132149155446097, guid: 4422aa8ff4be82b4fb14621a9a15396e, type: 3}
+  markerScale: 5
+  markerHeight: 5.5
 --- !u!114 &366273109
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1558,7 +1561,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23feb20aac6c4a3b8df9cdc8f382009b, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachinePlacer
   playerController: {fileID: 1078422987}
   spawnForwardDistance: 4
@@ -2226,7 +2229,6 @@ MonoBehaviour:
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
-  spawnForwardDistance: 4
 --- !u!114 &1778978237
 MonoBehaviour:
   m_ObjectHideFlags: 0

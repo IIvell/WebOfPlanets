@@ -28,6 +28,11 @@ namespace xyz.germanfica.unity.planet.gravity
         [Header("Teleport (bez veze)")]
         [SerializeField] private ConnectionRequirement[] teleportCost;
 
+        [Header("Potencijalna veza (marker)")]
+        [SerializeField] private GameObject potentialConnectionMarkerPrefab;
+        [SerializeField] private float markerScale = 3f;
+        [SerializeField] private float markerHeight = 3f;
+
         private readonly List<PlanetConnection> _connections = new();
         private readonly Dictionary<(int, int), List<GameObject>> _potentialMarkers = new();
 
@@ -106,6 +111,12 @@ private void SpawnPotentialMarkers()
 
         private GameObject CreatePotentialMarker(Transform from, Transform toward)
         {
+            if (potentialConnectionMarkerPrefab == null)
+            {
+                Debug.LogError("ConnectionManager: potentialConnectionMarkerPrefab nije postavljen.");
+                return null;
+            }
+
             Vector3 dir = (toward.position - from.position).normalized;
             Vector3 pos = PlanetConnection.SurfacePoint(from, dir);
 
@@ -113,12 +124,12 @@ private void SpawnPotentialMarkers()
 
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
 
-            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            GameObject marker = Instantiate(potentialConnectionMarkerPrefab, pos, rot, transform);
             marker.name = "PotentialConnectionMarker";
-            marker.transform.SetParent(transform);
-            marker.transform.SetPositionAndRotation(pos, rot);
-            marker.transform.localScale = Vector3.one * 3f;
-            marker.GetComponent<Collider>().isTrigger = true;
+            marker.transform.localScale = Vector3.one * markerScale;
+
+            CapsuleCollider col = marker.AddComponent<CapsuleCollider>();
+            col.isTrigger = true;
 
             var interactable = marker.AddComponent<PotentialConnectionInteractable>();
             interactable.Init(this, from, toward);
@@ -208,7 +219,7 @@ private void SpawnPotentialMarkers()
             go.transform.SetParent(transform);
 
             PlanetConnection conn = go.AddComponent<PlanetConnection>();
-            conn.Init(a, b, type, planetCreator, lifespan);
+            conn.Init(a, b, type, planetCreator, lifespan, potentialConnectionMarkerPrefab, markerScale, markerHeight);
             _connections.Add(conn);
 
             GameEventBus.RaiseConnectionCreated(new ConnectionEvent

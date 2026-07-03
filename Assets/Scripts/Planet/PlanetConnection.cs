@@ -11,13 +11,19 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private GameObject _cylinder;
         private float _lifespan;
+        private GameObject _markerPrefab;
+        private float _markerScale;
+        private float _markerHeight;
 
-        public void Init(Transform a, Transform b, ConnectionType type, PlanetCreator planetCreator, float lifespan = 0f)
+        public void Init(Transform a, Transform b, ConnectionType type, PlanetCreator planetCreator, float lifespan = 0f, GameObject markerPrefab = null, float markerScale = 3f, float markerHeight = 3f)
         {
             PlanetA = a;
             PlanetB = b;
             Type = type;
             _lifespan = lifespan;
+            _markerPrefab = markerPrefab;
+            _markerScale = markerScale;
+            _markerHeight = markerHeight;
 
             _cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             _cylinder.transform.SetParent(transform);
@@ -54,17 +60,22 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator)
         {
+            if (_markerPrefab == null)
+            {
+                Debug.LogError("PlanetConnection: markerPrefab nije postavljen.");
+                return;
+            }
+
             Vector3 dir = (toward.position - from.position).normalized;
             Vector3 pos = SurfacePoint(from, dir);
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
 
-            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            GameObject marker = Instantiate(_markerPrefab, pos, rot, transform);
             marker.name = "ConnectionMarker";
-            marker.transform.SetParent(transform);
-            marker.transform.SetPositionAndRotation(pos, rot);
-            marker.transform.localScale = Vector3.one * 3f;
+            marker.transform.localScale = Vector3.one * _markerScale;
 
-            marker.GetComponent<Collider>().isTrigger = true;
+            CapsuleCollider col = marker.AddComponent<CapsuleCollider>();
+            col.isTrigger = true;
 
             ConnectionInteractable interactable = marker.AddComponent<ConnectionInteractable>();
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
@@ -83,13 +94,17 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void UpdateVisual()
         {
-            Vector3 midpoint = (PlanetA.position + PlanetB.position) * 0.5f;
-            float distance = Vector3.Distance(PlanetA.position, PlanetB.position);
             Vector3 direction = (PlanetB.position - PlanetA.position).normalized;
+
+            Vector3 tipA = SurfacePoint(PlanetA, direction) + direction * _markerHeight;
+            Vector3 tipB = SurfacePoint(PlanetB, -direction) - direction * _markerHeight;
+
+            Vector3 midpoint = (tipA + tipB) * 0.5f;
+            float distance = Vector3.Distance(tipA, tipB);
 
             _cylinder.transform.position = midpoint;
             _cylinder.transform.up = direction;
-            _cylinder.transform.localScale = new Vector3(2f, distance * 0.5f, 2f);
+            _cylinder.transform.localScale = new Vector3(0.6f, distance * 0.5f, 0.6f);
         }
 
         public void ApplyDamage(float amount)
