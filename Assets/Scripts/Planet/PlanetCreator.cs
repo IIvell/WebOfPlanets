@@ -61,6 +61,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameObject planetGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             planetGO.name = index >= 0 ? $"Planet_{index:D2}" : "GeneratedPlanet";
+            planetGO.layer = LayerMask.NameToLayer("Planet");
             planetGO.transform.position = planetPos;
             planetGO.transform.localScale = Vector3.one * scale;
 

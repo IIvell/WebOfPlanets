@@ -81,12 +81,14 @@ namespace xyz.germanfica.unity.planet.gravity
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
         }
 
+        private static readonly int PlanetLayerMask = LayerMask.GetMask("Planet");
+
         internal static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
         {
             float radius = planet.localScale.x * 0.5f;
             Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);
 
-            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f, PlanetLayerMask, QueryTriggerInteraction.Ignore))
                 return hit.point;
 
             return planet.position + directionFromPlanet * radius;
