@@ -13,17 +13,20 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Transform[] exclusionZones;
         [SerializeField] private float exclusionRadius = 20f;
 
-        [Header("Slaba veza (crvena)")]
+        [Header("Slaba veza (tanka)")]
         [SerializeField] private ConnectionRequirement[] weakCost;
         [SerializeField] private float weakLifespan = 60f;
+        [SerializeField] private float weakThickness = 0.4f;
 
-        [Header("Srednja veza (narančasta)")]
+        [Header("Srednja veza")]
         [SerializeField] private ConnectionRequirement[] midCost;
         [SerializeField] private float midLifespan = 180f;
+        [SerializeField] private float midThickness = 0.6f;
 
-        [Header("Jaka veza (zelena)")]
+        [Header("Jaka veza (debela)")]
         [SerializeField] private ConnectionRequirement[] strongCost;
         [SerializeField] private float strongLifespan = 600f;
+        [SerializeField] private float strongThickness = 0.9f;
 
         [Header("Teleport (bez veze)")]
         [SerializeField] private ConnectionRequirement[] teleportCost;
@@ -166,6 +169,14 @@ private void SpawnPotentialMarkers()
             _                     => 0f
         };
 
+        public float GetThickness(ConnectionType quality) => quality switch
+        {
+            ConnectionType.Weak   => weakThickness,
+            ConnectionType.Mid    => midThickness,
+            ConnectionType.Strong => strongThickness,
+            _                     => midThickness
+        };
+
         public bool CanAfford(ConnectionType quality) => HasResources(GetCost(quality));
 
         public ConnectionRequirement[] GetTeleportCost() => teleportCost;
@@ -190,14 +201,27 @@ private void SpawnPotentialMarkers()
             _potentialMarkers.Remove(key);
         }
 
-        private bool HasResources(ConnectionRequirement[] cost)
+        private static Dictionary<Item, int> AggregateCost(ConnectionRequirement[] cost)
         {
-            if (cost == null || InventorySystem.current == null) return true;
+            var totals = new Dictionary<Item, int>();
+            if (cost == null) return totals;
+
             foreach (var req in cost)
             {
                 if (req.item == null) continue;
-                var item = InventorySystem.current.Get(req.item);
-                if (item == null || item.GetStackSize() < req.amount) return false;
+                totals.TryGetValue(req.item, out int existing);
+                totals[req.item] = existing + req.amount;
+            }
+            return totals;
+        }
+
+        private bool HasResources(ConnectionRequirement[] cost)
+        {
+            if (cost == null || InventorySystem.current == null) return true;
+            foreach (var kvp in AggregateCost(cost))
+            {
+                var item = InventorySystem.current.Get(kvp.Key);
+                if (item == null || item.GetStackSize() < kvp.Value) return false;
             }
             return true;
         }
@@ -205,12 +229,9 @@ private void SpawnPotentialMarkers()
         private void ConsumeResources(ConnectionRequirement[] cost)
         {
             if (cost == null || InventorySystem.current == null) return;
-            foreach (var req in cost)
-            {
-                if (req.item == null) continue;
-                for (int i = 0; i < req.amount; i++)
-                    InventorySystem.current.Remove(req.item);
-            }
+            foreach (var kvp in AggregateCost(cost))
+                for (int i = 0; i < kvp.Value; i++)
+                    InventorySystem.current.Remove(kvp.Key);
         }
 
         private void CreateConnection(Transform a, Transform b, ConnectionType type, float lifespan)
@@ -219,7 +240,7 @@ private void SpawnPotentialMarkers()
             go.transform.SetParent(transform);
 
             PlanetConnection conn = go.AddComponent<PlanetConnection>();
-            conn.Init(a, b, type, planetCreator, lifespan, potentialConnectionMarkerPrefab, markerScale, markerHeight);
+            conn.Init(a, b, type, planetCreator, lifespan, potentialConnectionMarkerPrefab, markerScale, markerHeight, GetThickness(type));
             _connections.Add(conn);
 
             GameEventBus.RaiseConnectionCreated(new ConnectionEvent
