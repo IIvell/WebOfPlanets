@@ -837,14 +837,17 @@ MonoBehaviour:
   exclusionRadius: 10
   weakCost: []
   weakLifespan: 60
+  weakThickness: 0.4
   midCost:
   - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
     amount: 1
   midLifespan: 180
+  midThickness: 0.6
   strongCost:
   - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
     amount: 1
   strongLifespan: 600
+  strongThickness: 0.9
   teleportCost: []
   potentialConnectionMarkerPrefab: {fileID: 919132149155446097, guid: 4422aa8ff4be82b4fb14621a9a15396e, type: 3}
   markerScale: 5

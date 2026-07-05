@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
   id: 5
   displayName: Ice
-  prefab: {fileID: 0}
+  miningPrefab: {fileID: 0}
   miningTime: 2
-  worldScale: {x: 1, y: 1, z: 1}
+  miningWorldScale: {x: 1, y: 1, z: 1}
+  pickupWorldScale: {x: 1, y: 1, z: 1}

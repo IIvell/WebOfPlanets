@@ -15,10 +15,6 @@ MonoBehaviour:
   configs:
   - planetType: 0
     resources:
-    - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
-      minDensity: 0.1
-      maxDensity: 0.2
-      fallbackColor: {r: 0, g: 0, b: 0, a: 0}
     - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
       minDensity: 0.2
       maxDensity: 0.4

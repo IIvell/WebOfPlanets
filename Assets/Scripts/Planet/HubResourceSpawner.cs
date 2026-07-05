@@ -74,12 +74,15 @@ namespace xyz.germanfica.unity.planet.gravity
                 spawnRot = Quaternion.FromToRotation(Vector3.up, normal);
             }
 
-            GameObject go = entry.item.prefab != null
-                ? Instantiate(entry.item.prefab, spawnPos, spawnRot)
+            bool isPickup = Random.value < entry.pickupChance;
+            GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
+
+            GameObject go = prefab != null
+                ? Instantiate(prefab, spawnPos, spawnRot)
                 : CreateFallbackCube(spawnPos, spawnRot, entry.fallbackColor);
 
             go.name = entry.item.displayName;
-            go.transform.localScale = entry.item.worldScale;
+            go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
 
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
@@ -90,7 +93,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (!go.TryGetComponent<ItemInteractable>(out var interactable))
                 interactable = go.AddComponent<ItemInteractable>();
 
-            interactable.Init(entry.item);
+            interactable.Init(entry.item, isPickup);
         }
 
         private GameObject CreateFallbackCube(Vector3 pos, Quaternion rot, Color color)

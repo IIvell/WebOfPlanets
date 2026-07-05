@@ -52,11 +52,17 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            if (_currentTarget is MonoBehaviour mb &&
-                Vector3.Distance(interactorSource.position, mb.transform.position) > interactRange)
+            if (_currentTarget is MonoBehaviour mb)
             {
-                CancelMining();
-                return;
+                Vector3 closestPoint = mb.TryGetComponent<Collider>(out var col)
+                    ? col.ClosestPoint(interactorSource.position)
+                    : mb.transform.position;
+
+                if (Vector3.Distance(interactorSource.position, closestPoint) > interactRange)
+                {
+                    CancelMining();
+                    return;
+                }
             }
 
             _holdTimer += Time.deltaTime * PlayerToolSystem.GetSpeedMultiplier();

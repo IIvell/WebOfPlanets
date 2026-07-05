@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
   id: 1
   displayName: Plant
-  prefab: {fileID: 0}
+  pickupPrefab: {fileID: 0}
   miningTime: 0
-  worldScale: {x: 1, y: 1, z: 1}
+  miningWorldScale: {x: 1, y: 1, z: 1}
+  pickupWorldScale: {x: 1, y: 1, z: 1}
   requiredTool: {fileID: 0}
   regenerationTime: 5

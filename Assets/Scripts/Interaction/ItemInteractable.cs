@@ -6,27 +6,31 @@ namespace xyz.germanfica.unity.planet.gravity
     public class ItemInteractable : BaseInteractable
     {
         [SerializeField] private Item referenceItem;
+        [SerializeField] private bool isPickup;
         [SerializeField] private bool destroyAfterPickup = true;
 
         private bool _regenerating;
 
-        public override float HoldTime => referenceItem != null ? referenceItem.miningTime : 0f;
+        public override float HoldTime => !isPickup && referenceItem != null ? referenceItem.miningTime : 0f;
         public Item ReferenceItem => referenceItem;
+        public bool IsPickup => isPickup;
 
         public override bool CanInteract
         {
             get
             {
                 if (_regenerating) return false;
+                if (isPickup) return true;
                 if (referenceItem == null || referenceItem.requiredTool == null) return true;
                 return PlayerToolSystem.current != null &&
                        PlayerToolSystem.current.EquippedTool == referenceItem.requiredTool;
             }
         }
 
-        public void Init(Item item, bool destroy = true)
+        public void Init(Item item, bool pickup = false, bool destroy = true)
         {
             referenceItem = item;
+            isPickup = pickup;
             destroyAfterPickup = destroy;
         }
 
@@ -38,9 +42,15 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            InventorySystem.current.Add(referenceItem);
+            int yieldCount = isPickup ? 1 : Random.Range(referenceItem.minMiningYield, referenceItem.maxMiningYield + 1);
+            for (int i = 0; i < yieldCount; i++)
+                InventorySystem.current.Add(referenceItem);
+
+            if (!isPickup && referenceItem.bonusMiningItem != null && Random.value < referenceItem.bonusMiningChance)
+                InventorySystem.current.Add(referenceItem.bonusMiningItem);
+
             PlayerToolSystem.current?.OnResourceMined();
-            Debug.Log($"Picked up: {referenceItem.displayName}");
+            Debug.Log($"Picked up: {referenceItem.displayName} x{yieldCount}");
 
             if (referenceItem.regenerationTime > 0f)
                 StartCoroutine(RegenerateAfter(referenceItem.regenerationTime));
