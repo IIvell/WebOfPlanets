@@ -816,7 +816,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.ResourceSpawnManager
   settings: {fileID: 11400000, guid: 64138aa1eb63c8a40ad84b194b2809ff, type: 2}
-  surfaceOffset: 1.5
+  surfaceOffset: 0.1
 --- !u!114 &366273108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1203,7 +1203,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.HubResourceSpawner
   settings: {fileID: 11400000, guid: 8d71056109c4b834d8dfbe2d658366a2, type: 2}
-  surfaceOffset: 1.5
+  surfaceOffset: 0.1
 --- !u!1 &811001346
 GameObject:
   m_ObjectHideFlags: 0

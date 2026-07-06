@@ -7,7 +7,8 @@ namespace xyz.germanfica.unity.planet.gravity
     public class ResourceSpawnManager : MonoBehaviour
     {
         [SerializeField] private PlanetResourceSettings settings;
-        [SerializeField] private float surfaceOffset = 1.5f;
+        [Tooltip("Razmak dna resursa od površine planeta (može biti negativan za lagano ukopavanje).")]
+        [SerializeField] private float surfaceOffset = 0.1f;
 
         private readonly HashSet<Transform> _processed = new();
 
@@ -51,19 +52,22 @@ namespace xyz.germanfica.unity.planet.gravity
             float castStart = planet.localScale.x;
             Vector3 rayOrigin = planet.position + normal * castStart;
 
-            Vector3 spawnPos;
-            Quaternion spawnRot;
+            Vector3 hitPoint;
+            Vector3 hitNormal;
 
-            if (Physics.Raycast(rayOrigin, -normal, out RaycastHit hit, castStart * 2f))
+            if (SurfacePlacement.TryRaycastSurface(planet, rayOrigin, -normal, castStart * 2f, out RaycastHit hit))
             {
-                spawnPos = hit.point + hit.normal * surfaceOffset;
-                spawnRot = Quaternion.FromToRotation(Vector3.up, hit.normal);
+                hitPoint = hit.point;
+                hitNormal = hit.normal;
             }
             else
             {
-                spawnPos = planet.position + normal * (planet.localScale.x * 0.5f + surfaceOffset);
-                spawnRot = Quaternion.FromToRotation(Vector3.up, normal);
+                hitPoint = planet.position + normal * (planet.localScale.x * 0.5f);
+                hitNormal = normal;
             }
+
+            Vector3 spawnPos = hitPoint + hitNormal * surfaceOffset;
+            Quaternion spawnRot = Quaternion.FromToRotation(Vector3.up, hitNormal);
 
             bool isPickup = Random.value < entry.pickupChance;
             GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
