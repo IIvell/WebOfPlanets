@@ -31,11 +31,11 @@ MonoBehaviour:
       pickupChance: 0.5
   - planetType: 2
     resources:
-    - item: {fileID: 11400000, guid: 1c6371992280b7345bbf286eed7892a3, type: 2}
+    - item: {fileID: 0}
       minDensity: 0.1
       maxDensity: 0.2
       pickupChance: 0.5
-    - item: {fileID: 11400000, guid: 122c620f358d2944fafe65b89da8879b, type: 2}
+    - item: {fileID: 0}
       minDensity: 0.2
       maxDensity: 0.4
       pickupChance: 0.5

@@ -157,14 +157,30 @@ namespace xyz.germanfica.unity.planet.gravity
                 ? (fromPlanet.position - targetPlanet.position).normalized
                 : Random.onUnitSphere;
 
-            Vector3 rayOrigin = targetPlanet.position + surfaceNormal * (radius * 1.5f);
-            Vector3 playerPos;
-            if (Physics.Raycast(rayOrigin, -surfaceNormal, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                playerPos = hit.point + hit.normal * 1f;
-            else
-                playerPos = targetPlanet.position + surfaceNormal * (radius + 1f);
+            // Marker/totem prema fromPlanet stoji točno na surfaceNormal smjeru, pa igrača
+            // sletimo malo u stranu od njega da ne završi unutar njegovog modela.
+            Vector3 tangent = Vector3.Cross(surfaceNormal, Vector3.up);
+            if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(surfaceNormal, Vector3.right);
+            tangent.Normalize();
 
-            Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, surfaceNormal);
+            float lateralOffset = Mathf.Min(6f, radius * 0.5f);
+            Vector3 aimDirection = (surfaceNormal * radius + tangent * lateralOffset).normalized;
+
+            Vector3 rayOrigin = targetPlanet.position + aimDirection * (radius * 1.5f);
+            Vector3 playerPos;
+            Vector3 playerUp;
+            if (Physics.Raycast(rayOrigin, -aimDirection, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                playerPos = hit.point + hit.normal * 1f;
+                playerUp = hit.normal;
+            }
+            else
+            {
+                playerPos = targetPlanet.position + aimDirection * (radius + 1f);
+                playerUp = aimDirection;
+            }
+
+            Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, playerUp);
 
             Rigidbody playerRb = player.rig;
             playerRb.linearVelocity = Vector3.zero;
