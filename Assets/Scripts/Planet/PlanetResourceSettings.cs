@@ -12,7 +12,6 @@ namespace xyz.germanfica.unity.planet.gravity
             public Item item;
             [Min(0f)] public float minDensity = 0.1f;
             [Min(0f)] public float maxDensity = 0.2f;
-            public Color fallbackColor = Color.gray;
             [Tooltip("Vjerojatnost da se pojedina instanca spawna kao pickup verzija (bez timera) umjesto mining verzije.")]
             [Range(0f, 1f)] public float pickupChance = 0.5f;
         }

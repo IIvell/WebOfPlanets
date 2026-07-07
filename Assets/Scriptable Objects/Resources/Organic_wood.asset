@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
   id: 0
   displayName: Wood
-  pickupPrefab: {fileID: 919132149155446097, guid: 1c8dcd7a434a0b543b8043e201a4a82a, type: 3}
+  icon: {fileID: 0}
+  pickupPrefab: {fileID: 0}
+  miningPrefab: {fileID: 919132149155446097, guid: 38ade52eda559c445b30992f7f916896, type: 3}
   miningTime: 0
   miningWorldScale: {x: 1, y: 1, z: 1}
   pickupWorldScale: {x: 1, y: 1, z: 1}
   requiredTool: {fileID: 0}
   regenerationTime: 10
+  minMiningYield: 1
+  maxMiningYield: 1
+  bonusMiningItem: {fileID: 0}
+  bonusMiningChance: 0

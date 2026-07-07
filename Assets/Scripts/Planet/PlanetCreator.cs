@@ -22,11 +22,13 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private float minPlanetSeparation = 200f;
         [SerializeField] private int maxPlacementAttempts = 30;
 
+        [SerializeField] private Material iceMaterial;
+
         private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
 
         private static readonly PlanetType[] AllTypes =
         {
-            PlanetType.Mining, PlanetType.Organic
+            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice
         };
 
         void Start()
@@ -70,11 +72,15 @@ namespace xyz.germanfica.unity.planet.gravity
             rb.useGravity = false;
 
             Attractor attractor = planetGO.AddComponent<Attractor>();
+            attractor.OrientToGravity = false;
             attractor.enabled = false;
 
             Planet planet = planetGO.AddComponent<Planet>();
             planet.Gravity = gravity;
             planet.Type = AllTypes[Random.Range(0, AllTypes.Length)];
+
+            if (planet.Type == PlanetType.Ice && iceMaterial != null)
+                planetGO.GetComponent<Renderer>().material = iceMaterial;
 
             return planetGO.transform;
         }

@@ -80,10 +80,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
             bool isPickup = Random.value < entry.pickupChance;
             GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
+            if (prefab == null) return;
 
-            GameObject go = prefab != null
-                ? Instantiate(prefab, spawnPos, spawnRot)
-                : CreateFallbackCube(spawnPos, spawnRot, entry.fallbackColor);
+            GameObject go = Instantiate(prefab, spawnPos, spawnRot);
 
             go.name = entry.item.displayName;
             go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
@@ -98,14 +97,6 @@ namespace xyz.germanfica.unity.planet.gravity
                 interactable = go.AddComponent<ItemInteractable>();
 
             interactable.Init(entry.item, isPickup);
-        }
-
-        private GameObject CreateFallbackCube(Vector3 pos, Quaternion rot, Color color)
-        {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            go.transform.SetPositionAndRotation(pos, rot);
-            go.GetComponent<Renderer>().material.color = color;
-            return go;
         }
     }
 }

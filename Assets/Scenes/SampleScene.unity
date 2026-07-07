@@ -760,6 +760,7 @@ MonoBehaviour:
   maxSpawnDistance: 5000
   minPlanetSeparation: 200
   maxPlacementAttempts: 30
+  iceMaterial: {fileID: 2100000, guid: f91c5285505103c05c32b4c473ea8d50, type: 2}
 --- !u!4 &366273104
 Transform:
   m_ObjectHideFlags: 0
@@ -1173,8 +1174,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b6772ed442a06aa4593b4d1134e57546, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Attractor
+  orientToGravity: 0
 --- !u!114 &543475859
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -6,6 +6,11 @@ namespace xyz.germanfica.unity.planet.gravity
     public class Attractor : MonoBehaviour
     {
         public static List<Attractor> Attractors = new();
+
+        [Tooltip("Treba li ovo tijelo samo sebe orijentirati prema gravitaciji drugih attractora. Planeti su čisti izvori gravitacije i ovo mora biti isključeno kod njih, inače ih igrač (kao attractor) rotira dok se kreće po njima.")]
+        [SerializeField] private bool orientToGravity = true;
+        public bool OrientToGravity { get => orientToGravity; set => orientToGravity = value; }
+
         private Rigidbody m_Rigidbody;
         public void Attract(Transform body)
         {
@@ -25,6 +30,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void FixedUpdate()
         {
+            if (!orientToGravity) return;
+
             if (m_Rigidbody != null && transform != null)
             {
                 foreach (Attractor attractor in Attractors)

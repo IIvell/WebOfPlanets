@@ -18,14 +18,24 @@ MonoBehaviour:
     - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
       minDensity: 0.2
       maxDensity: 0.4
-      fallbackColor: {r: 0, g: 0, b: 0, a: 0}
+      pickupChance: 0.5
   - planetType: 1
     resources:
     - item: {fileID: 11400000, guid: 1c6371992280b7345bbf286eed7892a3, type: 2}
       minDensity: 0.1
       maxDensity: 0.2
-      fallbackColor: {r: 0, g: 0, b: 0, a: 0}
+      pickupChance: 0.5
     - item: {fileID: 11400000, guid: 122c620f358d2944fafe65b89da8879b, type: 2}
       minDensity: 0.2
       maxDensity: 0.4
-      fallbackColor: {r: 0, g: 0, b: 0, a: 0}
+      pickupChance: 0.5
+  - planetType: 2
+    resources:
+    - item: {fileID: 11400000, guid: 1c6371992280b7345bbf286eed7892a3, type: 2}
+      minDensity: 0.1
+      maxDensity: 0.2
+      pickupChance: 0.5
+    - item: {fileID: 11400000, guid: 122c620f358d2944fafe65b89da8879b, type: 2}
+      minDensity: 0.2
+      maxDensity: 0.4
+      pickupChance: 0.5

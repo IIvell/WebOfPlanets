@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
   id: 1
   displayName: Plant
-  pickupPrefab: {fileID: 0}
+  icon: {fileID: 0}
+  pickupPrefab: {fileID: 919132149155446097, guid: 83d55a38023ad57488973c2c37d4f70c, type: 3}
+  miningPrefab: {fileID: 0}
   miningTime: 0
   miningWorldScale: {x: 1, y: 1, z: 1}
   pickupWorldScale: {x: 1, y: 1, z: 1}
   requiredTool: {fileID: 0}
   regenerationTime: 5
+  minMiningYield: 1
+  maxMiningYield: 1
+  bonusMiningItem: {fileID: 0}
+  bonusMiningChance: 0
