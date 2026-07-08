@@ -42,8 +42,14 @@ namespace xyz.germanfica.unity.planet.gravity
             UpdateHealthColor();
             UpdateVisual();
 
-            SpawnMarker(from: a, toward: b, planetCreator);
-            SpawnMarker(from: b, toward: a, planetCreator);
+            GameObject markerA = SpawnMarker(from: a, toward: b, planetCreator);
+            GameObject markerB = SpawnMarker(from: b, toward: a, planetCreator);
+
+            if (markerA != null && markerB != null)
+            {
+                markerA.GetComponent<ConnectionInteractable>().SetDestinationMarker(markerB.transform);
+                markerB.GetComponent<ConnectionInteractable>().SetDestinationMarker(markerA.transform);
+            }
         }
 
         void Update()
@@ -82,12 +88,12 @@ namespace xyz.germanfica.unity.planet.gravity
             return Color.Lerp(HealthColorCritical, HealthColorLow, t * 3f);
         }
 
-        private void SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator)
+        private GameObject SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator)
         {
             if (_markerPrefab == null)
             {
                 Debug.LogError("PlanetConnection: markerPrefab nije postavljen.");
-                return;
+                return null;
             }
 
             Vector3 dir = (toward.position - from.position).normalized;
@@ -103,6 +109,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
             ConnectionInteractable interactable = marker.AddComponent<ConnectionInteractable>();
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
+
+            return marker;
         }
 
         private static readonly int PlanetLayerMask = LayerMask.GetMask("Planet");

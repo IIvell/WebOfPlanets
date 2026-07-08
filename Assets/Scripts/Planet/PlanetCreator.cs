@@ -23,6 +23,7 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private int maxPlacementAttempts = 30;
 
         [SerializeField] private Material iceMaterial;
+        [SerializeField] private Material miningMaterial;
 
         private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
 
@@ -81,6 +82,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (planet.Type == PlanetType.Ice && iceMaterial != null)
                 planetGO.GetComponent<Renderer>().material = iceMaterial;
+            else if (planet.Type == PlanetType.Mining && miningMaterial != null)
+                planetGO.GetComponent<Renderer>().material = miningMaterial;
 
             return planetGO.transform;
         }
@@ -139,7 +142,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (playerCamera != null) playerCamera.SetPlanet(_currentPlanet);
         }
 
-        public void TeleportToPlanet(Transform targetPlanet, Transform fromPlanet = null)
+        public void TeleportToPlanet(Transform targetPlanet, Transform fromPlanet = null, Transform destinationMarker = null)
         {
             if (_currentPlanet != null)
             {
@@ -150,34 +153,57 @@ namespace xyz.germanfica.unity.planet.gravity
             if (targetPlanet.TryGetComponent(out Attractor newAttractor))
                 newAttractor.enabled = true;
 
-            Renderer rend = targetPlanet.GetComponentInChildren<Renderer>();
-            float radius = rend != null ? rend.bounds.size.x * 0.5f : targetPlanet.localScale.x * 0.5f;
-
-            Vector3 surfaceNormal = fromPlanet != null
-                ? (fromPlanet.position - targetPlanet.position).normalized
-                : Random.onUnitSphere;
-
-            // Marker/totem prema fromPlanet stoji točno na surfaceNormal smjeru, pa igrača
-            // sletimo malo u stranu od njega da ne završi unutar njegovog modela.
-            Vector3 tangent = Vector3.Cross(surfaceNormal, Vector3.up);
-            if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(surfaceNormal, Vector3.right);
-            tangent.Normalize();
-
-            float lateralOffset = Mathf.Min(6f, radius * 0.5f);
-            Vector3 aimDirection = (surfaceNormal * radius + tangent * lateralOffset).normalized;
-
-            Vector3 rayOrigin = targetPlanet.position + aimDirection * (radius * 1.5f);
             Vector3 playerPos;
             Vector3 playerUp;
-            if (Physics.Raycast(rayOrigin, -aimDirection, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+
+            if (destinationMarker != null)
             {
-                playerPos = hit.point + hit.normal * 1f;
-                playerUp = hit.normal;
+                // Sletimo blizu stvarne pozicije markera/totema (umjesto da ponovno
+                // računamo površinu iz centra planeta, što na nesferičnim meshovima
+                // zna promašiti stvarnu točku markera).
+                Vector3 markerUp = destinationMarker.up;
+                Vector3 tangent = Vector3.Cross(markerUp, Vector3.up);
+                if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(markerUp, Vector3.right);
+                tangent.Normalize();
+
+                Vector3 rayOrigin = destinationMarker.position + markerUp * 2f + tangent * 2f;
+                if (Physics.Raycast(rayOrigin, -markerUp, out RaycastHit hit, 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                {
+                    playerPos = hit.point + hit.normal * 1f;
+                    playerUp = hit.normal;
+                }
+                else
+                {
+                    playerPos = destinationMarker.position + tangent * 2f;
+                    playerUp = markerUp;
+                }
             }
             else
             {
-                playerPos = targetPlanet.position + aimDirection * (radius + 1f);
-                playerUp = aimDirection;
+                float radius = targetPlanet.localScale.x * 0.5f;
+
+                Vector3 surfaceNormal = fromPlanet != null
+                    ? (fromPlanet.position - targetPlanet.position).normalized
+                    : Random.onUnitSphere;
+
+                Vector3 tangent = Vector3.Cross(surfaceNormal, Vector3.up);
+                if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(surfaceNormal, Vector3.right);
+                tangent.Normalize();
+
+                float lateralOffset = Mathf.Min(6f, radius * 0.5f);
+                Vector3 aimDirection = (surfaceNormal * radius + tangent * lateralOffset).normalized;
+
+                Vector3 rayOrigin = targetPlanet.position + aimDirection * (radius * 1.5f);
+                if (Physics.Raycast(rayOrigin, -aimDirection, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                {
+                    playerPos = hit.point + hit.normal * 1f;
+                    playerUp = hit.normal;
+                }
+                else
+                {
+                    playerPos = targetPlanet.position + aimDirection * (radius + 1f);
+                    playerUp = aimDirection;
+                }
             }
 
             Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, playerUp);

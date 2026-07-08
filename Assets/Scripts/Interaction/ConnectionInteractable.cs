@@ -7,6 +7,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private PlanetCreator _planetCreator;
         private Transform _sourcePlanet;
         private Transform _targetPlanet;
+        private Transform _destinationMarker;
 
         public Transform SourcePlanet => _sourcePlanet;
         public Transform TargetPlanet => _targetPlanet;
@@ -18,9 +19,14 @@ namespace xyz.germanfica.unity.planet.gravity
             _targetPlanet = targetPlanet;
         }
 
+        public void SetDestinationMarker(Transform destinationMarker)
+        {
+            _destinationMarker = destinationMarker;
+        }
+
         public override void Interact()
         {
-            _planetCreator.TeleportToPlanet(_targetPlanet, _sourcePlanet);
+            _planetCreator.TeleportToPlanet(_targetPlanet, _sourcePlanet, _destinationMarker);
         }
     }
 }

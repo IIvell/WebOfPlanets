@@ -761,6 +761,7 @@ MonoBehaviour:
   minPlanetSeparation: 200
   maxPlacementAttempts: 30
   iceMaterial: {fileID: 2100000, guid: f91c5285505103c05c32b4c473ea8d50, type: 2}
+  miningMaterial: {fileID: 2100000, guid: f56e5c526f834d83aee31d1da1345695, type: 2}
 --- !u!4 &366273104
 Transform:
   m_ObjectHideFlags: 0
@@ -1192,6 +1193,7 @@ MonoBehaviour:
   Type: 0
   IsHub: 1
   Gravity: 20
+  surfaceMaterial: {fileID: 2100000, guid: f56e5c526f834d83aee31d1da1345695, type: 2}
 --- !u!114 &543475862
 MonoBehaviour:
   m_ObjectHideFlags: 0
