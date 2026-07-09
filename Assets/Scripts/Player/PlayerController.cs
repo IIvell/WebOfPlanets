@@ -10,6 +10,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         [SerializeField] private float moveSpeed = 3f;
 
+        [Header("Visual")]
+        [Tooltip("Model robota koji se vizualno rotira prema smjeru kretanja (ne rotira Player/collider).")]
+        [SerializeField] private Transform visualModel;
+        [Tooltip("Koliko brzo se model okreće prema smjeru kretanja.")]
+        [SerializeField] private float turnSpeed = 10f;
+
         [Tooltip("Koliko brzo brzina teži cilju na ledu (veće = manje sklisko).")]
         [SerializeField] private float iceAcceleration = 10f;
         [Tooltip("Koliko brzo brzina pada na nulu na ledu kad nema inputa (manje = duže klizanje).")]
@@ -95,8 +101,10 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            Vector3 move = (transform.right * input.x + transform.forward * input.y) * (Time.fixedDeltaTime * moveSpeed);
-            rig.MovePosition(rig.position + move);
+            Vector3 moveDir = transform.right * input.x + transform.forward * input.y;
+            rig.MovePosition(rig.position + moveDir * (Time.fixedDeltaTime * moveSpeed));
+
+            FaceDirection(moveDir);
         }
 
         private void MoveOnIce(Vector2 input)
@@ -111,6 +119,16 @@ namespace xyz.germanfica.unity.planet.gravity
 
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.fixedDeltaTime);
             rig.linearVelocity = horizontalVelocity + verticalVelocity;
+
+            FaceDirection(horizontalVelocity);
+        }
+
+        private void FaceDirection(Vector3 direction)
+        {
+            if (visualModel == null || direction.sqrMagnitude < 0.0001f) return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(-direction.normalized, transform.up);
+            visualModel.rotation = Quaternion.Slerp(visualModel.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
         }
     }
 }
