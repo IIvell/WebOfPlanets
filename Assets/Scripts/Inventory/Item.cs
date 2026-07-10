@@ -27,5 +27,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public Item bonusMiningItem;
         [Tooltip("Vjerojatnost (0-1) da se bonusMiningItem dobije po minanju.")]
         [Range(0f, 1f)] public float bonusMiningChance = 0f;
+        [Tooltip("Lokalna os prefaba koja pri postavljanju na planet treba gledati suprotno od centra planeta (\"gore\" u mesh prostoru). Standardno Y, ali neki modeli imaju drugu os kao \"gore\".")]
+        public Vector3 surfaceUpAxis = Vector3.up;
     }
 }

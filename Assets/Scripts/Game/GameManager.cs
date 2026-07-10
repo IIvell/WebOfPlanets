@@ -20,11 +20,13 @@ namespace xyz.germanfica.unity.planet.gravity
         void OnEnable()
         {
             GameEventBus.OnMilestoneReached += HandleMilestone;
+            GameEventBus.OnPlayerDied += HandlePlayerDied;
         }
 
         void OnDisable()
         {
             GameEventBus.OnMilestoneReached -= HandleMilestone;
+            GameEventBus.OnPlayerDied -= HandlePlayerDied;
         }
 
         public void Pause()   => SetState(GameState.Paused);
@@ -42,5 +44,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (!string.IsNullOrEmpty(e.StoryFragment))
                 GameEventBus.RaiseStoryFragment(e.StoryFragment);
         }
+
+        void HandlePlayerDied(PlayerDiedEvent e) => GameOver();
     }
 }

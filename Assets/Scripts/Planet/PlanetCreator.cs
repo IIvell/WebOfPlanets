@@ -24,12 +24,13 @@ namespace xyz.germanfica.unity.planet.gravity
 
         [SerializeField] private Material iceMaterial;
         [SerializeField] private Material miningMaterial;
+        [SerializeField] private Material volcanicMaterial;
 
         private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
 
         private static readonly PlanetType[] AllTypes =
         {
-            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice
+            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic
         };
 
         void Start()
@@ -84,6 +85,8 @@ namespace xyz.germanfica.unity.planet.gravity
                 planetGO.GetComponent<Renderer>().material = iceMaterial;
             else if (planet.Type == PlanetType.Mining && miningMaterial != null)
                 planetGO.GetComponent<Renderer>().material = miningMaterial;
+            else if (planet.Type == PlanetType.Volcanic && volcanicMaterial != null)
+                planetGO.GetComponent<Renderer>().material = volcanicMaterial;
 
             return planetGO.transform;
         }

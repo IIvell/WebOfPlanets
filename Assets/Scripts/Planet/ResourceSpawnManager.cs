@@ -67,7 +67,7 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             Vector3 spawnPos = hitPoint + hitNormal * surfaceOffset;
-            Quaternion spawnRot = Quaternion.FromToRotation(Vector3.up, hitNormal);
+            Quaternion spawnRot = Quaternion.FromToRotation(entry.item.surfaceUpAxis, hitNormal);
 
             bool isPickup = Random.value < entry.pickupChance;
             GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
@@ -77,6 +77,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             go.name = entry.item.displayName;
             go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
+            SnapAboveSurface(go, hitNormal);
 
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
@@ -88,6 +89,28 @@ namespace xyz.germanfica.unity.planet.gravity
                 interactable = go.AddComponent<ItemInteractable>();
 
             interactable.Init(entry.item, isPickup);
+        }
+
+        // Neki modeli imaju pivot u sredini mesha umjesto na dnu, pa bi inače pola objekta
+        // završilo ukopano u planet. Pomakni objekt van po normali dovoljno da mu najniža
+        // točka (po normali) dođe na razinu pivota/površine.
+        private static void SnapAboveSurface(GameObject go, Vector3 hitNormal)
+        {
+            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0) return;
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+                bounds.Encapsulate(renderers[i].bounds);
+
+            float centerOffset = Vector3.Dot(bounds.center - go.transform.position, hitNormal);
+            float halfExtentAlongNormal = Mathf.Abs(bounds.extents.x * hitNormal.x)
+                                         + Mathf.Abs(bounds.extents.y * hitNormal.y)
+                                         + Mathf.Abs(bounds.extents.z * hitNormal.z);
+            float lowestPointOffset = centerOffset - halfExtentAlongNormal;
+
+            if (lowestPointOffset < 0f)
+                go.transform.position -= hitNormal * lowestPointOffset;
         }
     }
 }

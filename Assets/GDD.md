@@ -112,6 +112,14 @@ Svaka veza ima **zdravlje (0–100%)** koje pada s vremenom.
 - Kretanje po površini planeta: sferična gravitacija (Super Mario Galaxy stil), bez kompleksnih fizikalnih mehanika
 - Igrač može ručno hodati između zona na planetu
 
+### 5.1 Zdravlje igrača i opasne zone
+
+- Igrač ima zdravlje (0–100), prikazano trakom u HUD-u
+- **Vulkanski planeti** imaju zone lave/vulkana raspoređene po površini — igrač koji stoji u zoni prima štetu po sekundi
+- Kratka neranjivost nakon primljene štete spriječava da jedan ulazak u zonu odmah isprazni cijelo zdravlje
+- Pad zdravlja na 0 = igrač "gine" — trenutno zaustavlja igru (game over state), oporavak/respawn nije još definiran
+- Ostali izvori štete (padovi, neprijatelji, druge opasne zone) mogu se dodati kasnije na istom sistemu
+
 ---
 
 ## 6. Resursi

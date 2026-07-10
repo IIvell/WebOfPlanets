@@ -729,6 +729,7 @@ GameObject:
   - component: {fileID: 366273107}
   - component: {fileID: 366273108}
   - component: {fileID: 366273109}
+  - component: {fileID: 56591635}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -762,6 +763,7 @@ MonoBehaviour:
   maxPlacementAttempts: 30
   iceMaterial: {fileID: 2100000, guid: f91c5285505103c05c32b4c473ea8d50, type: 2}
   miningMaterial: {fileID: 2100000, guid: f56e5c526f834d83aee31d1da1345695, type: 2}
+  volcanicMaterial: {fileID: 2100000, guid: 8ee7374d05cc916c9a5e9c45f8f1407d, type: 2}
 --- !u!4 &366273104
 Transform:
   m_ObjectHideFlags: 0
@@ -876,6 +878,25 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
+--- !u!114 &56591635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 366273102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a22eeac8e4fc64e7d024790c8bf1407b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.VolcanicHazardSpawner
+  minZonesPerPlanet: 2
+  maxZonesPerPlanet: 5
+  minZoneRadius: 4
+  maxZoneRadius: 10
+  damagePerSecond: 15
+  surfaceOffset: -1
+  hazardMaterial: {fileID: 2100000, guid: 7398f3cfa009a6e46aa8729cd33a4209, type: 2}
 --- !u!1 &378247335
 GameObject:
   m_ObjectHideFlags: 0
@@ -1517,6 +1538,7 @@ GameObject:
   - component: {fileID: 1078422989}
   - component: {fileID: 1078422990}
   - component: {fileID: 1078422991}
+  - component: {fileID: 762044620}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -1681,6 +1703,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachinePlacer
   playerController: {fileID: 1078422987}
   spawnForwardDistance: 4
+--- !u!114 &762044620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1078422980}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f8f590a15c0cd2920f2e0acdce69424, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.PlayerHealth
+  maxHealth: 100
+  damageInvulnerability: 0.5
 --- !u!1001 &1117808297
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2486,6 +2522,56 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 543475862}
   m_SourcePrefab: {fileID: 100100000, guid: 623d611727f7c794a9fa56418214f83c, type: 3}
+--- !u!1 &187300609
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 933706504}
+  - component: {fileID: 151034846}
+  m_Layer: 5
+  m_Name: HealthUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &933706504
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187300609}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2146704354}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &151034846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187300609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 994098bc6e39479591841f49e57352a9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.HealthUI
+  damageFlashAlpha: 0.35
+  damageFlashFadeSpeed: 2.5
 --- !u!1 &2146704350
 GameObject:
   m_ObjectHideFlags: 0
@@ -2582,6 +2668,7 @@ RectTransform:
   m_Children:
   - {fileID: 1907982507}
   - {fileID: 811001347}
+  - {fileID: 933706504}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

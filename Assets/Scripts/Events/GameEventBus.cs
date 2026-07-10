@@ -57,6 +57,11 @@ namespace xyz.germanfica.unity.planet.gravity
         // ── Quick Slots ───────────────────────────────────────────────────────
         public static event Action OnQuickSlotsChanged;
 
+        // ── Player Health ─────────────────────────────────────────────────────
+        public static event Action<PlayerHealthChangedEvent> OnPlayerHealthChanged;
+        public static event Action<PlayerDamagedEvent>       OnPlayerDamaged;
+        public static event Action<PlayerDiedEvent>          OnPlayerDied;
+
         // ── Raise overloads ───────────────────────────────────────────────────
         public static void Raise(PlayerPlanetEvent e)            => OnPlayerLandedOnPlanet?.Invoke(e);
         public static void RaiseLeftPlanet(PlayerPlanetEvent e)  => OnPlayerLeftPlanet?.Invoke(e);
@@ -101,5 +106,9 @@ namespace xyz.germanfica.unity.planet.gravity
         public static void RaiseToolDurabilityChanged(ToolDurabilityEvent e) => OnToolDurabilityChanged?.Invoke(e);
 
         public static void RaiseQuickSlotsChanged() => OnQuickSlotsChanged?.Invoke();
+
+        public static void Raise(PlayerHealthChangedEvent e) => OnPlayerHealthChanged?.Invoke(e);
+        public static void Raise(PlayerDamagedEvent e)       => OnPlayerDamaged?.Invoke(e);
+        public static void Raise(PlayerDiedEvent e)          => OnPlayerDied?.Invoke(e);
     }
 }

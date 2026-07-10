@@ -105,4 +105,22 @@ namespace xyz.germanfica.unity.planet.gravity
         public int Current;
         public int Max;
     }
+
+    public struct PlayerHealthChangedEvent
+    {
+        public float Current;
+        public float Max;
+    }
+
+    public struct PlayerDamagedEvent
+    {
+        public float Amount;
+        public float Current;
+        public Vector3 Position;
+    }
+
+    public struct PlayerDiedEvent
+    {
+        public Vector3 Position;
+    }
 }
