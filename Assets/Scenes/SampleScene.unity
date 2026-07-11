@@ -871,7 +871,7 @@ MonoBehaviour:
   slots:
   - {fileID: 11400000, guid: ddb9f51f0fa56fa40a093c686201f26f, type: 2}
   - {fileID: 11400000, guid: 61754e40333145d4f99c3cd71aa597a8, type: 2}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 8dde938ea45a4328ac7cedce884dd971, type: 2}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}

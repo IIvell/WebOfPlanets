@@ -198,6 +198,11 @@ namespace xyz.germanfica.unity.planet.gravity
                     if (recipe.resultStorageMachine != null)
                         QuickSlotInventory.current?.TryAdd(recipe.resultStorageMachine, out _);
                     break;
+
+                case CraftingRecipe.ResultType.SmelterMachine:
+                    if (recipe.resultSmelterMachine != null)
+                        QuickSlotInventory.current?.TryAdd(recipe.resultSmelterMachine, out _);
+                    break;
             }
         }
 
@@ -223,6 +228,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.Tool             => "ALAT",
             CraftingRecipe.ResultType.CollectorMachine => "KOLEKTOR",
             CraftingRecipe.ResultType.StorageMachine   => "STORAGE",
+            CraftingRecipe.ResultType.SmelterMachine   => "TOPIONICA",
             _                                           => ""
         };
 

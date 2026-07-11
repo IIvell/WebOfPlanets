@@ -8,6 +8,7 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [SerializeField] private MachineData collectorData;
         [SerializeField] private StorageMachineData storageData;
+        [SerializeField] private SmelterMachineData smelterData;
         [SerializeField] private PlayerController playerController;
         [SerializeField] private Interactor interactor;
         [SerializeField] private float spawnForwardDistance = 4f;
@@ -21,6 +22,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (Keyboard.current.oKey.wasPressedThisFrame)
                 TryBuildStorage();
+
+            if (Keyboard.current.nKey.wasPressedThisFrame)
+                TryBuildSmelter();
         }
 
         private void TryBuildCollector()
@@ -96,6 +100,30 @@ namespace xyz.germanfica.unity.planet.gravity
             Debug.Log($"[MachineBuilder] Storage izgrađen i povezan s '{_lastCollector.Data?.displayName}'.");
         }
 
+        private void TryBuildSmelter()
+        {
+            if (smelterData == null)
+            {
+                Debug.LogWarning("[MachineBuilder] Nije postavljen SmelterData asset.");
+                return;
+            }
+
+            Transform currentPlanet = playerController?.currentPlanet;
+            if (currentPlanet == null) return;
+
+            Vector3 spawnPos = FindSurfacePoint(currentPlanet);
+            Quaternion spawnRot = Quaternion.FromToRotation(
+                Vector3.up, (spawnPos - currentPlanet.position).normalized);
+
+            GameObject go = SpawnMachineObject(smelterData.prefab, spawnPos, spawnRot,
+                "SmelterMachine", new Color(0.9f, 0.2f, 0.1f), scale: 3f, rotationOffset: Quaternion.identity,
+                fitColliderToRenderer: true);
+            var smelter = go.AddComponent<SmelterMachine>();
+            smelter.Init(smelterData);
+
+            Debug.Log("[MachineBuilder] Smelter izgrađen — ubaci sirovine pritiskom na E.");
+        }
+
         private CollectorMachine SpawnCollector(Transform planet, Vector3 pos, Quaternion rot,
             Transform linkedPlanet)
         {
@@ -153,7 +181,8 @@ namespace xyz.germanfica.unity.planet.gravity
         }
 
         private GameObject SpawnMachineObject(GameObject prefab, Vector3 pos, Quaternion rot,
-            string fallbackName, Color fallbackColor)
+            string fallbackName, Color fallbackColor, float scale = 300f, Quaternion? rotationOffset = null,
+            bool fitColliderToRenderer = false)
         {
             GameObject go;
             if (prefab != null)
@@ -167,16 +196,57 @@ namespace xyz.germanfica.unity.planet.gravity
                 go.GetComponent<Renderer>().material.color = fallbackColor;
             }
 
-            go.transform.localScale = Vector3.one * 300f;
-            go.transform.rotation = rot * Quaternion.Euler(-90f, 0f, 0f);
+            go.transform.localScale = Vector3.one * scale;
+            go.transform.rotation = rot * (rotationOffset ?? Quaternion.Euler(-90f, 0f, 0f));
 
             go.name = fallbackName;
-            if (!go.TryGetComponent<Collider>(out _))
+
+            if (fitColliderToRenderer)
+                FitColliderToRenderer(go);
+            else if (!go.TryGetComponent<Collider>(out _))
                 go.AddComponent<BoxCollider>();
+
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
 
             return go;
+        }
+
+        // Postavlja jedan BoxCollider koji tačno prati stvarne granice vizuala (renderer bounds),
+        // umjesto da se oslanja na default collider primitive kocke ili prefaba koji možda ne
+        // odgovara veličini/obliku modela nakon skaliranja i rotacije.
+        private static void FitColliderToRenderer(GameObject go)
+        {
+            var renderers = go.GetComponentsInChildren<Renderer>();
+
+            foreach (var existing in go.GetComponentsInChildren<Collider>())
+                Destroy(existing);
+
+            if (renderers.Length == 0)
+            {
+                go.AddComponent<BoxCollider>();
+                return;
+            }
+
+            // Renderer.bounds je uvijek axis-aligned u world prostoru. Ako se izmjeri dok je
+            // objekt već zarotiran (poravnat s površinom planeta), rezultat ne odgovara stvarnom
+            // obliku mesh-a kad se samo "vrati" u lokalni prostor preko InverseTransform — nastaje
+            // iskrivljena/necentrirana kutija. Zato rotaciju privremeno nuliramo prije mjerenja.
+            Quaternion originalRotation = go.transform.rotation;
+            go.transform.rotation = Quaternion.identity;
+
+            Bounds worldBounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+                worldBounds.Encapsulate(renderers[i].bounds);
+
+            Vector3 localCenter = go.transform.InverseTransformPoint(worldBounds.center);
+            Vector3 localSize   = go.transform.InverseTransformVector(worldBounds.size);
+
+            go.transform.rotation = originalRotation;
+
+            var box = go.AddComponent<BoxCollider>();
+            box.center = localCenter;
+            box.size   = new Vector3(Mathf.Abs(localSize.x), Mathf.Abs(localSize.y), Mathf.Abs(localSize.z));
         }
     }
 }
