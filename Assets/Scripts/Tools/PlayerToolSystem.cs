@@ -67,9 +67,9 @@ namespace xyz.germanfica.unity.planet.gravity
             if (tool.prefab == null || toolHoldPoint == null) return;
 
             _toolVisual = Instantiate(tool.prefab, toolHoldPoint);
-            _toolVisual.transform.localPosition = Vector3.zero;
-            _toolVisual.transform.localRotation = Quaternion.identity;
-            _toolVisual.transform.localScale = Vector3.one * 5f;
+            _toolVisual.transform.localPosition = tool.holdPositionOffset;
+            _toolVisual.transform.localRotation = Quaternion.Euler(tool.holdRotationOffset);
+            _toolVisual.transform.localScale = Vector3.one * tool.holdScale;
 
             // Ukloni sve kolajdere i interactable komponente sa vizuala
             foreach (var col in _toolVisual.GetComponentsInChildren<Collider>())

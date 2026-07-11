@@ -11,5 +11,12 @@ namespace xyz.germanfica.unity.planet.gravity
         [Min(1f)] public float miningSpeedMultiplier = 1f;
         [Tooltip("Broj resursa koje alat može skupiti prije nego se pokvari. 0 = beskonačno.")]
         [Min(0)] public int maxDurability = 0;
+
+        [Tooltip("Lokalni pomak vizuala alata od hold pointa (za centriranje u ruci).")]
+        public Vector3 holdPositionOffset = Vector3.zero;
+        [Tooltip("Lokalna rotacija (Euler) vizuala alata na hold pointu.")]
+        public Vector3 holdRotationOffset = Vector3.zero;
+        [Tooltip("Scale vizuala alata na hold pointu.")]
+        [Min(0.01f)] public float holdScale = 5f;
     }
 }

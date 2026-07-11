@@ -2293,6 +2293,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingUI
   recipes:
   - {fileID: 11400000, guid: 122b42c0ef9ad024eb88389b66ad81e6, type: 2}
+  - {fileID: 11400000, guid: ec73fbc9c30340cda2b84f7c1204f109, type: 2}
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
