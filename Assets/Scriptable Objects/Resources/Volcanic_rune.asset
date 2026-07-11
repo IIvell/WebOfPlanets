@@ -27,3 +27,4 @@ MonoBehaviour:
   bonusMiningItem: {fileID: 0}
   bonusMiningChance: 0
   surfaceUpAxis: {x: -1, y: 0, z: 0}
+  pivotAtMeshCenter: 1

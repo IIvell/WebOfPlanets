@@ -22,6 +22,12 @@ namespace xyz.germanfica.unity.planet.gravity
                 OnPlanetDiscovered(planet.transform);
         }
 
+        private float GetPlanetRadius(Transform planet)
+        {
+            Renderer rend = planet.GetComponentInChildren<Renderer>();
+            return rend != null ? rend.bounds.size.x * 0.5f : planet.localScale.x * 0.5f;
+        }
+
         private void OnPlanetDiscovered(Transform planetTransform)
         {
             if (_processed.Contains(planetTransform)) return;
@@ -35,12 +41,11 @@ namespace xyz.germanfica.unity.planet.gravity
             PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
             if (config == null) return;
 
-            Renderer rend = planetTransform.GetComponentInChildren<Renderer>();
-            float scale = rend != null ? rend.bounds.size.x : planetTransform.localScale.x;
+            float radius = GetPlanetRadius(planetTransform);
             foreach (var entry in config.resources)
             {
                 if (entry.item == null) continue;
-                int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * scale));
+                int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * radius));
                 for (int i = 0; i < count; i++)
                     SpawnOne(entry, planetTransform);
             }
@@ -49,20 +54,20 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform planet)
         {
             Vector3 normal = Random.onUnitSphere;
-            float castStart = planet.localScale.x;
-            Vector3 rayOrigin = planet.position + normal * castStart;
+            float radius = GetPlanetRadius(planet);
+            Vector3 rayOrigin = planet.position + normal * radius;
 
             Vector3 hitPoint;
             Vector3 hitNormal;
 
-            if (SurfacePlacement.TryRaycastSurface(planet, rayOrigin, -normal, castStart * 2f, out RaycastHit hit))
+            if (SurfacePlacement.TryRaycastSurface(planet, rayOrigin, -normal, radius * 2f, out RaycastHit hit))
             {
                 hitPoint = hit.point;
                 hitNormal = hit.normal;
             }
             else
             {
-                hitPoint = planet.position + normal * (planet.localScale.x * 0.5f);
+                hitPoint = planet.position + normal * radius;
                 hitNormal = normal;
             }
 
@@ -77,7 +82,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
             go.name = entry.item.displayName;
             go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
-            SnapAboveSurface(go, hitNormal);
+
+            if (entry.item.pivotAtMeshCenter)
+                SnapPivotToBase(go, hitNormal);
 
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
@@ -91,26 +98,61 @@ namespace xyz.germanfica.unity.planet.gravity
             interactable.Init(entry.item, isPickup);
         }
 
-        // Neki modeli imaju pivot u sredini mesha umjesto na dnu, pa bi inače pola objekta
-        // završilo ukopano u planet. Pomakni objekt van po normali dovoljno da mu najniža
-        // točka (po normali) dođe na razinu pivota/površine.
-        private static void SnapAboveSurface(GameObject go, Vector3 hitNormal)
+        // Samo za iteme s pivotAtMeshCenter = true. Pivot im je u sredini mesha umjesto na
+        // dnu, pa bi inače pola objekta završilo ukopano u planet. Pomakni objekt van po
+        // normali dovoljno da mu najniža stvarna točka mesha (ne AABB kutija, koja je
+        // preširoka za nepravilne modele) dođe na razinu površine.
+        private static void SnapPivotToBase(GameObject go, Vector3 hitNormal)
         {
-            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0) return;
+            MeshFilter[] filters = go.GetComponentsInChildren<MeshFilter>();
+            if (filters.Length == 0) return;
 
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-                bounds.Encapsulate(renderers[i].bounds);
+            float lowestPointOffset;
+            bool usedVertices = TryGetLowestVertexOffset(filters, go.transform.position, hitNormal, out lowestPointOffset);
 
-            float centerOffset = Vector3.Dot(bounds.center - go.transform.position, hitNormal);
-            float halfExtentAlongNormal = Mathf.Abs(bounds.extents.x * hitNormal.x)
-                                         + Mathf.Abs(bounds.extents.y * hitNormal.y)
-                                         + Mathf.Abs(bounds.extents.z * hitNormal.z);
-            float lowestPointOffset = centerOffset - halfExtentAlongNormal;
+            if (!usedVertices)
+            {
+                Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+                if (renderers.Length == 0) return;
 
-            if (lowestPointOffset < 0f)
-                go.transform.position -= hitNormal * lowestPointOffset;
+                Bounds bounds = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++)
+                    bounds.Encapsulate(renderers[i].bounds);
+
+                float centerOffset = Vector3.Dot(bounds.center - go.transform.position, hitNormal);
+                float halfExtentAlongNormal = Mathf.Abs(bounds.extents.x * hitNormal.x)
+                                             + Mathf.Abs(bounds.extents.y * hitNormal.y)
+                                             + Mathf.Abs(bounds.extents.z * hitNormal.z);
+                lowestPointOffset = centerOffset - halfExtentAlongNormal;
+                Debug.LogWarning($"SnapPivotToBase: '{go.name}' mesh nije Read/Write Enabled, koristim manje precizan AABB fallback (uključi Read/Write Enabled u import postavkama za točan snap).");
+            }
+
+            go.transform.position -= hitNormal * lowestPointOffset;
+        }
+
+        // Prolazi kroz stvarne vrhove mesha (ne bounding box) i nalazi najnižu točku po
+        // normali. Vraća false ako mesh nije Read/Write Enabled (vertices nisu dostupni).
+        private static bool TryGetLowestVertexOffset(MeshFilter[] filters, Vector3 pivot, Vector3 hitNormal, out float lowestOffset)
+        {
+            lowestOffset = float.MaxValue;
+            bool found = false;
+
+            foreach (MeshFilter mf in filters)
+            {
+                Mesh mesh = mf.sharedMesh;
+                if (mesh == null || !mesh.isReadable) continue;
+
+                Vector3[] vertices = mesh.vertices;
+                Transform meshTransform = mf.transform;
+                foreach (Vector3 v in vertices)
+                {
+                    float projection = Vector3.Dot(meshTransform.TransformPoint(v) - pivot, hitNormal);
+                    if (projection < lowestOffset) lowestOffset = projection;
+                }
+                found = true;
+            }
+
+            return found;
         }
     }
 }
