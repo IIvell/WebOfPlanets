@@ -2294,6 +2294,9 @@ MonoBehaviour:
   recipes:
   - {fileID: 11400000, guid: 122b42c0ef9ad024eb88389b66ad81e6, type: 2}
   - {fileID: 11400000, guid: ec73fbc9c30340cda2b84f7c1204f109, type: 2}
+  - {fileID: 11400000, guid: 7a806866a45a4ca5ae77197a50338d3d, type: 2}
+  - {fileID: 11400000, guid: ccc80851bf0b41e296aba7311617dc6e, type: 2}
+  - {fileID: 11400000, guid: 6212a1d57cb3454389a4725147df2684, type: 2}
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
