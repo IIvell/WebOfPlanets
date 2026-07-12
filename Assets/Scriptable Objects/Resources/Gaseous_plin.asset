@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b808164fa9d6bc145bcae3548f73c02c, type: 3}
+  m_Name: Gaseous_plin
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
+  id: 8
+  displayName: Plin
+  icon: {fileID: 0}
+  pickupPrefab: {fileID: 919132149155446097, guid: 7250c5a3e5e422645a3bc4a30e35e1d2, type: 3}
+  miningPrefab: {fileID: 0}
+  miningTime: 0
+  miningWorldScale: {x: 1, y: 1, z: 1}
+  pickupWorldScale: {x: 2, y: 2, z: 2}
+  requiredTool: {fileID: 0}
+  regenerationTime: 8
+  minMiningYield: 1
+  maxMiningYield: 1
+  bonusMiningItem: {fileID: 0}
+  bonusMiningChance: 0
+  surfaceUpAxis: {x: 0, y: 1, z: 0}
+  pivotAtMeshCenter: 0
