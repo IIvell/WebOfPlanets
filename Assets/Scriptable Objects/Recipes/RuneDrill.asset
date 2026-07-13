@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Rune Drill
   resultType: 0
+  unlockTier: 2
   resultTool: {fileID: 11400000, guid: 4a5b0eeb15c24bac97881a3ecec826e9, type: 2}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}

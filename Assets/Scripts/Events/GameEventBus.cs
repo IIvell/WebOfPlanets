@@ -32,6 +32,7 @@ namespace xyz.germanfica.unity.planet.gravity
         // ── Hub ───────────────────────────────────────────────────────────────
         public static event Action<HubUpgradedEvent> OnHubUpgraded;
         public static event Action<ArtifactType>     OnBlueprintUnlocked;
+        public static event Action<int>              OnRecipeTierUnlocked;
 
         // ── Artifacts ─────────────────────────────────────────────────────────
         public static event Action<ArtifactEvent> OnArtifactFound;
@@ -88,6 +89,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public static void Raise(HubUpgradedEvent e)             => OnHubUpgraded?.Invoke(e);
         public static void RaiseBlueprintUnlocked(ArtifactType t) => OnBlueprintUnlocked?.Invoke(t);
+        public static void RaiseRecipeTierUnlocked(int tier)      => OnRecipeTierUnlocked?.Invoke(tier);
 
         public static void RaiseArtifactFound(ArtifactEvent e)      => OnArtifactFound?.Invoke(e);
         public static void RaiseArtifactActivated(ArtifactEvent e)  => OnArtifactActivated?.Invoke(e);

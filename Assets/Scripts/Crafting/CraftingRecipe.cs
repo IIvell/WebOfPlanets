@@ -18,6 +18,9 @@ namespace xyz.germanfica.unity.planet.gravity
         public string displayName;
         public ResultType resultType;
 
+        [Tooltip("Hub prag potreban za otključavanje (0 = dostupno od starta).")]
+        public int unlockTier;
+
         public Tool resultTool;
         public MachineData resultMachine;
         public StorageMachineData resultStorageMachine;
@@ -26,6 +29,8 @@ namespace xyz.germanfica.unity.planet.gravity
         public UplinkMachineData resultUplinkMachine;
 
         public Ingredient[] ingredients;
+
+        public bool IsUnlocked => HubProgress.IsUnlocked(unlockTier);
 
         public bool CanAfford()
         {

@@ -22,9 +22,10 @@ namespace xyz.germanfica.unity.planet.gravity
         private const float PadTop  = 8f;
         private const float PadBot  = 8f;
 
-        private GameObject    _panel;
-        private Transform     _contentRoot;
-        private RectTransform _contentRT;
+        private GameObject      _panel;
+        private Transform       _contentRoot;
+        private RectTransform   _contentRT;
+        private TextMeshProUGUI _progressLbl;
 
         public bool IsOpen => _panel.activeSelf;
 
@@ -35,6 +36,15 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (GetComponent<ItemInfoUI>() == null)
                 gameObject.AddComponent<ItemInfoUI>();
+        }
+
+        void OnEnable()  => GameEventBus.OnRecipeTierUnlocked += HandleTierUnlocked;
+        void OnDisable() => GameEventBus.OnRecipeTierUnlocked -= HandleTierUnlocked;
+
+        // Uplink može dostaviti resurse (i otključati prag) dok je panel otvoren.
+        private void HandleTierUnlocked(int tier)
+        {
+            if (IsOpen) Refresh();
         }
 
         void Update()
@@ -67,6 +77,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void Refresh()
         {
+            UpdateProgressLabel();
+
             var old = new List<GameObject>();
             foreach (Transform child in _contentRoot)
                 old.Add(child.gameObject);
@@ -110,6 +122,8 @@ namespace xyz.germanfica.unity.planet.gravity
             rowBtn.transition = Selectable.Transition.None;
             rowBtn.onClick.AddListener(() => ItemInfoUI.current?.Toggle(GetResultItem(recipe)));
 
+            bool locked = !freeCrafting && !recipe.IsUnlocked;
+
             // Name + type label
             var nameGO = new GameObject("Name");
             nameGO.transform.SetParent(row.transform, false);
@@ -122,7 +136,7 @@ namespace xyz.germanfica.unity.planet.gravity
             var nameTxt = nameGO.AddComponent<TextMeshProUGUI>();
             nameTxt.text     = $"<b>{recipe.displayName}</b>\n<size=10><color=#aaaaaa>{TypeLabel(recipe.resultType)}</color></size>";
             nameTxt.fontSize = 14;
-            nameTxt.color    = Color.white;
+            nameTxt.color    = locked ? new Color(0.55f, 0.55f, 0.55f) : Color.white;
 
             // Ingredients
             var ingGO = new GameObject("Ingredients");
@@ -134,7 +148,7 @@ namespace xyz.germanfica.unity.planet.gravity
             ingRT.anchoredPosition = new Vector2(175f, 0f);
             ingRT.sizeDelta        = new Vector2(245f, 60f);
             var ingTxt = ingGO.AddComponent<TextMeshProUGUI>();
-            ingTxt.text     = BuildIngredientsText(recipe);
+            ingTxt.text     = locked ? BuildLockedText(recipe) : BuildIngredientsText(recipe);
             ingTxt.fontSize = 11;
             ingTxt.color    = Color.white;
 
@@ -164,8 +178,9 @@ namespace xyz.germanfica.unity.planet.gravity
             lbl.color     = Color.white;
 
             bool hotbarFull = QuickSlotInventory.current != null && QuickSlotInventory.current.IsFull;
-            bool canCraft   = (freeCrafting || recipe.CanAfford()) && !hotbarFull;
-            if (hotbarFull) lbl.text = "PUN\nHOTBAR";
+            bool canCraft   = !locked && (freeCrafting || recipe.CanAfford()) && !hotbarFull;
+            if (locked)          lbl.text = $"PRAG {recipe.unlockTier}";
+            else if (hotbarFull) lbl.text = "PUN\nHOTBAR";
 
             Color btnColor = canCraft ? new Color(0.1f, 0.55f, 0.2f) : new Color(0.22f, 0.22f, 0.22f);
             btnImg.color     = btnColor;
@@ -186,7 +201,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (recipes == null || index >= recipes.Length) return;
             var recipe = recipes[index];
-            if (recipe == null || (!freeCrafting && !recipe.CanAfford())) return;
+            if (recipe == null || (!freeCrafting && (!recipe.IsUnlocked || !recipe.CanAfford()))) return;
 
             // Prvo rezultat u hotbar, pa tek onda potrošnja sastojaka —
             // da se sastojci ne izgube kad je hotbar pun.
@@ -219,6 +234,20 @@ namespace xyz.germanfica.unity.planet.gravity
             QuickSlotItem result = GetResultItem(recipe);
             if (result == null) return false;
             return QuickSlotInventory.current != null && QuickSlotInventory.current.TryAdd(result, out _);
+        }
+
+        private string BuildLockedText(CraftingRecipe recipe)
+        {
+            return $"<color=#ffaa44>ZAKLJUČANO — prag {recipe.unlockTier}</color>\n" +
+                   "<color=#aaaaaa>Otključaj na Hub računalu</color>";
+        }
+
+        private void UpdateProgressLabel()
+        {
+            if (_progressLbl == null) return;
+            _progressLbl.text = HubProgress.Tier >= HubProgress.MaxTier
+                ? $"Hub napredak: prag {HubProgress.Tier}/{HubProgress.MaxTier} — svi recepti otključani"
+                : $"Hub napredak: prag {HubProgress.Tier}/{HubProgress.MaxTier} — sljedeći prag otključava se na Hub računalu";
         }
 
         private string BuildIngredientsText(CraftingRecipe recipe)
@@ -266,6 +295,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
             MakeLabel(_panel.transform, "CRAFTING", 20, new Vector2(0f, 196f), new Vector2(500f, 36f))
                 .alignment = TextAlignmentOptions.Center;
+
+            _progressLbl = MakeLabel(_panel.transform, "", 11, new Vector2(0f, 168f), new Vector2(520f, 20f));
+            _progressLbl.color = new Color(0.65f, 0.75f, 0.85f);
 
             // Scroll view
             var scrollGO = new GameObject("ScrollView");

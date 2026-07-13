@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Eternal Pickaxe
   resultType: 0
+  unlockTier: 2
   resultTool: {fileID: 11400000, guid: 17c65fa26a3047eeab2ce8c02164adb7, type: 2}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}

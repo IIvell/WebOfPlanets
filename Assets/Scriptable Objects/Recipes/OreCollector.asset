@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Ore Collector
   resultType: 1
+  unlockTier: 1
   resultTool: {fileID: 0}
   resultMachine: {fileID: 11400000, guid: c1b94187e5de48c9959c857b77f5f516, type: 2}
   resultStorageMachine: {fileID: 0}

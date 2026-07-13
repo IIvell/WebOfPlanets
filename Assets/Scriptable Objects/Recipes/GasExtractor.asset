@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Gas Extractor
   resultType: 4
+  unlockTier: 2
   resultTool: {fileID: 0}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}

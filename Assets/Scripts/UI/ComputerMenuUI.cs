@@ -19,11 +19,18 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public bool IsOpen => _panel.activeSelf;
 
+        private HubProgressUI hubProgressUI;
+
         void Awake()
         {
             Instance = this;
             BuildUI();
             _panel.SetActive(false);
+
+            hubProgressUI = GetComponent<HubProgressUI>();
+            if (hubProgressUI == null)
+                hubProgressUI = gameObject.AddComponent<HubProgressUI>();
+            hubProgressUI.Init(playerController, playerCamera, interactor);
         }
 
         void Update()
@@ -64,6 +71,12 @@ namespace xyz.germanfica.unity.planet.gravity
             craftingUI?.Show();
         }
 
+        private void OpenHubProgress()
+        {
+            Hide();
+            hubProgressUI?.Show();
+        }
+
         // ── UI construction ───────────────────────────────────────────────────
 
         private void BuildUI()
@@ -75,17 +88,18 @@ namespace xyz.germanfica.unity.planet.gravity
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
             panelRT.anchorMax = new Vector2(0.5f, 0.5f);
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
-            panelRT.sizeDelta = new Vector2(300f, 220f);
+            panelRT.sizeDelta = new Vector2(300f, 280f);
 
             _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
-            var title = MakeLabel(_panel.transform, "KOMPJUTER", 18, new Vector2(0f, 80f), new Vector2(260f, 36f));
+            var title = MakeLabel(_panel.transform, "KOMPJUTER", 18, new Vector2(0f, 110f), new Vector2(260f, 36f));
             title.alignment = TextAlignmentOptions.Center;
 
-            MakeButton(_panel.transform, "Mreža planeta", new Vector2(0f, 18f), OpenNetworkMap);
-            MakeButton(_panel.transform, "Crafting",      new Vector2(0f, -42f), OpenCrafting);
+            MakeButton(_panel.transform, "Mreža planeta", new Vector2(0f, 58f),  OpenNetworkMap);
+            MakeButton(_panel.transform, "Crafting",      new Vector2(0f, -2f),  OpenCrafting);
+            MakeButton(_panel.transform, "Hub napredak",  new Vector2(0f, -62f), OpenHubProgress);
 
-            var hint = MakeLabel(_panel.transform, "ESC — odustani", 11, new Vector2(0f, -95f), new Vector2(260f, 24f));
+            var hint = MakeLabel(_panel.transform, "ESC — odustani", 11, new Vector2(0f, -118f), new Vector2(260f, 24f));
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
             hint.alignment = TextAlignmentOptions.Center;
         }

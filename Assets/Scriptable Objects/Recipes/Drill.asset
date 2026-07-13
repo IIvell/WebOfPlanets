@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Drill
   resultType: 0
+  unlockTier: 1
   resultTool: {fileID: 11400000, guid: 4e5c96da35ea440392c335133052ad09, type: 2}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}

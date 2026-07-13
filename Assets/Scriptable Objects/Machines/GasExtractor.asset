@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.ExtractorMachineData
   displayName: Gas Extractor
   icon: {fileID: 0}
-  prefab: {fileID: 919132149155446097, guid: 7fb92d49cab66044abcb0042c953cd37, type: 3}
+  prefab: {fileID: 919132149155446097, guid: d6392102e06bbd041975b7318ff6760a, type: 3}
   outputs:
   - item: {fileID: 11400000, guid: 66357368904403f2472dcbb6eefa05f4, type: 2}
     amount: 1
