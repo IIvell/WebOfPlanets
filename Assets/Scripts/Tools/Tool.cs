@@ -12,6 +12,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [Tooltip("Broj resursa koje alat može skupiti prije nego se pokvari. 0 = beskonačno.")]
         [Min(0)] public int maxDurability = 0;
 
+        [Tooltip("Boja kojom se tonira vizual alata u ruci (bijelo = originalne boje prefaba).")]
+        public Color tintColor = Color.white;
+
         [Tooltip("Lokalni pomak vizuala alata od hold pointa (za centriranje u ruci).")]
         public Vector3 holdPositionOffset = Vector3.zero;
         [Tooltip("Lokalna rotacija (Euler) vizuala alata na hold pointu.")]

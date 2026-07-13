@@ -71,11 +71,27 @@ namespace xyz.germanfica.unity.planet.gravity
             _toolVisual.transform.localRotation = Quaternion.Euler(tool.holdRotationOffset);
             _toolVisual.transform.localScale = Vector3.one * tool.holdScale;
 
+            ApplyTint(_toolVisual, tool.tintColor);
+
             // Ukloni sve kolajdere i interactable komponente sa vizuala
             foreach (var col in _toolVisual.GetComponentsInChildren<Collider>())
                 col.enabled = false;
             foreach (var interactable in _toolVisual.GetComponentsInChildren<BaseInteractable>())
                 Destroy(interactable);
+        }
+
+        private static void ApplyTint(GameObject visual, Color tint)
+        {
+            if (tint == Color.white) return;
+
+            var block = new MaterialPropertyBlock();
+            foreach (var renderer in visual.GetComponentsInChildren<Renderer>())
+            {
+                renderer.GetPropertyBlock(block);
+                block.SetColor("_BaseColor", tint); // URP Lit
+                block.SetColor("_Color", tint);     // built-in/ostali shaderi
+                renderer.SetPropertyBlock(block);
+            }
         }
 
         private void DestroyToolVisual()

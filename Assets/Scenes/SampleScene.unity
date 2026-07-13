@@ -923,10 +923,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ddb9f51f0fa56fa40a093c686201f26f, type: 2}
   - {fileID: 11400000, guid: 61754e40333145d4f99c3cd71aa597a8, type: 2}
   - {fileID: 11400000, guid: 8dde938ea45a4328ac7cedce884dd971, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 1702e5e945e446d4c976698bbd31f1ff, type: 2}
+  - {fileID: 11400000, guid: 4e5c96da35ea440392c335133052ad09, type: 2}
+  - {fileID: 11400000, guid: 4a5b0eeb15c24bac97881a3ecec826e9, type: 2}
+  - {fileID: 11400000, guid: 17c65fa26a3047eeab2ce8c02164adb7, type: 2}
   - {fileID: 0}
   - {fileID: 0}
 --- !u!1 &378247335
@@ -2346,9 +2346,14 @@ MonoBehaviour:
   recipes:
   - {fileID: 11400000, guid: 122b42c0ef9ad024eb88389b66ad81e6, type: 2}
   - {fileID: 11400000, guid: ec73fbc9c30340cda2b84f7c1204f109, type: 2}
+  - {fileID: 11400000, guid: 6f263fce7b12481e848a7ac659ca6e94, type: 2}
+  - {fileID: 11400000, guid: 9bb91b5d66ea46cfb35b4ca4208af457, type: 2}
   - {fileID: 11400000, guid: 7a806866a45a4ca5ae77197a50338d3d, type: 2}
+  - {fileID: 11400000, guid: 9c3fbedf265c422899cd80823be1f565, type: 2}
+  - {fileID: 11400000, guid: 15f358ad2c394cffa7f9c90fb4ca1cf3, type: 2}
   - {fileID: 11400000, guid: ccc80851bf0b41e296aba7311617dc6e, type: 2}
   - {fileID: 11400000, guid: 6212a1d57cb3454389a4725147df2684, type: 2}
+  - {fileID: 11400000, guid: 3d15a64f7d7d4a8c813b818666ccf15e, type: 2}
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
