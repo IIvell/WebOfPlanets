@@ -134,7 +134,7 @@ namespace xyz.germanfica.unity.planet.gravity
                         sb.AppendLine($"{req.amount}x {req.item.displayName}");
             }
 
-            float lifespan = _mgr.GetLifespan(Types[i]);
+            float lifespan = _mgr.GetLifespan(Types[i], _source, _target);
             sb.Append(lifespan <= 0f ? "∞" : $"{lifespan:F0}s");
 
             return sb.ToString();

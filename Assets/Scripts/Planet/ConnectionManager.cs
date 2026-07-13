@@ -28,6 +28,10 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private float strongLifespan = 600f;
         [SerializeField] private float strongThickness = 0.9f;
 
+        [Header("Nestabilni planeti (GDD 4.2)")]
+        [Tooltip("Dodatna brzina degradacije po nestabilnom kraju veze (vulkanski/plinski planet). 0.5 znači: jedan nestabilan kraj = 1.5x brža degradacija, oba kraja = 2x.")]
+        [SerializeField] private float unstableDegradationPerEnd = 0.5f;
+
         [Header("Teleport (bez veze)")]
         [SerializeField] private ConnectionRequirement[] teleportCost;
 
@@ -148,7 +152,7 @@ private void SpawnPotentialMarkers()
             if (!HasResources(cost)) return false;
 
             ConsumeResources(cost);
-            CreateConnection(a, b, quality, GetLifespan(quality));
+            CreateConnection(a, b, quality, GetLifespan(quality, a, b));
             SetPotentialMarkersActive(a, b, false);
             return true;
         }
@@ -168,6 +172,23 @@ private void SpawnPotentialMarkers()
             ConnectionType.Strong => strongLifespan,
             _                     => 0f
         };
+
+        // Efektivno trajanje veze za konkretan par planeta: nestabilni krajevi
+        // (GDD 4.2) ubrzavaju degradaciju, tj. skraćuju lifespan.
+        public float GetLifespan(ConnectionType quality, Transform a, Transform b)
+        {
+            float baseLifespan = GetLifespan(quality);
+            if (baseLifespan <= 0f) return baseLifespan;
+            return baseLifespan / GetDegradationMultiplier(a, b);
+        }
+
+        public float GetDegradationMultiplier(Transform a, Transform b)
+        {
+            int unstableEnds = 0;
+            if (a != null && a.TryGetComponent(out Planet pa) && pa.IsUnstable) unstableEnds++;
+            if (b != null && b.TryGetComponent(out Planet pb) && pb.IsUnstable) unstableEnds++;
+            return 1f + unstableDegradationPerEnd * unstableEnds;
+        }
 
         public float GetThickness(ConnectionType quality) => quality switch
         {
