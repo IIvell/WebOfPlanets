@@ -14,6 +14,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlayerCamera playerCamera;
         [SerializeField] private Interactor interactor;
 
+        [Tooltip("Debug: craftanje ne provjerava ni ne troši sastojke.")]
+        [SerializeField] private bool freeCrafting;
+
         private const float RowH    = 72f;
         private const float RowGap  = 6f;
         private const float PadTop  = 8f;
@@ -29,6 +32,9 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             BuildUI();
             _panel.SetActive(false);
+
+            if (GetComponent<ItemInfoUI>() == null)
+                gameObject.AddComponent<ItemInfoUI>();
         }
 
         void Update()
@@ -51,6 +57,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public void Hide()
         {
             _panel.SetActive(false);
+            ItemInfoUI.current?.Hide();
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible   = false;
             playerController?.SetInputEnabled(true);
@@ -97,6 +104,11 @@ namespace xyz.germanfica.unity.planet.gravity
             rowRT.sizeDelta        = new Vector2(-16f, RowH);   // 8px inset each side
 
             row.AddComponent<Image>().color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+
+            // Klik na red (izvan CRAFT gumba) otvara opis rezultata recepta.
+            var rowBtn = row.AddComponent<Button>();
+            rowBtn.transition = Selectable.Transition.None;
+            rowBtn.onClick.AddListener(() => ItemInfoUI.current?.Toggle(GetResultItem(recipe)));
 
             // Name + type label
             var nameGO = new GameObject("Name");
@@ -151,15 +163,18 @@ namespace xyz.germanfica.unity.planet.gravity
             lbl.alignment = TextAlignmentOptions.Center;
             lbl.color     = Color.white;
 
-            bool canAfford = recipe.CanAfford();
-            Color btnColor = canAfford ? new Color(0.1f, 0.55f, 0.2f) : new Color(0.22f, 0.22f, 0.22f);
+            bool hotbarFull = QuickSlotInventory.current != null && QuickSlotInventory.current.IsFull;
+            bool canCraft   = (freeCrafting || recipe.CanAfford()) && !hotbarFull;
+            if (hotbarFull) lbl.text = "PUN\nHOTBAR";
+
+            Color btnColor = canCraft ? new Color(0.1f, 0.55f, 0.2f) : new Color(0.22f, 0.22f, 0.22f);
             btnImg.color     = btnColor;
-            btn.interactable = canAfford;
+            btn.interactable = canCraft;
 
             var colors = btn.colors;
             colors.normalColor      = btnColor;
-            colors.highlightedColor = canAfford ? Color.Lerp(btnColor, Color.white, 0.25f) : btnColor;
-            colors.pressedColor     = canAfford ? Color.Lerp(btnColor, Color.black, 0.2f)  : btnColor;
+            colors.highlightedColor = canCraft ? Color.Lerp(btnColor, Color.white, 0.25f) : btnColor;
+            colors.pressedColor     = canCraft ? Color.Lerp(btnColor, Color.black, 0.2f)  : btnColor;
             colors.disabledColor    = new Color(0.22f, 0.22f, 0.22f);
             btn.colors = colors;
 
@@ -171,39 +186,39 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (recipes == null || index >= recipes.Length) return;
             var recipe = recipes[index];
-            if (recipe == null || !recipe.CanAfford()) return;
+            if (recipe == null || (!freeCrafting && !recipe.CanAfford())) return;
 
-            recipe.ConsumeIngredients();
-            ProduceResult(recipe);
+            // Prvo rezultat u hotbar, pa tek onda potrošnja sastojaka —
+            // da se sastojci ne izgube kad je hotbar pun.
+            if (!ProduceResult(recipe))
+            {
+                Debug.Log($"[CraftingUI] Hotbar je pun — '{recipe.displayName}' nije craftan.");
+                return;
+            }
+
+            if (!freeCrafting)
+                recipe.ConsumeIngredients();
             Refresh();
         }
 
-        // Sve vrste rezultata završavaju u hotbaru — strojevi se postavljaju u svijet
-        // preko MachinePlacer-a (lijevi klik dok je slot selektiran).
-        private void ProduceResult(CraftingRecipe recipe)
+        private static QuickSlotItem GetResultItem(CraftingRecipe recipe) => recipe.resultType switch
         {
-            switch (recipe.resultType)
-            {
-                case CraftingRecipe.ResultType.Tool:
-                    if (recipe.resultTool != null)
-                        QuickSlotInventory.current?.TryAdd(recipe.resultTool, out _);
-                    break;
+            CraftingRecipe.ResultType.Tool             => recipe.resultTool,
+            CraftingRecipe.ResultType.CollectorMachine => recipe.resultMachine,
+            CraftingRecipe.ResultType.StorageMachine   => recipe.resultStorageMachine,
+            CraftingRecipe.ResultType.SmelterMachine   => recipe.resultSmelterMachine,
+            CraftingRecipe.ResultType.ExtractorMachine => recipe.resultExtractorMachine,
+            CraftingRecipe.ResultType.UplinkMachine    => recipe.resultUplinkMachine,
+            _                                          => null
+        };
 
-                case CraftingRecipe.ResultType.CollectorMachine:
-                    if (recipe.resultMachine != null)
-                        QuickSlotInventory.current?.TryAdd(recipe.resultMachine, out _);
-                    break;
-
-                case CraftingRecipe.ResultType.StorageMachine:
-                    if (recipe.resultStorageMachine != null)
-                        QuickSlotInventory.current?.TryAdd(recipe.resultStorageMachine, out _);
-                    break;
-
-                case CraftingRecipe.ResultType.SmelterMachine:
-                    if (recipe.resultSmelterMachine != null)
-                        QuickSlotInventory.current?.TryAdd(recipe.resultSmelterMachine, out _);
-                    break;
-            }
+        // Sve vrste rezultata završavaju u hotbaru — strojevi se postavljaju u svijet
+        // preko MachinePlacer-a. Vraća false ako rezultat nije stao u hotbar.
+        private bool ProduceResult(CraftingRecipe recipe)
+        {
+            QuickSlotItem result = GetResultItem(recipe);
+            if (result == null) return false;
+            return QuickSlotInventory.current != null && QuickSlotInventory.current.TryAdd(result, out _);
         }
 
         private string BuildIngredientsText(CraftingRecipe recipe)
@@ -229,6 +244,8 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.CollectorMachine => "KOLEKTOR",
             CraftingRecipe.ResultType.StorageMachine   => "STORAGE",
             CraftingRecipe.ResultType.SmelterMachine   => "TOPIONICA",
+            CraftingRecipe.ResultType.ExtractorMachine => "EKSTRAKTOR",
+            CraftingRecipe.ResultType.UplinkMachine    => "UPLINK",
             _                                           => ""
         };
 

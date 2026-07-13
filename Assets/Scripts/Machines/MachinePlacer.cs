@@ -35,6 +35,16 @@ namespace xyz.germanfica.unity.planet.gravity
                     if (TryPlaceSmelter(smelter))
                         QuickSlotInventory.current.RemoveSlot(index);
                     break;
+
+                case ExtractorMachineData extractor:
+                    if (TryPlaceExtractor(extractor))
+                        QuickSlotInventory.current.RemoveSlot(index);
+                    break;
+
+                case UplinkMachineData uplink:
+                    if (TryPlaceUplink(uplink))
+                        QuickSlotInventory.current.RemoveSlot(index);
+                    break;
             }
         }
 
@@ -91,6 +101,46 @@ namespace xyz.germanfica.unity.planet.gravity
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.9f, 0.2f, 0.1f),
                 scale: 3f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
             go.AddComponent<SmelterMachine>().Init(data);
+
+            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            return true;
+        }
+
+        private bool TryPlaceExtractor(ExtractorMachineData data)
+        {
+            Transform planet = playerController?.currentPlanet;
+            if (planet == null)
+            {
+                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
+                return false;
+            }
+
+            Vector3 pos = FindSurfacePoint(planet);
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+
+            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.1f, 0.8f, 0.5f),
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+            go.AddComponent<ExtractorMachine>().Init(data);
+
+            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            return true;
+        }
+
+        private bool TryPlaceUplink(UplinkMachineData data)
+        {
+            Transform planet = playerController?.currentPlanet;
+            if (planet == null)
+            {
+                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
+                return false;
+            }
+
+            Vector3 pos = FindSurfacePoint(planet);
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+
+            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.8f, 0.9f),
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+            go.AddComponent<UplinkMachine>().Init(data);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             return true;

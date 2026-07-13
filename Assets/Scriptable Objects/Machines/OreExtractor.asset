@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a92325fcf25b4d5aa50258b22109a388, type: 3}
+  m_Name: OreExtractor
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.ExtractorMachineData
+  displayName: Ore Extractor
+  icon: {fileID: 0}
+  prefab: {fileID: 919132149155446097, guid: 4a150d42ac2c09f438201cbf2c4c024a, type: 3}
+  outputs:
+  - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
+    amount: 1
+  extractionInterval: 20
+  maxStored: 15
+  maintenanceCost:
+  - item: {fileID: 11400000, guid: 66357368904403f2472dcbb6eefa05f4, type: 2}
+    amount: 1

@@ -920,13 +920,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.QuickSlotInventory
   slots:
-  - {fileID: 11400000, guid: ddb9f51f0fa56fa40a093c686201f26f, type: 2}
-  - {fileID: 11400000, guid: 61754e40333145d4f99c3cd71aa597a8, type: 2}
-  - {fileID: 11400000, guid: 8dde938ea45a4328ac7cedce884dd971, type: 2}
-  - {fileID: 11400000, guid: 1702e5e945e446d4c976698bbd31f1ff, type: 2}
-  - {fileID: 11400000, guid: 4e5c96da35ea440392c335133052ad09, type: 2}
-  - {fileID: 11400000, guid: 4a5b0eeb15c24bac97881a3ecec826e9, type: 2}
-  - {fileID: 11400000, guid: 17c65fa26a3047eeab2ce8c02164adb7, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
 --- !u!1 &378247335
@@ -2354,7 +2354,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ccc80851bf0b41e296aba7311617dc6e, type: 2}
   - {fileID: 11400000, guid: 6212a1d57cb3454389a4725147df2684, type: 2}
   - {fileID: 11400000, guid: 3d15a64f7d7d4a8c813b818666ccf15e, type: 2}
+  - {fileID: 11400000, guid: 9d7343c4f34d4d9da4114f2b6deb6dd2, type: 2}
+  - {fileID: 11400000, guid: 5e769f05be5a4446a33ed7b23f81f807, type: 2}
+  - {fileID: 11400000, guid: 4137218664ea453ab5bbff882703a171, type: 2}
   playerController: {fileID: 1078422987}
+  freeCrafting: 1
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
 --- !u!114 &1778978237
