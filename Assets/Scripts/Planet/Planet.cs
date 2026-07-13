@@ -9,6 +9,9 @@ namespace xyz.germanfica.unity.planet.gravity
         public bool IsHub;
         public float Gravity = 20f;
 
+        // Nestabilni planeti (GDD 4.2): ubrzavaju degradaciju veza, strojevi se češće kvare (tjedan 3).
+        public bool IsUnstable => Type == PlanetType.Volcanic || Type == PlanetType.Gaseous;
+
         [SerializeField] private Material surfaceMaterial;
 
         void Awake()

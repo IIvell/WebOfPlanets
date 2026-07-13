@@ -26,12 +26,15 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Material miningMaterial;
         [SerializeField] private Material volcanicMaterial;
         [SerializeField] private Material gaseousMaterial;
+        [SerializeField] private Material abandonedMaterial;
+        [SerializeField] private Material organicMaterial;
 
         private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
 
         private static readonly PlanetType[] AllTypes =
         {
-            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic, PlanetType.Gaseous
+            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic, PlanetType.Gaseous,
+            PlanetType.Abandoned
         };
 
         void Start()
@@ -90,6 +93,22 @@ namespace xyz.germanfica.unity.planet.gravity
                 planetGO.GetComponent<Renderer>().material = volcanicMaterial;
             else if (planet.Type == PlanetType.Gaseous && gaseousMaterial != null)
                 planetGO.GetComponent<Renderer>().material = gaseousMaterial;
+            else if (planet.Type == PlanetType.Abandoned)
+            {
+                if (abandonedMaterial != null)
+                    planetGO.GetComponent<Renderer>().material = abandonedMaterial;
+                else
+                    // Fallback tint dok materijal nije dodijeljen u Inspectoru.
+                    planetGO.GetComponent<Renderer>().material.color = new Color(0.35f, 0.32f, 0.30f);
+            }
+            else if (planet.Type == PlanetType.Organic)
+            {
+                if (organicMaterial != null)
+                    planetGO.GetComponent<Renderer>().material = organicMaterial;
+                else
+                    // Fallback tint dok materijal nije dodijeljen u Inspectoru.
+                    planetGO.GetComponent<Renderer>().material.color = new Color(0.30f, 0.55f, 0.25f);
+            }
 
             return planetGO.transform;
         }
