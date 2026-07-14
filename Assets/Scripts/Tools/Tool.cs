@@ -11,6 +11,8 @@ namespace xyz.germanfica.unity.planet.gravity
         [Min(1f)] public float miningSpeedMultiplier = 1f;
         [Tooltip("Broj resursa koje alat može skupiti prije nego se pokvari. 0 = beskonačno.")]
         [Min(0)] public int maxDurability = 0;
+        [Tooltip("Rang alata za kopanje — alat moze kopati sve resurse ciji requiredTool ima manji ili jednak rang.")]
+        [Min(0)] public int miningTier = 0;
 
         [Tooltip("Boja kojom se tonira vizual alata u ruci (bijelo = originalne boje prefaba).")]
         public Color tintColor = Color.white;

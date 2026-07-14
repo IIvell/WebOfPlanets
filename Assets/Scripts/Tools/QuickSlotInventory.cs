@@ -102,6 +102,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private static bool DigitKeyPressed(int slotIndex)
         {
             var keyboard = Keyboard.current;
+            if (keyboard == null) return false;
             return slotIndex switch
             {
                 0 => keyboard.digit1Key.wasPressedThisFrame,

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,10 +10,14 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [SerializeField] private PlayerController playerController;
         [SerializeField] private PlanetCreator planetCreator;
+        [SerializeField] private Interactor interactor;
         [SerializeField] private float spawnForwardDistance = 4f;
 
         // Ulaz dvosmjernog teleportera koji čeka postavljanje izlaza na drugoj planeti.
         private TeleporterMachine _pendingTwoWayEntry;
+
+        // Zadnji postavljeni collector — sljedeći storage se automatski veže na njega.
+        private CollectorMachine _lastCollector;
 
         void Update()
         {
@@ -25,9 +30,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
             switch (item)
             {
+                // Collector otvara asinkroni UI za odabir veze pa sam troši slot.
                 case MachineData collector:
-                    if (TryPlaceCollector(collector))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                    TryPlaceCollector(collector, index);
                     break;
 
                 case StorageMachineData storage:
@@ -63,23 +68,89 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
-        private bool TryPlaceCollector(MachineData data)
+        private void TryPlaceCollector(MachineData data, int slotIndex)
         {
             Transform planet = playerController?.currentPlanet;
             if (planet == null)
             {
                 Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
+                return;
             }
 
+            // Pozicija se računa prije otvaranja UI-a da stroj završi tamo gdje je igrač gledao.
             Vector3 pos = FindSurfacePoint(planet);
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
+            List<Transform> reachable = GetReachablePlanets();
+            if (reachable.Count == 0 || MachineTeleporterUI.Instance == null)
+            {
+                SpawnCollector(data, planet, pos, rot, linkedPlanet: null);
+                ConsumeSlot(slotIndex, data);
+                Debug.Log("[MachinePlacer] Nema aktivnih veza — collector postavljen bez transporta u storage.");
+                return;
+            }
+
+            MachineTeleporterUI.Instance.Show(
+                title: "Poveži stroj s teleporterom",
+                planets: reachable,
+                onPicked: linked =>
+                {
+                    SpawnCollector(data, planet, pos, rot, linked);
+                    ConsumeSlot(slotIndex, data);
+                },
+                onCancelled: () =>
+                {
+                    Debug.Log("[MachinePlacer] Izgradnja otkazana — item ostaje u hotbaru.");
+                });
+        }
+
+        private void SpawnCollector(MachineData data, Transform planet, Vector3 pos, Quaternion rot,
+            Transform linkedPlanet)
+        {
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.6f, 1f));
-            go.AddComponent<CollectorMachine>().Init(data, planet);
+            CollectorMachine collector = go.AddComponent<CollectorMachine>();
+            collector.Init(data, planet);
+            if (linkedPlanet != null) collector.SetLinkedPlanet(linkedPlanet);
+            _lastCollector = collector;
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
-            return true;
+        }
+
+        // UI je asinkron — slot se u međuvremenu mogao promijeniti, troši ga samo ako još drži isti item.
+        private static void ConsumeSlot(int slotIndex, QuickSlotItem expected)
+        {
+            if (QuickSlotInventory.current != null && QuickSlotInventory.current.GetSlot(slotIndex) == expected)
+                QuickSlotInventory.current.RemoveSlot(slotIndex);
+        }
+
+        // Planete dostupne kroz ConnectionInteractable u dosegu interakcije — na njih
+        // collector smije slati resurse.
+        private List<Transform> GetReachablePlanets()
+        {
+            var result = new List<Transform>();
+
+            if (interactor == null)
+                interactor = FindFirstObjectByType<Interactor>();
+            if (interactor == null) return result;
+
+            Vector3 source = interactor.InteractorSource != null
+                ? interactor.InteractorSource.position
+                : playerController.rig.position;
+
+            var hits = new Collider[16];
+            int count = Physics.OverlapSphereNonAlloc(
+                source, interactor.InteractRange, hits,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+
+            for (int i = 0; i < count; i++)
+            {
+                var col = hits[i];
+                if (!col.TryGetComponent<ConnectionInteractable>(out var ci)) continue;
+                if (ci.TargetPlanet != null && !result.Contains(ci.TargetPlanet))
+                    result.Add(ci.TargetPlanet);
+            }
+
+            return result;
         }
 
         private bool TryPlaceStorage(StorageMachineData data)
@@ -95,7 +166,17 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.8f, 0.4f, 0f));
-            go.AddComponent<StorageMachine>().Init(data, null);
+            StorageMachine storage = go.AddComponent<StorageMachine>();
+            if (_lastCollector != null)
+            {
+                storage.Init(data, _lastCollector);
+                _lastCollector.SetOutputStorage(storage);
+                Debug.Log($"[MachinePlacer] Storage povezan s '{_lastCollector.Data?.displayName}'.");
+            }
+            else
+            {
+                storage.Init(data, null);
+            }
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             return true;

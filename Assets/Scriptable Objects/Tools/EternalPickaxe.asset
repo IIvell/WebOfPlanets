@@ -18,6 +18,7 @@ MonoBehaviour:
   prefab: {fileID: 919132149155446097, guid: 38582088d183b084eb13954b37c3392b, type: 3}
   miningSpeedMultiplier: 3
   maxDurability: 0
+  miningTier: 1
   tintColor: {r: 1, g: 0.75, b: 0.1, a: 1}
   holdPositionOffset: {x: 0, y: 0, z: 0}
   holdRotationOffset: {x: 0, y: 0, z: 0}

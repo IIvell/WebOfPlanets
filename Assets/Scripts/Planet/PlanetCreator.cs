@@ -8,11 +8,8 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlayerController player;
         [SerializeField] private PlayerCamera playerCamera;
 
-        [SerializeField] private float minScale = 800f;
-        [SerializeField] private float maxScale = 1200f;
         [SerializeField] private float minGravity = 10f;
         [SerializeField] private float maxGravity = 40f;
-        [SerializeField] private float spawnDistance = 1800f;
 
         private Transform _currentPlanet;
 
@@ -54,8 +51,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (Keyboard.current.tKey.wasPressedThisFrame)
-                CreatePlanetAndTeleport();
+            if (Keyboard.current == null || !Keyboard.current.tKey.wasPressedThisFrame) return;
+            CreatePlanetAndTeleport();
         }
 
         private Transform SpawnPlanet(Vector3 origin, int index = -1)

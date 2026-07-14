@@ -43,7 +43,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (IsFull())
             {
-                GameEventBus.RaiseStorageFull(ResourceType.Ore);
+                GameEventBus.RaiseStorageFull(GetResourceType(referenceData));
                 return false;
             }
 
@@ -59,6 +59,20 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             return true;
+        }
+
+        // Item nema polje tipa resursa, pa ResourceType izvodimo iz naming konvencije
+        // asseta ("Kategorija_naziv", npr. Mining_ore, Organic_wood). Fallback je Ore.
+        private static ResourceType GetResourceType(Item item)
+        {
+            if (item == null) return ResourceType.Ore;
+
+            string assetName = item.name;
+            if (assetName.StartsWith("Organic"))  return ResourceType.Biomass;
+            if (assetName.StartsWith("Water"))    return ResourceType.Ice;
+            if (assetName.StartsWith("Gaseous"))  return ResourceType.Gas;
+            if (assetName.StartsWith("Volcanic")) return ResourceType.VolcanicMatter;
+            return ResourceType.Ore; // Mining_*, Metal_* i sve ostalo
         }
 
         public void Remove(Item referenceData)

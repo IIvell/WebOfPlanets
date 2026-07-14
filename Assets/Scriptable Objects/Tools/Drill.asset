@@ -18,6 +18,7 @@ MonoBehaviour:
   prefab: {fileID: 919132149155446097, guid: ac268cc3d372b754498ac06638d1596e, type: 3}
   miningSpeedMultiplier: 3
   maxDurability: 150
+  miningTier: 2
   holdPositionOffset: {x: -0.5, y: -0.3, z: -0.1}
   holdRotationOffset: {x: 0, y: -100, z: 0}
   holdScale: 4

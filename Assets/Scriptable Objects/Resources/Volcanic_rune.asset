@@ -20,7 +20,7 @@ MonoBehaviour:
   miningTime: 6
   miningWorldScale: {x: 60, y: 60, z: 60}
   pickupWorldScale: {x: 60, y: 60, z: 60}
-  requiredTool: {fileID: 11400000, guid: 1702e5e945e446d4c976698bbd31f1ff, type: 2}
+  requiredTool: {fileID: 11400000, guid: 4a5b0eeb15c24bac97881a3ecec826e9, type: 2}
   regenerationTime: 0
   minMiningYield: 1
   maxMiningYield: 1

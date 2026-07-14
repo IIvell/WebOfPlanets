@@ -34,6 +34,10 @@ namespace xyz.germanfica.unity.planet.gravity
         private readonly List<GameObject> _lines = new();
 
         private bool    _isOpen;
+        private bool    _subscribed;
+        private bool    _refreshQueued;
+        private float   _lastRefreshTime;
+        private const float HealthRefreshInterval = 0.25f;
         private float   _zoom = 1f;
         private Vector2 _pan  = Vector2.zero;
 
@@ -52,10 +56,17 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (!_isOpen) return;
 
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 Close();
                 return;
+            }
+
+            // Eventi samo zakažu refresh — izvršava se najviše jednom po frameu
+            if (_refreshQueued)
+            {
+                _refreshQueued = false;
+                Refresh();
             }
 
             HandleZoom();
@@ -76,6 +87,7 @@ namespace xyz.germanfica.unity.planet.gravity
             playerController?.SetInputEnabled(false);
             playerCamera?.SetInputEnabled(false);
             if (interactor != null) interactor.enabled = false;
+            Subscribe();
             Canvas.ForceUpdateCanvases();
             Refresh();
             ApplyView();
@@ -83,7 +95,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public void Close()
         {
+            Unsubscribe();
             _isOpen = false;
+            _refreshQueued = false;
             _dragging = false;
             _panel.SetActive(false);
             Cursor.lockState = CursorLockMode.Locked;
@@ -94,6 +108,43 @@ namespace xyz.germanfica.unity.planet.gravity
         }
 
         public bool IsOpen => _isOpen;
+
+        // ── Event-based osvježavanje dok je mapa otvorena ─────────────────────
+
+        // Flag štiti od dvostruke pretplate ako se Open() pozove dvaput zaredom.
+        private void Subscribe()
+        {
+            if (_subscribed) return;
+            _subscribed = true;
+            GameEventBus.OnConnectionHealthChanged += OnConnectionHealthChangedEvent;
+            GameEventBus.OnConnectionCreated       += OnConnectionChangedEvent;
+            GameEventBus.OnConnectionDestroyed     += OnConnectionChangedEvent;
+            GameEventBus.OnPlanetDiscovered        += OnPlanetDiscoveredEvent;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!_subscribed) return;
+            _subscribed = false;
+            GameEventBus.OnConnectionHealthChanged -= OnConnectionHealthChangedEvent;
+            GameEventBus.OnConnectionCreated       -= OnConnectionChangedEvent;
+            GameEventBus.OnConnectionDestroyed     -= OnConnectionChangedEvent;
+            GameEventBus.OnPlanetDiscovered        -= OnPlanetDiscoveredEvent;
+        }
+
+        // Health event se diže svaki frame po degradirajućoj vezi — throttle, inače bi
+        // puni rebuild mape išao N puta po frameu. Strukturne promjene su rijetke pa
+        // smiju zakazati refresh odmah.
+        private void OnConnectionHealthChangedEvent(ConnectionHealthChangedEvent _)
+        {
+            if (Time.unscaledTime - _lastRefreshTime >= HealthRefreshInterval)
+                _refreshQueued = true;
+        }
+
+        private void OnConnectionChangedEvent(ConnectionEvent _) => _refreshQueued = true;
+        private void OnPlanetDiscoveredEvent(Transform _)        => _refreshQueued = true;
+
+        void OnDestroy() => Unsubscribe();
 
         // ── Zoom & Pan ────────────────────────────────────────────────────────
 
@@ -235,6 +286,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void Refresh()
         {
+            _lastRefreshTime = Time.unscaledTime;
+
             foreach (var n in _nodes) Destroy(n);
             foreach (var l in _lines) Destroy(l);
             _nodes.Clear();
