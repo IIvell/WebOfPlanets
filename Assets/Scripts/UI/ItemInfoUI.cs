@@ -135,6 +135,14 @@ namespace xyz.germanfica.unity.planet.gravity
                     sb.AppendLine("Pritisni <b>E</b> da ubaciš sve materijale iz inventara.");
                     AppendPlaceHint(sb);
                     break;
+
+                case TeleporterMachineData:
+                    sb.AppendLine("<color=#aaaaaa>TELEPORTER</color>");
+                    sb.AppendLine();
+                    sb.AppendLine("Postavljanjem se izlazni teleporter automatski gradi na Hubu.");
+                    sb.AppendLine("Pritisni <b>E</b> za teleport na povezani teleporter.");
+                    AppendPlaceHint(sb);
+                    break;
             }
 
             return sb.ToString().TrimEnd();

@@ -224,6 +224,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.SmelterMachine   => recipe.resultSmelterMachine,
             CraftingRecipe.ResultType.ExtractorMachine => recipe.resultExtractorMachine,
             CraftingRecipe.ResultType.UplinkMachine    => recipe.resultUplinkMachine,
+            CraftingRecipe.ResultType.TeleporterMachine => recipe.resultTeleporterMachine,
             _                                          => null
         };
 
@@ -275,6 +276,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.SmelterMachine   => "TOPIONICA",
             CraftingRecipe.ResultType.ExtractorMachine => "EKSTRAKTOR",
             CraftingRecipe.ResultType.UplinkMachine    => "UPLINK",
+            CraftingRecipe.ResultType.TeleporterMachine => "TELEPORTER",
             _                                           => ""
         };
 

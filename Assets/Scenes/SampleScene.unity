@@ -1768,6 +1768,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachinePlacer
   playerController: {fileID: 1078422987}
+  planetCreator: {fileID: 366273103}
   spawnForwardDistance: 4
 --- !u!1001 &1117808297
 PrefabInstance:
@@ -2357,6 +2358,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9d7343c4f34d4d9da4114f2b6deb6dd2, type: 2}
   - {fileID: 11400000, guid: 5e769f05be5a4446a33ed7b23f81f807, type: 2}
   - {fileID: 11400000, guid: 4137218664ea453ab5bbff882703a171, type: 2}
+  - {fileID: 11400000, guid: 511f3ae686f643bba42eda841114a6bb, type: 2}
   playerController: {fileID: 1078422987}
   freeCrafting: 1
   playerCamera: {fileID: 330585548}

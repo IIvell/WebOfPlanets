@@ -191,7 +191,23 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(markerUp, Vector3.right);
                 tangent.Normalize();
 
-                Vector3 rayOrigin = destinationMarker.position + markerUp * 2f + tangent * 2f;
+                // Totemi veza su mali triggeri pa je 2 m dovoljno. Teleporter gate ima
+                // veliki solid collider: sleti ispred njegovog otvora (duž forward osi),
+                // tik uz rub collidera — izvan njega (inače fizika izbaci igrača), ali
+                // ne dalje nego što je nužno.
+                float lateral = 2f;
+                if (destinationMarker.TryGetComponent(out Collider markerCollider) && !markerCollider.isTrigger)
+                {
+                    tangent = destinationMarker.forward;
+
+                    float probe = markerCollider.bounds.extents.magnitude + 2f;
+                    Ray edgeRay = new Ray(destinationMarker.position + markerUp * 1f + tangent * probe, -tangent);
+                    lateral = markerCollider.Raycast(edgeRay, out RaycastHit edgeHit, probe)
+                        ? (probe - edgeHit.distance) + 1.5f
+                        : markerCollider.bounds.extents.magnitude + 1.5f;
+                }
+
+                Vector3 rayOrigin = destinationMarker.position + markerUp * 2f + tangent * lateral;
                 if (Physics.Raycast(rayOrigin, -markerUp, out RaycastHit hit, 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 {
                     playerPos = hit.point + hit.normal * 1f;
@@ -199,7 +215,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 }
                 else
                 {
-                    playerPos = destinationMarker.position + tangent * 2f;
+                    playerPos = destinationMarker.position + tangent * lateral;
                     playerUp = markerUp;
                 }
             }
