@@ -11,6 +11,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private Tool _equippedTool;
         private int _currentDurability;
+        private int _equippedSlotIndex = -1;
         private GameObject _toolVisual;
 
         public Tool EquippedTool => _equippedTool;
@@ -29,12 +30,14 @@ namespace xyz.germanfica.unity.planet.gravity
                 : 1f;
         }
 
-        public void EquipTool(Tool tool)
+        // Trajnost stiže iz slota — opremanje je ne obnavlja
+        public void EquipTool(Tool tool, int slotIndex, int currentDurability)
         {
             DestroyToolVisual();
 
             _equippedTool = tool;
-            _currentDurability = tool.maxDurability;
+            _equippedSlotIndex = slotIndex;
+            _currentDurability = currentDurability;
 
             SpawnToolVisual(tool);
 
@@ -53,6 +56,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             _equippedTool = null;
             _currentDurability = 0;
+            _equippedSlotIndex = -1;
             GameEventBus.RaiseToolEquipped(new ToolEquippedEvent
             {
                 ToolName = null,
@@ -109,6 +113,9 @@ namespace xyz.germanfica.unity.planet.gravity
             if (_equippedTool == null || _equippedTool.maxDurability == 0) return;
 
             _currentDurability--;
+            if (QuickSlotInventory.current != null && _equippedSlotIndex >= 0)
+                QuickSlotInventory.current.SetDurability(_equippedSlotIndex, _currentDurability);
+
             GameEventBus.RaiseToolDurabilityChanged(new ToolDurabilityEvent
             {
                 Current = _currentDurability,
@@ -118,7 +125,11 @@ namespace xyz.germanfica.unity.planet.gravity
             if (_currentDurability <= 0)
             {
                 Debug.Log($"Alat '{_equippedTool.displayName}' se polomio!");
-                UnequipTool();
+                // Polomljeni alat se uklanja iz slota; RemoveSlot poziva UnequipTool za odabrani slot
+                if (QuickSlotInventory.current != null && _equippedSlotIndex >= 0)
+                    QuickSlotInventory.current.RemoveSlot(_equippedSlotIndex);
+                else
+                    UnequipTool();
             }
         }
     }

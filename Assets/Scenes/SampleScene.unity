@@ -2359,8 +2359,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5e769f05be5a4446a33ed7b23f81f807, type: 2}
   - {fileID: 11400000, guid: 4137218664ea453ab5bbff882703a171, type: 2}
   - {fileID: 11400000, guid: 511f3ae686f643bba42eda841114a6bb, type: 2}
+  - {fileID: 11400000, guid: c53ccb68b91d4687b66c2a3140edf4c3, type: 2}
   playerController: {fileID: 1078422987}
-  freeCrafting: 1
+  freeCrafting: 0
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
 --- !u!114 &1778978237

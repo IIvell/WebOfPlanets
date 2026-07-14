@@ -12,6 +12,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         [SerializeField] private QuickSlotItem[] slots = new QuickSlotItem[SlotCount];
 
+        // Trajnost po slotu — alat je ScriptableObject asset, pa je slot jedina "instanca"
+        private readonly int[] _durabilities = new int[SlotCount];
+
         private int _selectedIndex = -1;
 
         public int SelectedIndex => _selectedIndex;
@@ -20,6 +23,10 @@ namespace xyz.germanfica.unity.planet.gravity
         void Awake()
         {
             current = this;
+
+            for (int i = 0; i < SlotCount; i++)
+                if (slots[i] is Tool tool)
+                    _durabilities[i] = tool.maxDurability;
         }
 
         void Update()
@@ -36,22 +43,34 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public QuickSlotItem GetSlot(int index) => index >= 0 && index < SlotCount ? slots[index] : null;
 
+        public int GetDurability(int index) => index >= 0 && index < SlotCount ? _durabilities[index] : 0;
+
+        public void SetDurability(int index, int value)
+        {
+            if (index < 0 || index >= SlotCount) return;
+            _durabilities[index] = value;
+        }
+
         public bool TryAdd(QuickSlotItem item, out int slotIndex)
         {
             slotIndex = GetFirstEmptySlot();
             if (slotIndex == -1) return false;
 
             slots[slotIndex] = item;
+            if (item is Tool tool)
+                _durabilities[slotIndex] = tool.maxDurability;
+
             GameEventBus.RaiseQuickSlotsChanged();
             return true;
         }
 
-        // Prazni slot nakon što je stroj iz njega postavljen u svijet.
+        // Prazni slot nakon što je stroj iz njega postavljen u svijet (ili se alat polomio).
         public void RemoveSlot(int index)
         {
             if (index < 0 || index >= SlotCount) return;
 
             slots[index] = null;
+            _durabilities[index] = 0;
             if (index == _selectedIndex)
                 PlayerToolSystem.current?.UnequipTool();
 
@@ -66,7 +85,7 @@ namespace xyz.germanfica.unity.planet.gravity
             QuickSlotItem item = slots[index];
 
             if (item is Tool tool)
-                PlayerToolSystem.current?.EquipTool(tool);
+                PlayerToolSystem.current?.EquipTool(tool, index, _durabilities[index]);
             else
                 PlayerToolSystem.current?.UnequipTool();
 

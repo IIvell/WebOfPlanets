@@ -45,7 +45,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public static readonly string[] TierUnlocks =
         {
             "Drill, Ore Collector, Hub Uplink, Ore Extractor",
-            "Rune Drill, Eternal Pickaxe, Cryo Harvester, Blast Furnace, Gas Extractor",
+            "Rune Drill, Eternal Pickaxe, Cryo Harvester, Blast Furnace, Gas Extractor, Two-Way Teleporter",
         };
 
         public static int Tier { get; private set; }

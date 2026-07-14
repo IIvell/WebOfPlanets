@@ -25,6 +25,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private GameObject      _panel;
         private Transform       _contentRoot;
         private RectTransform   _contentRT;
+        private ScrollRect      _scrollRect;
         private TextMeshProUGUI _progressLbl;
 
         public bool IsOpen => _panel.activeSelf;
@@ -57,6 +58,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             _panel.SetActive(true);
             Refresh();
+            _scrollRect.verticalNormalizedPosition = 1f;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible   = true;
             playerController?.SetInputEnabled(false);
@@ -225,6 +227,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.ExtractorMachine => recipe.resultExtractorMachine,
             CraftingRecipe.ResultType.UplinkMachine    => recipe.resultUplinkMachine,
             CraftingRecipe.ResultType.TeleporterMachine => recipe.resultTeleporterMachine,
+            CraftingRecipe.ResultType.TwoWayTeleporterMachine => recipe.resultTwoWayTeleporterMachine,
             _                                          => null
         };
 
@@ -277,6 +280,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.ExtractorMachine => "EKSTRAKTOR",
             CraftingRecipe.ResultType.UplinkMachine    => "UPLINK",
             CraftingRecipe.ResultType.TeleporterMachine => "TELEPORTER",
+            CraftingRecipe.ResultType.TwoWayTeleporterMachine => "DVOSMJERNI TELEPORTER",
             _                                           => ""
         };
 
@@ -334,9 +338,55 @@ namespace xyz.germanfica.unity.planet.gravity
             scrollRect.content  = contentRT;
             _contentRoot = contentGO.transform;
             _contentRT   = contentRT;
+            _scrollRect  = scrollRect;
+
+            BuildScrollbar(scrollGO.transform, scrollRect);
 
             MakeLabel(_panel.transform, "ESC — zatvori", 11, new Vector2(0f, -200f), new Vector2(500f, 24f))
                 .color = new Color(0.6f, 0.6f, 0.6f);
+        }
+
+        private void BuildScrollbar(Transform parent, ScrollRect scrollRect)
+        {
+            var sbGO = new GameObject("Scrollbar");
+            sbGO.transform.SetParent(parent, false);
+            var sbRT = sbGO.AddComponent<RectTransform>();
+            sbRT.anchorMin        = new Vector2(1f, 0f);
+            sbRT.anchorMax        = new Vector2(1f, 1f);
+            sbRT.pivot            = new Vector2(1f, 0.5f);
+            sbRT.anchoredPosition = Vector2.zero;
+            sbRT.sizeDelta        = new Vector2(10f, 0f);
+            sbGO.AddComponent<Image>().color = new Color(0.02f, 0.04f, 0.08f, 0.9f);
+            var scrollbar = sbGO.AddComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+
+            var areaGO = new GameObject("SlidingArea");
+            areaGO.transform.SetParent(sbGO.transform, false);
+            var areaRT = areaGO.AddComponent<RectTransform>();
+            areaRT.anchorMin = Vector2.zero;
+            areaRT.anchorMax = Vector2.one;
+            areaRT.offsetMin = new Vector2(2f, 2f);
+            areaRT.offsetMax = new Vector2(-2f, -2f);
+
+            var handleGO = new GameObject("Handle");
+            handleGO.transform.SetParent(areaGO.transform, false);
+            var handleRT = handleGO.AddComponent<RectTransform>();
+            handleRT.offsetMin = Vector2.zero;
+            handleRT.offsetMax = Vector2.zero;
+            var handleImg = handleGO.AddComponent<Image>();
+            handleImg.color = new Color(0.3f, 0.42f, 0.55f);
+
+            scrollbar.handleRect    = handleRT;
+            scrollbar.targetGraphic = handleImg;
+
+            var colors = scrollbar.colors;
+            colors.highlightedColor = new Color(0.4f, 0.55f, 0.7f);
+            colors.pressedColor     = new Color(0.5f, 0.65f, 0.8f);
+            scrollbar.colors = colors;
+
+            scrollRect.verticalScrollbar           = scrollbar;
+            scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
+            scrollRect.verticalScrollbarSpacing    = 2f;
         }
 
         private TextMeshProUGUI MakeLabel(Transform parent, string text, float fontSize, Vector2 pos, Vector2 delta)

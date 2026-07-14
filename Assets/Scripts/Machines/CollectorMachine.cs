@@ -118,8 +118,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
                 if (interactable.TryCollectByMachine(out Item item))
                 {
-                    StoreItem(item);
+                    // Ili u povezani storage ili interno — nikad oboje (duplikacija resursa)
                     if (_outputStorage != null) _outputStorage.Add(item);
+                    else StoreItem(item);
                     collected++;
                     Debug.Log($"[{data.displayName}] Skupio: {item.displayName}");
                 }

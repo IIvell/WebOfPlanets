@@ -136,6 +136,16 @@ namespace xyz.germanfica.unity.planet.gravity
                     AppendPlaceHint(sb);
                     break;
 
+                // Podklasa mora ići prije TeleporterMachineData case-a.
+                case TwoWayTeleporterMachineData:
+                    sb.AppendLine("<color=#aaaaaa>DVOSMJERNI TELEPORTER</color>");
+                    sb.AppendLine();
+                    sb.AppendLine("Prvi <b>P</b> postavlja ulaz na trenutnoj planeti,");
+                    sb.AppendLine("drugi <b>P</b> postavlja izlaz na drugoj planeti.");
+                    sb.AppendLine("Pritisni <b>E</b> za teleport u oba smjera.");
+                    AppendPlaceHint(sb);
+                    break;
+
                 case TeleporterMachineData:
                     sb.AppendLine("<color=#aaaaaa>TELEPORTER</color>");
                     sb.AppendLine();

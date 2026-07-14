@@ -11,6 +11,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlanetCreator planetCreator;
         [SerializeField] private float spawnForwardDistance = 4f;
 
+        // Ulaz dvosmjernog teleportera koji čeka postavljanje izlaza na drugoj planeti.
+        private TeleporterMachine _pendingTwoWayEntry;
+
         void Update()
         {
             if (Keyboard.current == null || !Keyboard.current.pKey.wasPressedThisFrame) return;
@@ -44,6 +47,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
                 case UplinkMachineData uplink:
                     if (TryPlaceUplink(uplink))
+                        QuickSlotInventory.current.RemoveSlot(index);
+                    break;
+
+                // Podklasa mora ići prije TeleporterMachineData case-a.
+                case TwoWayTeleporterMachineData twoWay:
+                    if (TryPlaceTwoWayTeleporter(twoWay))
                         QuickSlotInventory.current.RemoveSlot(index);
                     break;
 
@@ -220,6 +229,61 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = hub });
+            return true;
+        }
+
+        // Dvosmjerni teleporter se postavlja u dva koraka: prvi P postavlja ulaz na
+        // trenutnoj planeti, drugi P (na drugoj planeti) postavlja izlaz i povezuje ih.
+        // Item se troši iz hotbara tek kad su oba kraja postavljena.
+        private bool TryPlaceTwoWayTeleporter(TwoWayTeleporterMachineData data)
+        {
+            Transform planet = playerController?.currentPlanet;
+            if (planet == null)
+            {
+                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
+                return false;
+            }
+
+            if (planetCreator == null)
+                planetCreator = FindFirstObjectByType<PlanetCreator>();
+            if (planetCreator == null)
+            {
+                Debug.Log("[MachinePlacer] PlanetCreator nije u sceni — teleporter se ne može postaviti.");
+                return false;
+            }
+
+            Color gateColor = new Color(1f, 0.6f, 0.1f);
+            Vector3 pos = FindSurfacePoint(planet);
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+
+            if (_pendingTwoWayEntry == null)
+            {
+                GameObject entryGo = SpawnObject(data.prefab, pos, rot, data.displayName + " (ulaz)", gateColor,
+                    scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                _pendingTwoWayEntry = entryGo.AddComponent<TeleporterMachine>();
+                _pendingTwoWayEntry.Init(data, planet, planetCreator);
+
+                GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+                Debug.Log("[MachinePlacer] Ulaz postavljen — otiđi na drugu planetu i pritisni P za izlaz.");
+                return false;
+            }
+
+            if (_pendingTwoWayEntry.Planet == planet)
+            {
+                Debug.Log("[MachinePlacer] Izlaz mora biti na drugoj planeti.");
+                return false;
+            }
+
+            GameObject exitGo = SpawnObject(data.prefab, pos, rot, data.displayName + " (izlaz)", gateColor,
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+            TeleporterMachine exit = exitGo.AddComponent<TeleporterMachine>();
+            exit.Init(data, planet, planetCreator);
+
+            _pendingTwoWayEntry.SetLinkedTeleporter(exit);
+            exit.SetLinkedTeleporter(_pendingTwoWayEntry);
+            _pendingTwoWayEntry = null;
+
+            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             return true;
         }
 
