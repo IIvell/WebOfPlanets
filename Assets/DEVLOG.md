@@ -1,5 +1,9 @@
 # Web of Planets — Devlog
 
+> ⚠️ **POVIJESNI DOKUMENT (napomena 15.7.2026.)** — opisuje stanje ranog prototipa iz travnja.
+> Dio dokumentiranog API-ja više ne postoji (`EnterNewGravityField`, `isTouchingPlanetSurface`,
+> `PlanetCameraController`...). Za trenutno stanje projekta vidi **AUDIT-2026-07-14.md** i **PLAN.md**.
+
 ## Sesija 1 — 2026-04-10
 
 ---

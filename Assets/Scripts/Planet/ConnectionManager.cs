@@ -34,6 +34,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         [Header("Teleport (bez veze)")]
         [SerializeField] private ConnectionRequirement[] teleportCost;
+        [Tooltip("GDD: teleport je skuplji što je dalje — svakih X jedinica udaljenosti dodaje jednu osnovnu cijenu (množitelj = 1 + floor(d/X)). 0 = fiksna cijena.")]
+        [SerializeField] private float teleportCostDistanceStep = 2000f;
 
         [Header("Potencijalna veza (marker)")]
         [SerializeField] private GameObject potentialConnectionMarkerPrefab;
@@ -200,13 +202,35 @@ private void SpawnPotentialMarkers()
 
         public bool CanAfford(ConnectionType quality) => HasResources(GetCost(quality));
 
-        public ConnectionRequirement[] GetTeleportCost() => teleportCost;
-        public bool CanAffordTeleport() => HasResources(teleportCost);
+        // Efektivna cijena teleporta za konkretan par planeta: osnovna cijena
+        // pomnožena množiteljem udaljenosti.
+        public ConnectionRequirement[] GetTeleportCost(Transform from, Transform to)
+        {
+            int multiplier = GetTeleportCostMultiplier(from, to);
+            if (multiplier <= 1 || teleportCost == null) return teleportCost;
+
+            var scaled = new ConnectionRequirement[teleportCost.Length];
+            for (int i = 0; i < teleportCost.Length; i++)
+                scaled[i] = new ConnectionRequirement
+                {
+                    item = teleportCost[i].item,
+                    amount = teleportCost[i].amount * multiplier
+                };
+            return scaled;
+        }
+
+        public int GetTeleportCostMultiplier(Transform from, Transform to) =>
+            teleportCostDistanceStep > 0f && from != null && to != null
+                ? 1 + Mathf.FloorToInt(Vector3.Distance(from.position, to.position) / teleportCostDistanceStep)
+                : 1;
+
+        public bool CanAffordTeleport(Transform from, Transform to) => HasResources(GetTeleportCost(from, to));
 
         public bool TryTeleport(Transform from, Transform to)
         {
-            if (!HasResources(teleportCost)) return false;
-            ConsumeResources(teleportCost);
+            ConnectionRequirement[] cost = GetTeleportCost(from, to);
+            if (!HasResources(cost)) return false;
+            ConsumeResources(cost);
             planetCreator.TeleportToPlanet(to, from);
             return true;
         }
@@ -238,6 +262,7 @@ private void SpawnPotentialMarkers()
 
         private bool HasResources(ConnectionRequirement[] cost)
         {
+            if (GameManager.TestingMode) return true;
             if (cost == null || InventorySystem.current == null) return true;
             foreach (var kvp in AggregateCost(cost))
             {
@@ -249,6 +274,7 @@ private void SpawnPotentialMarkers()
 
         private void ConsumeResources(ConnectionRequirement[] cost)
         {
+            if (GameManager.TestingMode) return;
             if (cost == null || InventorySystem.current == null) return;
             foreach (var kvp in AggregateCost(cost))
                 for (int i = 0; i < kvp.Value; i++)

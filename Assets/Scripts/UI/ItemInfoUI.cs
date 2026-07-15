@@ -33,7 +33,7 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 var slots = QuickSlotInventory.current;
                 var item = slots != null ? slots.GetSlot(slots.SelectedIndex) : null;
-                if (item != null) Toggle(item);
+                if (item != null) Toggle(item, slots.GetDurability(slots.SelectedIndex));
                 else Hide();
             }
 
@@ -42,22 +42,23 @@ namespace xyz.germanfica.unity.planet.gravity
         }
 
         // Isti item zatvara panel, drugi item samo mijenja opis.
-        public void Toggle(QuickSlotItem item)
+        // currentDurability < 0 = nepoznata (npr. item iz recepta, ne iz slota).
+        public void Toggle(QuickSlotItem item, int currentDurability = -1)
         {
             if (item == null) return;
 
             if (_panel.activeSelf && _shownItem == item)
                 Hide();
             else
-                Show(item);
+                Show(item, currentDurability);
         }
 
-        public void Show(QuickSlotItem item)
+        public void Show(QuickSlotItem item, int currentDurability = -1)
         {
             if (item == null) return;
 
             _shownItem = item;
-            _text.text = BuildDescription(item);
+            _text.text = BuildDescription(item, currentDurability);
             _panel.SetActive(true);
         }
 
@@ -67,7 +68,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _shownItem = null;
         }
 
-        public static string BuildDescription(QuickSlotItem item)
+        public static string BuildDescription(QuickSlotItem item, int currentDurability = -1)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"<b><size=17>{item.displayName}</size></b>");
@@ -78,9 +79,11 @@ namespace xyz.germanfica.unity.planet.gravity
                     sb.AppendLine("<color=#aaaaaa>ALAT</color>");
                     sb.AppendLine();
                     sb.AppendLine($"Brzina kopanja: <b>{tool.miningSpeedMultiplier:0.#}x</b>");
-                    sb.AppendLine(tool.maxDurability > 0
-                        ? $"Trajnost: <b>{tool.maxDurability}</b>"
-                        : "Trajnost: <b>beskonačna</b>");
+                    sb.AppendLine(tool.maxDurability <= 0
+                        ? "Trajnost: <b>beskonačna</b>"
+                        : currentDurability >= 0
+                            ? $"Trajnost: <b>{currentDurability} / {tool.maxDurability}</b>"
+                            : $"Trajnost: <b>{tool.maxDurability}</b>");
                     sb.AppendLine();
                     sb.AppendLine("<color=#888888>Odaberi slot (1-9) da ga opremiš.</color>");
                     break;
@@ -142,6 +145,7 @@ namespace xyz.germanfica.unity.planet.gravity
                     sb.AppendLine();
                     sb.AppendLine("Prvi <b>P</b> postavlja ulaz na trenutnoj planeti,");
                     sb.AppendLine("drugi <b>P</b> postavlja izlaz na drugoj planeti.");
+                    sb.AppendLine("<b>X</b> — odustani (ruši postavljeni ulaz).");
                     sb.AppendLine("Pritisni <b>E</b> za teleport u oba smjera.");
                     AppendPlaceHint(sb);
                     break;
@@ -152,6 +156,16 @@ namespace xyz.germanfica.unity.planet.gravity
                     sb.AppendLine("Postavljanjem se izlazni teleporter automatski gradi na Hubu.");
                     sb.AppendLine("Pritisni <b>E</b> za teleport na povezani teleporter.");
                     AppendPlaceHint(sb);
+                    break;
+
+                case NetworkMapDeviceData:
+                    sb.AppendLine("<color=#aaaaaa>UREĐAJ</color>");
+                    sb.AppendLine();
+                    sb.AppendLine("Prikazuje mapu mreže planeta: sve planete,");
+                    sb.AppendLine("veze i njihovo zdravlje, uživo.");
+                    sb.AppendLine("Ne postavlja se i ne troši korištenjem.");
+                    sb.AppendLine();
+                    sb.AppendLine("<color=#888888>P — otvori mapu (dok je slot odabran).</color>");
                     break;
             }
 

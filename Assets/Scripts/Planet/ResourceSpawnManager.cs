@@ -22,12 +22,6 @@ namespace xyz.germanfica.unity.planet.gravity
                 OnPlanetDiscovered(planet.transform);
         }
 
-        private float GetPlanetRadius(Transform planet)
-        {
-            Renderer rend = planet.GetComponentInChildren<Renderer>();
-            return rend != null ? rend.bounds.size.x * 0.5f : planet.localScale.x * 0.5f;
-        }
-
         private void OnPlanetDiscovered(Transform planetTransform)
         {
             if (_processed.Contains(planetTransform)) return;
@@ -41,7 +35,7 @@ namespace xyz.germanfica.unity.planet.gravity
             PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
             if (config == null) return;
 
-            float radius = GetPlanetRadius(planetTransform);
+            float radius = SurfacePlacement.GetPlanetRadius(planetTransform);
             foreach (var entry in config.resources)
             {
                 if (entry.item == null) continue;
@@ -54,7 +48,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform planet)
         {
             Vector3 normal = Random.onUnitSphere;
-            float radius = GetPlanetRadius(planet);
+            float radius = SurfacePlacement.GetPlanetRadius(planet);
             Vector3 rayOrigin = planet.position + normal * radius;
 
             Vector3 hitPoint;

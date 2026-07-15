@@ -6,7 +6,6 @@ namespace xyz.germanfica.unity.planet.gravity
     public class StorageMachine : BaseInteractable
     {
         private StorageMachineData _data;
-        private CollectorMachine _linkedCollector;
         private readonly Dictionary<Item, InventoryItem> _dict = new();
         private readonly List<InventoryItem> _inventory = new();
 
@@ -14,10 +13,11 @@ namespace xyz.germanfica.unity.planet.gravity
         public IReadOnlyList<InventoryItem> Inventory => _inventory;
         public string MachineName => _data != null ? _data.displayName : "Storage Machine";
 
-        public void Init(StorageMachineData data, CollectorMachine collector)
+        // Vezu collector->storage drži CollectorMachine (SetOutputStorage); storage
+        // ne treba referencu natrag.
+        public void Init(StorageMachineData data)
         {
             _data = data;
-            _linkedCollector = collector;
         }
 
         public void Add(Item item)

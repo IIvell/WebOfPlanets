@@ -49,7 +49,8 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (_flashAlpha <= 0f) return;
 
-            _flashAlpha = Mathf.Max(0f, _flashAlpha - damageFlashFadeSpeed * Time.deltaTime);
+            // Unscaled: na smrt GameManager zamrzne timeScale, a flash mora izblijedjeti.
+            _flashAlpha = Mathf.Max(0f, _flashAlpha - damageFlashFadeSpeed * Time.unscaledDeltaTime);
             var c = _damageFlash.color;
             c.a = _flashAlpha;
             _damageFlash.color = c;
@@ -61,6 +62,10 @@ namespace xyz.germanfica.unity.planet.gravity
             _fillImage.fillAmount = ratio;
             _fillImage.color = ratio > 0.5f ? HealthyColor : ratio > 0.2f ? HurtColor : CriticalColor;
             _label.text = $"{Mathf.CeilToInt(e.Current)} / {Mathf.CeilToInt(e.Max)}";
+
+            // Revive (GameManager.Respawn) vraća zdravlje — makni death overlay.
+            if (_deathPanel != null && _deathPanel.activeSelf && e.Current > 0f)
+                _deathPanel.SetActive(false);
         }
 
         private void OnDamaged(PlayerDamagedEvent e)
@@ -166,7 +171,7 @@ namespace xyz.germanfica.unity.planet.gravity
             text.fontSize = 36;
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.white;
-            text.text = "Poginuo si";
+            text.text = "Poginuo si\n<size=20>Pritisni <b>R</b> za povratak na Hub</size>";
 
             _deathPanel.SetActive(false);
         }

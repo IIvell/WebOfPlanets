@@ -14,8 +14,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlayerCamera playerCamera;
         [SerializeField] private Interactor interactor;
 
-        [Tooltip("Debug: craftanje ne provjerava ni ne troši sastojke.")]
-        [SerializeField] private bool freeCrafting;
+        // Besplatno craftanje ide preko centralnog GameManager.TestingMode (GameState
+        // objekt u sceni) — stari lokalni freeCrafting flag je znao ostati uključen
+        // u sceni a da se nigdje ne vidi (AUDIT P1 stavka 1).
 
         private const float RowH    = 72f;
         private const float RowGap  = 6f;
@@ -124,7 +125,7 @@ namespace xyz.germanfica.unity.planet.gravity
             rowBtn.transition = Selectable.Transition.None;
             rowBtn.onClick.AddListener(() => ItemInfoUI.current?.Toggle(GetResultItem(recipe)));
 
-            bool locked = !freeCrafting && !recipe.IsUnlocked;
+            bool locked = !GameManager.TestingMode && !recipe.IsUnlocked;
 
             // Name + type label
             var nameGO = new GameObject("Name");
@@ -180,7 +181,7 @@ namespace xyz.germanfica.unity.planet.gravity
             lbl.color     = Color.white;
 
             bool hotbarFull = QuickSlotInventory.current != null && QuickSlotInventory.current.IsFull;
-            bool canCraft   = !locked && (freeCrafting || recipe.CanAfford()) && !hotbarFull;
+            bool canCraft   = !locked && (GameManager.TestingMode || recipe.CanAfford()) && !hotbarFull;
             if (locked)          lbl.text = $"PRAG {recipe.unlockTier}";
             else if (hotbarFull) lbl.text = "PUN\nHOTBAR";
 
@@ -203,7 +204,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (recipes == null || index >= recipes.Length) return;
             var recipe = recipes[index];
-            if (recipe == null || (!freeCrafting && (!recipe.IsUnlocked || !recipe.CanAfford()))) return;
+            if (recipe == null || (!GameManager.TestingMode && (!recipe.IsUnlocked || !recipe.CanAfford()))) return;
 
             // Prvo rezultat u hotbar, pa tek onda potrošnja sastojaka —
             // da se sastojci ne izgube kad je hotbar pun.
@@ -213,7 +214,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            if (!freeCrafting)
+            if (!GameManager.TestingMode)
                 recipe.ConsumeIngredients();
             Refresh();
         }
@@ -228,6 +229,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.UplinkMachine    => recipe.resultUplinkMachine,
             CraftingRecipe.ResultType.TeleporterMachine => recipe.resultTeleporterMachine,
             CraftingRecipe.ResultType.TwoWayTeleporterMachine => recipe.resultTwoWayTeleporterMachine,
+            CraftingRecipe.ResultType.NetworkMapDevice => recipe.resultNetworkMapDevice,
             _                                          => null
         };
 
@@ -281,6 +283,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.UplinkMachine    => "UPLINK",
             CraftingRecipe.ResultType.TeleporterMachine => "TELEPORTER",
             CraftingRecipe.ResultType.TwoWayTeleporterMachine => "DVOSMJERNI TELEPORTER",
+            CraftingRecipe.ResultType.NetworkMapDevice  => "UREĐAJ",
             _                                           => ""
         };
 

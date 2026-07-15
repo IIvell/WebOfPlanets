@@ -18,32 +18,34 @@
 
 ## Prioriteti Mehanika
 
+*(checkboxovi ažurirani 15.7.2026. prema AUDIT-2026-07-14.md)*
+
 ### KRITIČNO — mora raditi za R1
 > Bez ovih mehanika igra ne postoji.
 
-- [ ] Sferična gravitacija i kretanje po površini planeta
-- [ ] Hub planet (početni, statičan)
-- [ ] Ručno skupljanje resursa
-- [ ] Gradnja veze između dva planeta
-- [ ] Degradacija veze (zdravlje 0–100%, vizualni prikaz)
-- [ ] Kretanje igrača kroz veze (besplatno) vs. bez veze (troši resurse)
-- [ ] Centralno skladište na hubu (ograničen kapacitet)
-- [ ] Računalo na hubu (osnovna mreža — pregled planeta i veza)
+- [x] Sferična gravitacija i kretanje po površini planeta
+- [x] Hub planet (početni, statičan)
+- [x] Ručno skupljanje resursa
+- [x] Gradnja veze između dva planeta
+- [x] Degradacija veze (zdravlje 0–100%, vizualni prikaz)
+- [x] Kretanje igrača kroz veze (besplatno) vs. bez veze (troši resurse) *(teleportCost postavljen 15.7., skalira s udaljenošću)*
+- [x] Centralno skladište na hubu (ograničen kapacitet)
+- [x] Računalo na hubu (osnovna mreža — pregled planeta i veza)
 
 ---
 
 ### VAŽNO — mora raditi za R3
 > Čini igru punom, ali prototip funkcionira bez ovih.
 
-- [ ] Proceduralna generacija planeta (tip → biom → resursi)
-- [ ] Svi tipovi planeta (6 tipova) s različitim resursima
-- [ ] Alati (Faza 2 skupljanja) — nacrti, trošenje alata
-- [ ] Automatizacija skupljanja (Faza 3) — strojevi, kapacitet
-- [ ] Automatski transport resursa kroz veze
+- [x] Proceduralna generacija planeta (tip → biom → resursi) *(pojednostavljeno po dopunskom planu: tint + resursna konfiguracija po tipu)*
+- [x] Svi tipovi planeta (6 tipova) s različitim resursima
+- [x] Alati (Faza 2 skupljanja) — nacrti, trošenje alata *(trajnost po slotu + prikaz od 15.7.)*
+- [ ] Automatizacija skupljanja (Faza 3) — strojevi, kapacitet *(strojevi rade; kapacitet skladišnog stroja + kvar = T3, 17.7–23.7)*
+- [x] Automatski transport resursa kroz veze *(pojednostavljena 1:1 verzija collector→storage, po dopunskom planu)*
 - [ ] Artefakti — pronalaženje, tipovi, efekti
 - [ ] Sekundarni hubovi — pretvorba planeta, klasteri
 - [ ] Portal Terminal — besplatno putovanje do sekundarnog huba
-- [ ] Hub upgrade stablo (Računalo, Skladište, Portal)
+- [ ] Hub upgrade stablo (Računalo, Skladište, Portal) *(HubProgress pragovi recepata rade — stablo ne postoji)*
 - [ ] Skrivene drevne veze — otkrivanje i aktivacija
 - [ ] Mrežni fragmenti (artefakt) — otkrivanje skrivenih veza
 

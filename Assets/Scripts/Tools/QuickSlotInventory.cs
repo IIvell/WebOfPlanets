@@ -31,6 +31,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
+            if (!GameManager.IsPlaying) return;
+
             for (int i = 0; i < SlotCount; i++)
             {
                 if (DigitKeyPressed(i))

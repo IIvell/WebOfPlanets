@@ -11,6 +11,7 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlayerController playerController;
         [SerializeField] private PlanetCreator planetCreator;
         [SerializeField] private Interactor interactor;
+        [SerializeField] private NetworkMapUI networkMapUI;
         [SerializeField] private float spawnForwardDistance = 4f;
 
         // Ulaz dvosmjernog teleportera koji čeka postavljanje izlaza na drugoj planeti.
@@ -21,8 +22,14 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (Keyboard.current == null || !Keyboard.current.pKey.wasPressedThisFrame) return;
+            if (!GameManager.IsPlaying) return;
+            if (Keyboard.current == null) return;
             if (Cursor.lockState != CursorLockMode.Locked) return;
+
+            if (Keyboard.current.xKey.wasPressedThisFrame)
+                CancelPendingTwoWay();
+
+            if (!Keyboard.current.pKey.wasPressedThisFrame) return;
             if (QuickSlotInventory.current == null) return;
 
             int index = QuickSlotInventory.current.SelectedIndex;
@@ -65,7 +72,25 @@ namespace xyz.germanfica.unity.planet.gravity
                     if (TryPlaceTeleporter(teleporter))
                         QuickSlotInventory.current.RemoveSlot(index);
                     break;
+
+                // Ručni uređaj — ne postavlja se i ne troši, samo otvara mapu mreže.
+                case NetworkMapDeviceData:
+                    OpenNetworkMap();
+                    break;
             }
+        }
+
+        private void OpenNetworkMap()
+        {
+            if (networkMapUI == null)
+                networkMapUI = FindFirstObjectByType<NetworkMapUI>();
+            if (networkMapUI == null)
+            {
+                Debug.Log("[MachinePlacer] NetworkMapUI nije u sceni — mapa se ne može otvoriti.");
+                return;
+            }
+
+            networkMapUI.Open();
         }
 
         private void TryPlaceCollector(MachineData data, int slotIndex)
@@ -167,15 +192,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.8f, 0.4f, 0f));
             StorageMachine storage = go.AddComponent<StorageMachine>();
+            storage.Init(data);
             if (_lastCollector != null)
             {
-                storage.Init(data, _lastCollector);
                 _lastCollector.SetOutputStorage(storage);
                 Debug.Log($"[MachinePlacer] Storage povezan s '{_lastCollector.Data?.displayName}'.");
-            }
-            else
-            {
-                storage.Init(data, null);
             }
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
@@ -279,7 +300,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             // Izlaz ide na stranu Huba okrenutu prema ovoj planeti; nekoliko pokušaja
             // s nasumičnim bočnim pomakom da ne završi na bazi, resursu ili drugom gateu.
-            float hubRadius = GetPlanetRadius(hub);
+            float hubRadius = SurfacePlacement.GetPlanetRadius(hub);
             Vector3 towardPlanet = (planet.position - hub.position).normalized;
             Vector3 exitPos = FindHubSurfacePoint(hub, hubRadius, towardPlanet);
             for (int attempt = 0; attempt < 8; attempt++)
@@ -344,14 +365,15 @@ namespace xyz.germanfica.unity.planet.gravity
                 _pendingTwoWayEntry = entryGo.AddComponent<TeleporterMachine>();
                 _pendingTwoWayEntry.Init(data, planet, planetCreator);
 
-                GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
-                Debug.Log("[MachinePlacer] Ulaz postavljen — otiđi na drugu planetu i pritisni P za izlaz.");
+                // Idle dok par nije kompletan — ulaz bez izlaza još ne teleportira.
+                GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Idle, Planet = planet });
+                Debug.Log("[MachinePlacer] Ulaz postavljen — otiđi na drugu planetu i pritisni P za izlaz (X za odustajanje).");
                 return false;
             }
 
             if (_pendingTwoWayEntry.Planet == planet)
             {
-                Debug.Log("[MachinePlacer] Izlaz mora biti na drugoj planeti.");
+                Debug.Log("[MachinePlacer] Izlaz mora biti na drugoj planeti (X ruši postavljeni ulaz).");
                 return false;
             }
 
@@ -362,10 +384,27 @@ namespace xyz.germanfica.unity.planet.gravity
 
             _pendingTwoWayEntry.SetLinkedTeleporter(exit);
             exit.SetLinkedTeleporter(_pendingTwoWayEntry);
-            _pendingTwoWayEntry = null;
 
+            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = _pendingTwoWayEntry.Planet });
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            _pendingTwoWayEntry = null;
             return true;
+        }
+
+        // X poništava započeti dvosmjerni par: ruši postavljeni ulaz. Item se troši
+        // tek kad su oba kraja postavljena, pa odustajanje ne vraća ništa u hotbar.
+        // Ulaz uništen izvana (== null zbog Unity fake-null) samo prestaje blokirati.
+        private void CancelPendingTwoWay()
+        {
+            if (_pendingTwoWayEntry == null)
+            {
+                _pendingTwoWayEntry = null;
+                return;
+            }
+
+            Destroy(_pendingTwoWayEntry.gameObject);
+            _pendingTwoWayEntry = null;
+            Debug.Log("[MachinePlacer] Dvosmjerni teleporter otkazan — ulaz uklonjen, item je ostao u hotbaru.");
         }
 
         private static Transform FindHubPlanet()
@@ -373,15 +412,6 @@ namespace xyz.germanfica.unity.planet.gravity
             foreach (var p in FindObjectsByType<Planet>(FindObjectsSortMode.None))
                 if (p.IsHub) return p.transform;
             return null;
-        }
-
-        // Hub nije jedinična sfera (Planet.fbx), pa localScale daje višestruko prevelik
-        // radijus — čitaj iz renderer boundsa kao HubResourceSpawner. Za planete iz
-        // PlanetCreatora (primitivne sfere) rezultat je isti kao localScale * 0.5.
-        private static float GetPlanetRadius(Transform planet)
-        {
-            Renderer rend = planet.GetComponentInChildren<Renderer>();
-            return rend != null ? rend.bounds.size.x * 0.5f : planet.localScale.x * 0.5f;
         }
 
         // Za izlazni gate raycast smije pogoditi samo planetu — običan raycast bi
@@ -413,7 +443,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private static Vector3 FindSurfacePoint(Transform planet, Vector3 snapDir)
         {
-            float   radius = GetPlanetRadius(planet);
+            float   radius = SurfacePlacement.GetPlanetRadius(planet);
             Vector3 origin = planet.position + snapDir * (radius + 20f);
 
             if (Physics.Raycast(origin, -snapDir, out RaycastHit hit, radius + 40f,

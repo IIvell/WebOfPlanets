@@ -801,11 +801,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.PlanetCreator
   player: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
-  minScale: 500
-  maxScale: 1200
   minGravity: 10
   maxGravity: 40
-  spawnDistance: 4000
   startingPlanets: 30
   minSpawnDistance: 1500
   maxSpawnDistance: 5000
@@ -815,6 +812,8 @@ MonoBehaviour:
   miningMaterial: {fileID: 2100000, guid: f56e5c526f834d83aee31d1da1345695, type: 2}
   volcanicMaterial: {fileID: 2100000, guid: 8ee7374d05cc916c9a5e9c45f8f1407d, type: 2}
   gaseousMaterial: {fileID: 2100000, guid: 19100703a7a2e28ee0f6e0084a08f280, type: 2}
+  abandonedMaterial: {fileID: 2100000, guid: 13da8d4b9c3843139df93fcc6e20c0b6, type: 2}
+  organicMaterial: {fileID: 2100000, guid: 40847c34afb14a6b8f7656bf857c4953, type: 2}
 --- !u!4 &366273104
 Transform:
   m_ObjectHideFlags: 0
@@ -903,7 +902,11 @@ MonoBehaviour:
     amount: 1
   strongLifespan: 600
   strongThickness: 0.9
-  teleportCost: []
+  unstableDegradationPerEnd: 0.5
+  teleportCost:
+  - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
+    amount: 1
+  teleportCostDistanceStep: 2000
   potentialConnectionMarkerPrefab: {fileID: 919132149155446097, guid: 4422aa8ff4be82b4fb14621a9a15396e, type: 3}
   markerScale: 5
   markerHeight: 5.5
@@ -1751,6 +1754,7 @@ MonoBehaviour:
   playerController: {fileID: 1078422987}
   planetCreator: {fileID: 366273103}
   interactor: {fileID: 1078422988}
+  networkMapUI: {fileID: 1695095371}
   spawnForwardDistance: 4
 --- !u!1001 &1117808297
 PrefabInstance:
@@ -2342,8 +2346,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4137218664ea453ab5bbff882703a171, type: 2}
   - {fileID: 11400000, guid: 511f3ae686f643bba42eda841114a6bb, type: 2}
   - {fileID: 11400000, guid: c53ccb68b91d4687b66c2a3140edf4c3, type: 2}
+  - {fileID: 11400000, guid: e02097717f7041a6b28516877b83fdc3, type: 2}
   playerController: {fileID: 1078422987}
-  freeCrafting: 0
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
 --- !u!114 &1778978237
@@ -2363,6 +2367,102 @@ MonoBehaviour:
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
+--- !u!1 &1900000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1900000002}
+  - component: {fileID: 1900000003}
+  m_Layer: 0
+  m_Name: GameState
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1900000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1900000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acdf1499b9f4dfa478735d1c9d0fc280, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.GameManager
+  playerController: {fileID: 1078422987}
+  playerHealth: {fileID: 762044620}
+  planetCreator: {fileID: 366273103}
+  testingMode: 1
+--- !u!1 &1900000011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1900000012}
+  - component: {fileID: 1900000013}
+  m_Layer: 5
+  m_Name: AlertsUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1900000012
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900000011}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2146704354}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1900000013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900000011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 966035cf2a0e430a90c28a031f5b5dc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.AlertsUI
 --- !u!1 &1907982506
 GameObject:
   m_ObjectHideFlags: 0
@@ -2669,6 +2769,7 @@ RectTransform:
   - {fileID: 1907982507}
   - {fileID: 811001347}
   - {fileID: 933706504}
+  - {fileID: 1900000012}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2692,3 +2793,4 @@ SceneRoots:
   - {fileID: 1460231137}
   - {fileID: 134923364}
   - {fileID: 378247339}
+  - {fileID: 1900000002}

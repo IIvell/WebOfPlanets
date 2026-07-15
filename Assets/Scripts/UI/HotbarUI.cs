@@ -15,9 +15,15 @@ namespace xyz.germanfica.unity.planet.gravity
         private static readonly Color NormalColor = new Color(0f, 0.05f, 0.1f, 0.75f);
         private static readonly Color SelectedColor = new Color(0.2f, 0.6f, 1f, 0.85f);
 
+        private static readonly Color DurabilityHighColor = new Color(0.2f, 0.85f, 0.25f, 0.95f);
+        private static readonly Color DurabilityMidColor = new Color(0.95f, 0.75f, 0.15f, 0.95f);
+        private static readonly Color DurabilityLowColor = new Color(0.9f, 0.15f, 0.15f, 0.95f);
+
         private readonly Image[] _backgrounds = new Image[SlotCount];
         private readonly Image[] _icons = new Image[SlotCount];
         private readonly TextMeshProUGUI[] _nameLabels = new TextMeshProUGUI[SlotCount];
+        private readonly Image[] _durabilityBackgrounds = new Image[SlotCount];
+        private readonly Image[] _durabilityFills = new Image[SlotCount];
 
         void Awake()
         {
@@ -27,13 +33,17 @@ namespace xyz.germanfica.unity.planet.gravity
         void OnEnable()
         {
             GameEventBus.OnQuickSlotsChanged += Refresh;
+            GameEventBus.OnToolDurabilityChanged += OnDurabilityChanged;
             Refresh();
         }
 
         void OnDisable()
         {
             GameEventBus.OnQuickSlotsChanged -= Refresh;
+            GameEventBus.OnToolDurabilityChanged -= OnDurabilityChanged;
         }
+
+        private void OnDurabilityChanged(ToolDurabilityEvent e) => Refresh();
 
         private void Refresh()
         {
@@ -52,7 +62,30 @@ namespace xyz.germanfica.unity.planet.gravity
                 _backgrounds[i].color = i == QuickSlotInventory.current.SelectedIndex
                     ? SelectedColor
                     : NormalColor;
+
+                RefreshDurability(i, item);
             }
+        }
+
+        // Traka trajnosti na dnu slota — samo za alate s ograničenom trajnošću.
+        private void RefreshDurability(int index, QuickSlotItem item)
+        {
+            bool show = item is Tool tool && tool.maxDurability > 0;
+            _durabilityBackgrounds[index].enabled = show;
+            _durabilityFills[index].enabled = show;
+            if (!show) return;
+
+            var t = (Tool)item;
+            float ratio = Mathf.Clamp01(QuickSlotInventory.current.GetDurability(index) / (float)t.maxDurability);
+
+            // Širina kroz anchorMax.x umjesto Image.Type.Filled — filled bez sprite-a
+            // ne poštuje fillAmount (renderira puni quad).
+            var fillRT = (RectTransform)_durabilityFills[index].transform;
+            fillRT.anchorMax = new Vector2(Mathf.Max(ratio, 0.001f), 1f);
+
+            _durabilityFills[index].color = ratio > 0.5f ? DurabilityHighColor
+                : ratio > 0.2f ? DurabilityMidColor
+                : DurabilityLowColor;
         }
 
         private void BuildUI()
@@ -114,6 +147,30 @@ namespace xyz.germanfica.unity.planet.gravity
             nameTxt.alignment = TextAlignmentOptions.Center;
             nameTxt.color = Color.white;
             _nameLabels[index] = nameTxt;
+
+            var durBgGO = new GameObject("DurabilityBG");
+            durBgGO.transform.SetParent(slotGO.transform, false);
+            var durBgRT = durBgGO.AddComponent<RectTransform>();
+            durBgRT.anchorMin = new Vector2(0f, 0f);
+            durBgRT.anchorMax = new Vector2(1f, 0f);
+            durBgRT.pivot = new Vector2(0.5f, 0f);
+            durBgRT.anchoredPosition = new Vector2(0f, 3f);
+            durBgRT.sizeDelta = new Vector2(-8f, 5f);
+            var durBg = durBgGO.AddComponent<Image>();
+            durBg.color = new Color(0f, 0f, 0f, 0.6f);
+            durBg.enabled = false;
+            _durabilityBackgrounds[index] = durBg;
+
+            var durFillGO = new GameObject("DurabilityFill");
+            durFillGO.transform.SetParent(durBgGO.transform, false);
+            var durFillRT = durFillGO.AddComponent<RectTransform>();
+            durFillRT.anchorMin = Vector2.zero;
+            durFillRT.anchorMax = Vector2.one;
+            durFillRT.offsetMin = new Vector2(1f, 1f);
+            durFillRT.offsetMax = new Vector2(-1f, -1f);
+            var durFill = durFillGO.AddComponent<Image>();
+            durFill.enabled = false;
+            _durabilityFills[index] = durFill;
 
             var numberGO = new GameObject("Number");
             numberGO.transform.SetParent(slotGO.transform, false);

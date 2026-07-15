@@ -7,10 +7,21 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         private const float TickInterval = 1f;
 
+        // Zajednički tick za SVE zone (igra je single-player): u preklopu više zona
+        // šteta ide samo iz one koja prva odradi tick — svaka zona s vlastitim
+        // timerom je u preklopu duplirala štetu.
+        private static float _nextTickTime;
+        private static float _lastContactTime;
+
         [Tooltip("Šteta po sekundi dok se igrač nalazi unutar zone.")]
         [SerializeField] private float damagePerSecond = 15f;
 
-        private float _tickTimer;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics()
+        {
+            _nextTickTime = 0f;
+            _lastContactTime = float.NegativeInfinity;
+        }
 
         public void Init(float dps) => damagePerSecond = dps;
 
@@ -24,18 +35,15 @@ namespace xyz.germanfica.unity.planet.gravity
             if (other.attachedRigidbody == null) return;
             if (!other.attachedRigidbody.TryGetComponent(out PlayerHealth health)) return;
 
-            _tickTimer += Time.fixedDeltaTime;
-            if (_tickTimer < TickInterval) return;
+            // Igrač je bio izvan svih zona — grace period od punog intervala kreće ispočetka.
+            if (Time.time - _lastContactTime > TickInterval)
+                _nextTickTime = Time.time + TickInterval;
+            _lastContactTime = Time.time;
 
-            health.TakeDamage(damagePerSecond * _tickTimer);
-            _tickTimer = 0f;
-        }
+            if (Time.time < _nextTickTime) return;
+            _nextTickTime = Time.time + TickInterval;
 
-        void OnTriggerExit(Collider other)
-        {
-            if (other.attachedRigidbody == null) return;
-            if (other.attachedRigidbody.TryGetComponent(out PlayerHealth _))
-                _tickTimer = 0f;
+            health.TakeDamage(damagePerSecond * TickInterval);
         }
     }
 }

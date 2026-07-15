@@ -60,6 +60,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private bool TryConsumeMaintenance()
         {
+            if (GameManager.TestingMode) return true;
             if (data.maintenanceCost == null || data.maintenanceCost.Length == 0) return true;
             if (HubStorage.current == null) return false;
 

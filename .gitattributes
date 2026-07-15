@@ -1,0 +1,75 @@
+# Normalizacija line endinga — git je na svakom diffu upozoravao LF->CRLF (audit 14.7.).
+# Nakon dodavanja po želji jednokratno: git add --renormalize .
+* text=auto
+
+# Kod i tekst
+*.cs text
+*.md text
+*.json text
+*.xml text
+*.txt text
+*.shader text
+*.uss text
+*.uxml text
+
+# Unity YAML asseti (Force Text serialization)
+*.unity text
+*.prefab text
+*.asset text
+*.mat text
+*.meta text
+*.anim text
+*.controller text
+*.overrideController text
+*.physicMaterial text
+*.physicsMaterial2D text
+*.playable text
+*.mask text
+*.brush text
+*.flare text
+*.fontsettings text
+*.guiskin text
+*.giparams text
+*.renderTexture text
+*.spriteatlas text
+*.terrainlayer text
+*.mixer text
+*.shadervariants text
+*.preset text
+*.inputactions text
+
+# Slike
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.tga binary
+*.tif binary
+*.tiff binary
+*.psd binary
+*.gif binary
+*.bmp binary
+*.exr binary
+*.hdr binary
+
+# 3D modeli
+*.fbx binary
+*.FBX binary
+*.obj binary
+*.blend binary
+*.dae binary
+*.3ds binary
+
+# Audio/video
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.mp4 binary
+
+# Fontovi i binarno ostalo
+*.ttf binary
+*.otf binary
+*.dll binary
+*.so binary
+*.pdf binary
+*.zip binary
+*.unitypackage binary

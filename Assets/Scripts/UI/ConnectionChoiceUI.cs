@@ -44,7 +44,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (_panel.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_panel.activeSelf && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
                 Hide();
         }
 
@@ -105,7 +105,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 _labels[i].text = BuildLabel(i);
             }
 
-            bool canTeleport = _mgr.CanAffordTeleport();
+            bool canTeleport = _mgr.CanAffordTeleport(_source, _target);
             _teleportButton.interactable = canTeleport;
             var tCol = new Color(0f, 0.55f, 1f);
             var tBlock = _teleportButton.colors;
@@ -145,19 +145,23 @@ namespace xyz.germanfica.unity.planet.gravity
             var sb = new StringBuilder();
             sb.AppendLine("<b>TELEPORT</b>");
 
-            var cost = _mgr.GetTeleportCost();
+            var cost = _mgr.GetTeleportCost(_source, _target);
             if (cost == null || cost.Length == 0)
             {
                 sb.Append("Besplatno");
             }
             else
             {
+                // Cijena raste s udaljenošću (GetTeleportCost već vraća skalirane iznose).
                 foreach (var req in cost)
                     if (req.item != null)
-                        sb.Append($"{req.amount}x {req.item.displayName}");
+                        sb.AppendLine($"{req.amount}x {req.item.displayName}");
+
+                if (_source != null && _target != null)
+                    sb.Append($"<size=10>udaljenost {Vector3.Distance(_source.position, _target.position):F0}</size>");
             }
 
-            return sb.ToString();
+            return sb.ToString().TrimEnd();
         }
 
         // ── UI construction ───────────────────────────────────────────────────

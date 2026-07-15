@@ -22,6 +22,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
+            if (Keyboard.current == null) return;
+            if (!GameManager.IsPlaying) return;
+
             var eKey = Keyboard.current.eKey;
 
             if (eKey.wasPressedThisFrame)
@@ -93,15 +96,37 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 if (col.TryGetComponent(out IInteractable interactable))
                 {
-                    float dist = Vector3.Distance(interactorSource.position, col.ClosestPoint(interactorSource.position));
-                    if (dist < closestDist)
-                    {
-                        closestDist = dist;
-                        closest = interactable;
-                    }
+                    Vector3 closestPoint = col.ClosestPoint(interactorSource.position);
+                    float dist = Vector3.Distance(interactorSource.position, closestPoint);
+                    if (dist >= closestDist) continue;
+                    if (!HasLineOfSight(col, closestPoint)) continue;
+
+                    closestDist = dist;
+                    closest = interactable;
                 }
             }
             return closest;
+        }
+
+        // Bez ovoga OverlapSphere dopušta minanje/interakciju kroz prepreke
+        // (kamenje, strojeve, pa i "iza horizonta" planeta).
+        private bool HasLineOfSight(Collider target, Vector3 targetPoint)
+        {
+            Vector3 origin = interactorSource.position;
+            Vector3 toTarget = targetPoint - origin;
+            float dist = toTarget.magnitude;
+            if (dist < 0.05f) return true;
+
+            Vector3 dir = toTarget / dist;
+            foreach (var hit in Physics.RaycastAll(origin, dir, dist - 0.02f,
+                         Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                if (hit.collider == target) continue;
+                if (hit.collider.transform.IsChildOf(target.transform)) continue; // dijelovi istog objekta
+                if (hit.collider.transform.IsChildOf(transform.root)) continue;   // vlastiti collider igrača
+                return false;
+            }
+            return true;
         }
 
         private void CancelMining()

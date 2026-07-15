@@ -82,6 +82,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private bool TryConsumeMaintenance()
         {
+            if (GameManager.TestingMode) return true;
             if (data.maintenanceCost == null || data.maintenanceCost.Length == 0) return true;
             if (HubStorage.current == null) return false;
 
@@ -104,7 +105,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void CollectFromPlanet()
         {
-            float radius = planet.localScale.x;
+            // 1.5x stvarnog radijusa pokriva resurse na površini (localScale.x je
+            // promjer za primitivne sfere, pa je stara pretraga išla do 3x radijusa).
+            float radius = SurfacePlacement.GetPlanetRadius(planet);
             Collider[] hits = Physics.OverlapSphere(
                 planet.position, radius * 1.5f,
                 Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);

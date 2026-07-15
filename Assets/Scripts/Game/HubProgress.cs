@@ -58,7 +58,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public static bool CanUnlockNext()
         {
-            if (Tier >= MaxTier || HubStorage.current == null) return false;
+            if (Tier >= MaxTier) return false;
+            if (GameManager.TestingMode) return true;
+            if (HubStorage.current == null) return false;
 
             foreach (var req in TierRequirements[Tier])
             {
@@ -73,9 +75,10 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (!CanUnlockNext()) return false;
 
-            foreach (var req in TierRequirements[Tier])
-                for (int i = 0; i < req.amount; i++)
-                    HubStorage.current.Remove(req.Item);
+            if (!GameManager.TestingMode)
+                foreach (var req in TierRequirements[Tier])
+                    for (int i = 0; i < req.amount; i++)
+                        HubStorage.current.Remove(req.Item);
 
             Tier++;
             Debug.Log($"[HubProgress] Prag {Tier} otključan — novi recepti dostupni.");

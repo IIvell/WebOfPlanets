@@ -51,6 +51,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
+            if (!GameManager.IsPlaying) return;
             if (Keyboard.current == null || !Keyboard.current.tKey.wasPressedThisFrame) return;
             CreatePlanetAndTeleport();
         }
