@@ -25,9 +25,10 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (PlayerToolSystem.current == null) return false;
                 var equipped = PlayerToolSystem.current.EquippedTool;
                 if (equipped == null) return false;
-                // Isti alat ili bilo koji alat dovoljnog ranga
+                // Isti alat ili alat iste klase dovoljnog ranga
                 return equipped == referenceItem.requiredTool ||
-                       equipped.miningTier >= referenceItem.requiredTool.miningTier;
+                       (equipped.toolClass == referenceItem.requiredTool.toolClass &&
+                        equipped.miningTier >= referenceItem.requiredTool.miningTier);
             }
         }
 

@@ -17,10 +17,10 @@ MonoBehaviour:
   icon: {fileID: 0}
   pickupPrefab: {fileID: 0}
   miningPrefab: {fileID: 919132149155446097, guid: 38ade52eda559c445b30992f7f916896, type: 3}
-  miningTime: 0
+  miningTime: 3
   miningWorldScale: {x: 1, y: 1, z: 1}
   pickupWorldScale: {x: 1, y: 1, z: 1}
-  requiredTool: {fileID: 0}
+  requiredTool: {fileID: 11400000, guid: 8a5a06fb64324e458d3465a5ef9996ee, type: 2}
   regenerationTime: 10
   minMiningYield: 1
   maxMiningYield: 1

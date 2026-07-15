@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
+  m_Name: Axe
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
+  displayName: Axe
+  resultType: 0
+  unlockTier: 0
+  resultTool: {fileID: 11400000, guid: 8a5a06fb64324e458d3465a5ef9996ee, type: 2}
+  resultMachine: {fileID: 0}
+  resultStorageMachine: {fileID: 0}
+  ingredients:
+  - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
+    amount: 1
+  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+    amount: 1

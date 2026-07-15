@@ -2332,6 +2332,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingUI
   recipes:
   - {fileID: 11400000, guid: 122b42c0ef9ad024eb88389b66ad81e6, type: 2}
+  - {fileID: 11400000, guid: 017f4770cf004a329e45d615b5121966, type: 2}
   - {fileID: 11400000, guid: ec73fbc9c30340cda2b84f7c1204f109, type: 2}
   - {fileID: 11400000, guid: 6f263fce7b12481e848a7ac659ca6e94, type: 2}
   - {fileID: 11400000, guid: 9bb91b5d66ea46cfb35b4ca4208af457, type: 2}

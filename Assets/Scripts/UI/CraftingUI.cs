@@ -18,10 +18,12 @@ namespace xyz.germanfica.unity.planet.gravity
         // objekt u sceni) — stari lokalni freeCrafting flag je znao ostati uključen
         // u sceni a da se nigdje ne vidi (AUDIT P1 stavka 1).
 
-        private const float RowH    = 72f;
-        private const float RowGap  = 6f;
-        private const float PadTop  = 8f;
-        private const float PadBot  = 8f;
+        private const float RowH       = 72f;
+        private const float RowGap     = 6f;
+        private const float PadTop     = 8f;
+        private const float PadBot     = 8f;
+        private const float HeaderH    = 26f;
+        private const float SectionGap = 14f;
 
         private GameObject      _panel;
         private Transform       _contentRoot;
@@ -78,6 +80,23 @@ namespace xyz.germanfica.unity.planet.gravity
             if (interactor != null) interactor.enabled = true;
         }
 
+        private enum Category { Tools, Machines, Devices }
+
+        private static Category CategoryOf(CraftingRecipe.ResultType type) => type switch
+        {
+            CraftingRecipe.ResultType.Tool             => Category.Tools,
+            CraftingRecipe.ResultType.NetworkMapDevice => Category.Devices,
+            _                                          => Category.Machines
+        };
+
+        private static string CategoryLabel(Category cat) => cat switch
+        {
+            Category.Tools    => "ALATI",
+            Category.Machines => "STROJEVI",
+            Category.Devices  => "UREĐAJI",
+            _                 => ""
+        };
+
         private void Refresh()
         {
             UpdateProgressLabel();
@@ -88,21 +107,66 @@ namespace xyz.germanfica.unity.planet.gravity
             foreach (var go in old)
                 go.transform.SetParent(null);
 
-            int count = 0;
-            if (recipes != null)
-                for (int i = 0; i < recipes.Length; i++)
-                    if (recipes[i] != null)
+            float y   = PadTop;
+            bool  any = false;
+            foreach (Category cat in (Category[])System.Enum.GetValues(typeof(Category)))
+            {
+                bool headerBuilt = false;
+                if (recipes != null)
+                    for (int i = 0; i < recipes.Length; i++)
                     {
-                        float yPos = -(PadTop + count * (RowH + RowGap) + RowH * 0.5f);
-                        BuildRow(recipes[i], i, yPos);
-                        count++;
-                    }
+                        var recipe = recipes[i];
+                        if (recipe == null || CategoryOf(recipe.resultType) != cat) continue;
 
-            float totalH = PadTop + PadBot + count * RowH + Mathf.Max(0, count - 1) * RowGap;
+                        if (!headerBuilt)
+                        {
+                            if (any) y += SectionGap;
+                            BuildSectionHeader(CategoryLabel(cat), -(y + HeaderH * 0.5f));
+                            y += HeaderH + RowGap;
+                            headerBuilt = true;
+                            any = true;
+                        }
+
+                        BuildRow(recipe, i, -(y + RowH * 0.5f));
+                        y += RowH + RowGap;
+                    }
+                if (headerBuilt) y -= RowGap;
+            }
+
+            float totalH = y + PadBot;
             _contentRT.sizeDelta = new Vector2(_contentRT.sizeDelta.x, totalH);
 
             foreach (var go in old)
                 Destroy(go);
+        }
+
+        private void BuildSectionHeader(string label, float yPos)
+        {
+            var go = new GameObject("Header_" + label);
+            go.transform.SetParent(_contentRoot, false);
+
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin        = new Vector2(0f, 1f);
+            rt.anchorMax        = new Vector2(1f, 1f);
+            rt.pivot            = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(0f, yPos);
+            rt.sizeDelta        = new Vector2(-16f, HeaderH);
+
+            go.AddComponent<Image>().color = new Color(0.08f, 0.14f, 0.22f, 0.95f);
+
+            var txtGO = new GameObject("Label");
+            txtGO.transform.SetParent(go.transform, false);
+            var txtRT = txtGO.AddComponent<RectTransform>();
+            txtRT.anchorMin = Vector2.zero;
+            txtRT.anchorMax = Vector2.one;
+            txtRT.offsetMin = new Vector2(10f, 0f);
+            txtRT.offsetMax = Vector2.zero;
+            var txt = txtGO.AddComponent<TextMeshProUGUI>();
+            txt.text      = label;
+            txt.fontSize  = 13;
+            txt.fontStyle = FontStyles.Bold;
+            txt.color     = new Color(0.65f, 0.78f, 0.95f);
+            txt.alignment = TextAlignmentOptions.MidlineLeft;
         }
 
         private void BuildRow(CraftingRecipe recipe, int index, float yPos)
