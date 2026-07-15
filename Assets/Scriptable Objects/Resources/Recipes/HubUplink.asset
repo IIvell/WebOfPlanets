@@ -10,22 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
-  m_Name: NetworkScanner
+  m_Name: HubUplink
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Network Scanner
-  resultType: 8
-  unlockTier: 0
+  displayName: Hub Uplink
+  resultType: 5
+  unlockTier: 2
   resultTool: {fileID: 0}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 0}
   resultExtractorMachine: {fileID: 0}
-  resultUplinkMachine: {fileID: 0}
-  resultTeleporterMachine: {fileID: 0}
-  resultTwoWayTeleporterMachine: {fileID: 0}
-  resultNetworkMapDevice: {fileID: 11400000, guid: 608f686bd5b8485cb563b28443513b5a, type: 2}
+  resultUplinkMachine: {fileID: 11400000, guid: d951358813e14c3196d3cfcbcf1a8fba, type: 2}
   ingredients:
   - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
     amount: 2
   - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
-    amount: 3
+    amount: 2
+  - item: {fileID: 11400000, guid: 1c6371992280b7345bbf286eed7892a3, type: 2}
+    amount: 2

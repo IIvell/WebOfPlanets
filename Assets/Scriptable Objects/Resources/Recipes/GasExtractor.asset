@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
-  m_Name: BlastFurnace
+  m_Name: GasExtractor
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Blast Furnace
-  resultType: 3
-  unlockTier: 2
+  displayName: Gas Extractor
+  resultType: 4
+  unlockTier: 3
   resultTool: {fileID: 0}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
-  resultSmelterMachine: {fileID: 11400000, guid: 3110aa3795a94022951eabbdf51f4018, type: 2}
+  resultSmelterMachine: {fileID: 0}
+  resultExtractorMachine: {fileID: 11400000, guid: 8b3f51b7fef84ffa8887e8d370262c36, type: 2}
+  resultUplinkMachine: {fileID: 0}
   ingredients:
-  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
-    amount: 4
   - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
     amount: 3
-  - item: {fileID: 11400000, guid: 92a241cf2e4bc644e8e0b08f4b596d97, type: 2}
-    amount: 2
+  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+    amount: 3

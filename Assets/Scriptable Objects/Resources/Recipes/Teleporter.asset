@@ -10,17 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
-  m_Name: Drill
+  m_Name: Teleporter
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Drill
-  resultType: 0
-  unlockTier: 1
-  resultTool: {fileID: 11400000, guid: 4e5c96da35ea440392c335133052ad09, type: 2}
+  displayName: Teleporter
+  resultType: 6
+  unlockTier: 2
+  resultTool: {fileID: 0}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 0}
+  resultExtractorMachine: {fileID: 0}
+  resultUplinkMachine: {fileID: 0}
+  resultTeleporterMachine: {fileID: 11400000, guid: d73fd23845f444d5a08eab944ddafdc3, type: 2}
   ingredients:
   - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
-    amount: 2
+    amount: 3
   - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+    amount: 2
+  - item: {fileID: 11400000, guid: 86ab3e17a4b979748a271dd85a69ab48, type: 2}
     amount: 2

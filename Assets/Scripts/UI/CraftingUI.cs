@@ -35,11 +35,30 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
+            MergeRecipesFromResources();
             BuildUI();
             _panel.SetActive(false);
 
             if (GetComponent<ItemInfoUI>() == null)
                 gameObject.AddComponent<ItemInfoUI>();
+        }
+
+        // Recepti se auto-otkrivaju iz Resources/Recipes — novi recept asset ne treba
+        // ručno dodavati u scene listu (scene lista ostaje podržana zbog redoslijeda).
+        private void MergeRecipesFromResources()
+        {
+            CraftingRecipe[] loaded = Resources.LoadAll<CraftingRecipe>("Recipes");
+            if (loaded == null || loaded.Length == 0) return;
+
+            var merged = new List<CraftingRecipe>();
+            if (recipes != null)
+                foreach (var r in recipes)
+                    if (r != null && !merged.Contains(r))
+                        merged.Add(r);
+            foreach (var r in loaded)
+                if (!merged.Contains(r))
+                    merged.Add(r);
+            recipes = merged.ToArray();
         }
 
         void OnEnable()  => GameEventBus.OnRecipeTierUnlocked += HandleTierUnlocked;
@@ -294,6 +313,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.TeleporterMachine => recipe.resultTeleporterMachine,
             CraftingRecipe.ResultType.TwoWayTeleporterMachine => recipe.resultTwoWayTeleporterMachine,
             CraftingRecipe.ResultType.NetworkMapDevice => recipe.resultNetworkMapDevice,
+            CraftingRecipe.ResultType.RespawnTotem     => recipe.resultRespawnTotem,
             _                                          => null
         };
 
@@ -348,6 +368,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.TeleporterMachine => "TELEPORTER",
             CraftingRecipe.ResultType.TwoWayTeleporterMachine => "DVOSMJERNI TELEPORTER",
             CraftingRecipe.ResultType.NetworkMapDevice  => "UREĐAJ",
+            CraftingRecipe.ResultType.RespawnTotem      => "RESPAWN TOTEM",
             _                                           => ""
         };
 

@@ -10,23 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
-  m_Name: TwoWayTeleporter
+  m_Name: RuneDrill
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Two-Way Teleporter
-  resultType: 7
-  unlockTier: 2
-  resultTool: {fileID: 0}
+  displayName: Rune Drill
+  resultType: 0
+  unlockTier: 3
+  resultTool: {fileID: 11400000, guid: 4a5b0eeb15c24bac97881a3ecec826e9, type: 2}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 0}
-  resultExtractorMachine: {fileID: 0}
-  resultUplinkMachine: {fileID: 0}
-  resultTeleporterMachine: {fileID: 0}
-  resultTwoWayTeleporterMachine: {fileID: 11400000, guid: f637253833b84f0b9a3989a0f3ad55a3, type: 2}
   ingredients:
   - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
-    amount: 6
-  - item: {fileID: 11400000, guid: 92a241cf2e4bc644e8e0b08f4b596d97, type: 2}
-    amount: 4
+    amount: 3
+  - item: {fileID: 11400000, guid: 86ab3e17a4b979748a271dd85a69ab48, type: 2}
+    amount: 3
   - item: {fileID: 11400000, guid: 66357368904403f2472dcbb6eefa05f4, type: 2}
     amount: 2

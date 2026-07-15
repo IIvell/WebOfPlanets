@@ -10,19 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
-  m_Name: RuneDrill
+  m_Name: Drill
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Rune Drill
+  displayName: Drill
   resultType: 0
   unlockTier: 2
-  resultTool: {fileID: 11400000, guid: 4a5b0eeb15c24bac97881a3ecec826e9, type: 2}
+  resultTool: {fileID: 11400000, guid: 4e5c96da35ea440392c335133052ad09, type: 2}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 0}
   ingredients:
   - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
-    amount: 3
-  - item: {fileID: 11400000, guid: 92a241cf2e4bc644e8e0b08f4b596d97, type: 2}
     amount: 2
-  - item: {fileID: 11400000, guid: 66357368904403f2472dcbb6eefa05f4, type: 2}
-    amount: 1
+  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+    amount: 2

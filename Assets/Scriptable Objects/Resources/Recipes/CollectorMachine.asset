@@ -10,19 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
-  m_Name: GasExtractor
+  m_Name: CollectorMachine
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Gas Extractor
-  resultType: 4
-  unlockTier: 2
+  displayName: Collector Machine
+  resultType: 1
+  unlockTier: 1
   resultTool: {fileID: 0}
-  resultMachine: {fileID: 0}
+  resultMachine: {fileID: 11400000, guid: ddb9f51f0fa56fa40a093c686201f26f, type: 2}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 0}
-  resultExtractorMachine: {fileID: 11400000, guid: 8b3f51b7fef84ffa8887e8d370262c36, type: 2}
-  resultUplinkMachine: {fileID: 0}
   ingredients:
-  - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
+  - item: {fileID: 11400000, guid: 1c6371992280b7345bbf286eed7892a3, type: 2}
     amount: 3
   - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
-    amount: 3
+    amount: 2

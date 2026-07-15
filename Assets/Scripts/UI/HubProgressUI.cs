@@ -87,7 +87,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 ? $"Trenutni prag: {HubProgress.Tier}/{HubProgress.MaxTier} — sve otključano"
                 : $"Trenutni prag: {HubProgress.Tier}/{HubProgress.MaxTier}";
 
-            float yCursor = 120f;
+            float yCursor = 248f;
             for (int t = 0; t < HubProgress.MaxTier; t++)
                 yCursor = BuildTierSection(t, yCursor) - 8f;
         }
@@ -211,21 +211,21 @@ namespace xyz.germanfica.unity.planet.gravity
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
             panelRT.anchorMax = new Vector2(0.5f, 0.5f);
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
-            panelRT.sizeDelta = new Vector2(460f, 380f);
+            panelRT.sizeDelta = new Vector2(460f, 660f);
 
             _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
             var title = MakeText(_panel.transform, "HUB NAPREDAK", 20, Vector2.zero, new Vector2(420f, 32f));
-            CenterAnchor(title.rectTransform, new Vector2(0f, 168f));
+            CenterAnchor(title.rectTransform, new Vector2(0f, 300f));
             title.alignment = TextAlignmentOptions.Center;
 
             _statusLbl = MakeText(_panel.transform, "", 12, Vector2.zero, new Vector2(420f, 20f));
-            CenterAnchor(_statusLbl.rectTransform, new Vector2(0f, 142f));
+            CenterAnchor(_statusLbl.rectTransform, new Vector2(0f, 274f));
             _statusLbl.alignment = TextAlignmentOptions.Center;
             _statusLbl.color     = new Color(0.65f, 0.75f, 0.85f);
 
             var hint = MakeText(_panel.transform, "ESC — zatvori", 11, Vector2.zero, new Vector2(420f, 24f));
-            CenterAnchor(hint.rectTransform, new Vector2(0f, -172f));
+            CenterAnchor(hint.rectTransform, new Vector2(0f, -312f));
             hint.alignment = TextAlignmentOptions.Center;
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
         }

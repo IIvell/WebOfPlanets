@@ -47,6 +47,16 @@ namespace xyz.germanfica.unity.planet.gravity
             GameEventBus.Raise(new PlayerHealthChangedEvent { Current = CurrentHealth, Max = maxHealth });
         }
 
+        // Trenutna smrt (testing 'die' tipka) — zaobilazi invulnerability prozor.
+        public void Kill()
+        {
+            if (IsDead) return;
+
+            CurrentHealth = 0f;
+            GameEventBus.Raise(new PlayerHealthChangedEvent { Current = CurrentHealth, Max = maxHealth });
+            Die();
+        }
+
         public void Revive()
         {
             IsDead = false;

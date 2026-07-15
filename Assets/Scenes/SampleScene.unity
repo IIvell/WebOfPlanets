@@ -2348,6 +2348,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 511f3ae686f643bba42eda841114a6bb, type: 2}
   - {fileID: 11400000, guid: c53ccb68b91d4687b66c2a3140edf4c3, type: 2}
   - {fileID: 11400000, guid: e02097717f7041a6b28516877b83fdc3, type: 2}
+  - {fileID: 11400000, guid: 1613555ca00e4197955bdda1d27e8ddd, type: 2}
   playerController: {fileID: 1078422987}
   playerCamera: {fileID: 330585548}
   interactor: {fileID: 1078422988}
@@ -2415,6 +2416,7 @@ MonoBehaviour:
   playerController: {fileID: 1078422987}
   playerHealth: {fileID: 762044620}
   planetCreator: {fileID: 366273103}
+  hubTotemData: {fileID: 11400000, guid: d9eef945555e4d3c8e455035f4504288, type: 2}
   testingMode: 1
 --- !u!1 &1900000011
 GameObject:

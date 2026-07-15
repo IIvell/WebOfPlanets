@@ -158,6 +158,15 @@ namespace xyz.germanfica.unity.planet.gravity
                     AppendPlaceHint(sb);
                     break;
 
+                case RespawnTotemMachineData:
+                    sb.AppendLine("<color=#aaaaaa>RESPAWN TOTEM</color>");
+                    sb.AppendLine();
+                    sb.AppendLine("Postavlja respawn točku na trenutnoj planeti.");
+                    sb.AppendLine("Pritisni <b>E</b> na totemu da ga aktiviraš —");
+                    sb.AppendLine("smrt te tada vraća na njega umjesto na Hub.");
+                    AppendPlaceHint(sb);
+                    break;
+
                 case NetworkMapDeviceData:
                     sb.AppendLine("<color=#aaaaaa>UREĐAJ</color>");
                     sb.AppendLine();

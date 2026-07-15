@@ -3,8 +3,8 @@ using UnityEngine;
 namespace xyz.germanfica.unity.planet.gravity
 {
     // Hub napredak: pragovi se otključavaju na Hub računalu (HubProgressUI) trošenjem
-    // specifičnih resursa iz Hub skladišta — česti resursi za prag 1, prerađeni i
-    // rijetki za prag 2. Otključan prag otključava recepte (CraftingRecipe.unlockTier).
+    // specifičnih resursa iz Hub skladišta, od čestih prema rijetkima. Otključan prag
+    // otključava recepte (CraftingRecipe.unlockTier).
     public static class HubProgress
     {
         public class Requirement
@@ -24,8 +24,9 @@ namespace xyz.germanfica.unity.planet.gravity
             public string DisplayName => Item != null ? Item.displayName : itemName;
         }
 
-        // Zahtjevi po pragu, poredani po rijetkosti: prag 1 = česti resursi s početnog
-        // rudarskog planeta, prag 2 = prerađeni (topionica) + rijetki (ledeni/vulkanski planeti).
+        // Zahtjevi po pragu — svaki prag troši resurse dohvatljive alatima/strojevima
+        // prethodnog praga i tjera igrača na sljedeći tip planeta:
+        // 1 rudarski → 2 organski+topionica → 3 ledeni+plinoviti → 4 vulkanski (Rune Drill iz praga 3) → 5 sve grane.
         public static readonly Requirement[][] TierRequirements =
         {
             new[]
@@ -36,16 +37,37 @@ namespace xyz.germanfica.unity.planet.gravity
             new[]
             {
                 new Requirement("Metal_ingot",   6),
-                new Requirement("Water_ice",     4),
-                new Requirement("Volcanic_rune", 2),
+                new Requirement("Organic_wood",  5),
+                new Requirement("Organic_plant", 4),
+            },
+            new[]
+            {
+                new Requirement("Metal_ingot",   8),
+                new Requirement("Water_ice",     6),
+                new Requirement("Gaseous_plin",  4),
+            },
+            new[]
+            {
+                new Requirement("Metal_ingot",  10),
+                new Requirement("Volcanic_rune", 4),
+            },
+            new[]
+            {
+                new Requirement("Metal_ingot",  12),
+                new Requirement("Volcanic_rune", 6),
+                new Requirement("Gaseous_plin",  6),
+                new Requirement("Water_ice",     6),
             },
         };
 
         // Kratki opis što koji prag otključava (prikaz na Hub računalu).
         public static readonly string[] TierUnlocks =
         {
-            "Drill, Ore Collector, Hub Uplink, Ore Extractor",
-            "Rune Drill, Eternal Pickaxe, Cryo Harvester, Blast Furnace, Gas Extractor, Two-Way Teleporter",
+            "Collector Machine, Ore Collector, Network Scanner",
+            "Drill, Hub Uplink, Teleporter",
+            "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem",
+            "Blast Furnace, Eternal Pickaxe",
+            "Two-Way Teleporter",
         };
 
         public static int Tier { get; private set; }

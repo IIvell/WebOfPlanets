@@ -39,35 +39,51 @@ namespace xyz.germanfica.unity.planet.gravity
             PlanetResourceSettings.PlanetTypeConfig config = settings.GetConfig(planet.Type);
             if (config == null) return;
 
+            // Oko baze (računalo/skladište/totem) resursi se ne spawnaju — plato ostaje čist.
+            bool hasBase = HubBase.TryGetArea(hub, out Vector3 baseCenter, out float baseRadius);
+            float exclusionRadius = hasBase ? baseRadius + 4f : 0f;
+
             float radius = SurfacePlacement.GetPlanetRadius(hub);
             foreach (var entry in config.resources)
             {
                 if (entry.item == null) continue;
                 int count = Mathf.Max(1, Mathf.RoundToInt(Random.Range(entry.minDensity, entry.maxDensity) * radius));
                 for (int i = 0; i < count; i++)
-                    SpawnOne(entry, hub);
+                    SpawnOne(entry, hub, baseCenter, exclusionRadius);
             }
         }
 
-        private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform hub)
+        private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform hub,
+            Vector3 baseCenter, float exclusionRadius)
         {
-            Vector3 normal = Random.onUnitSphere;
             float radius = SurfacePlacement.GetPlanetRadius(hub);
-            Vector3 rayOrigin = hub.position + normal * radius;
 
-            Vector3 hitPoint;
-            Vector3 hitNormal;
+            Vector3 hitPoint = default;
+            Vector3 hitNormal = default;
 
-            if (SurfacePlacement.TryRaycastSurface(hub, rayOrigin, -normal, radius * 2f, out RaycastHit hit))
+            // Nasumične točke dok ne padne izvan baze; ako ni nakon svih pokušaja
+            // nije (praktički nemoguće za bazu koja je mali dio kugle), preskoči spawn.
+            bool found = false;
+            for (int attempt = 0; attempt < 8 && !found; attempt++)
             {
-                hitPoint = hit.point;
-                hitNormal = hit.normal;
+                Vector3 normal = Random.onUnitSphere;
+                Vector3 rayOrigin = hub.position + normal * radius;
+
+                if (SurfacePlacement.TryRaycastSurface(hub, rayOrigin, -normal, radius * 2f, out RaycastHit hit))
+                {
+                    hitPoint = hit.point;
+                    hitNormal = hit.normal;
+                }
+                else
+                {
+                    hitPoint = hub.position + normal * radius;
+                    hitNormal = normal;
+                }
+
+                found = exclusionRadius <= 0f
+                    || (hitPoint - baseCenter).sqrMagnitude >= exclusionRadius * exclusionRadius;
             }
-            else
-            {
-                hitPoint = hub.position + normal * radius;
-                hitNormal = normal;
-            }
+            if (!found) return;
 
             Vector3 spawnPos = hitPoint + hitNormal * surfaceOffset;
             Quaternion spawnRot = Quaternion.FromToRotation(entry.item.surfaceUpAxis, hitNormal);

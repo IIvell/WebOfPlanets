@@ -73,6 +73,11 @@ namespace xyz.germanfica.unity.planet.gravity
                         QuickSlotInventory.current.RemoveSlot(index);
                     break;
 
+                case RespawnTotemMachineData totem:
+                    if (TryPlaceRespawnTotem(totem))
+                        QuickSlotInventory.current.RemoveSlot(index);
+                    break;
+
                 // Ručni uređaj — ne postavlja se i ne troši, samo otvara mapu mreže.
                 case NetworkMapDeviceData:
                     OpenNetworkMap();
@@ -263,6 +268,33 @@ namespace xyz.germanfica.unity.planet.gravity
             return true;
         }
 
+        // Respawn totem: postavlja se na trenutnoj planeti, E na njemu ga aktivira kao
+        // respawn točku (vidi RespawnTotem). Hub već ima glavni totem od starta.
+        private bool TryPlaceRespawnTotem(RespawnTotemMachineData data)
+        {
+            Transform planet = playerController?.currentPlanet;
+            if (planet == null)
+            {
+                Debug.Log("[MachinePlacer] Igrač nije na planeti — totem se ne može postaviti.");
+                return false;
+            }
+
+            if (planet.TryGetComponent(out Planet planetInfo) && planetInfo.IsHub)
+            {
+                Debug.Log("[MachinePlacer] Hub već ima glavni respawn totem.");
+                return false;
+            }
+
+            Vector3 pos = FindSurfacePoint(planet);
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+
+            RespawnTotem.Spawn(data, planet, pos, rot);
+
+            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            Debug.Log($"[MachinePlacer] {data.displayName} postavljen — pritisni E na njemu da postane respawn točka.");
+            return true;
+        }
+
         // Teleporter se gradi u paru: ulaz ispred igrača, izlaz na Hubu — na strani
         // Huba okrenutoj prema ovoj planeti, uz bočni pomak da se izlazi ne preklapaju.
         private bool TryPlaceTeleporter(TeleporterMachineData data)
@@ -311,7 +343,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
                 Vector3 exitDir = (towardPlanet * hubRadius + tangent * 15f).normalized;
                 exitPos = FindHubSurfacePoint(hub, hubRadius, exitDir);
-                if (IsExitSpotClear(exitPos, hub)) break;
+                if (IsSpotClear(exitPos, hub)) break;
             }
 
             Quaternion exitRot = Quaternion.FromToRotation(Vector3.up, (exitPos - hub.position).normalized);
@@ -426,11 +458,12 @@ namespace xyz.germanfica.unity.planet.gravity
             return hub.position + dir * hubRadius;
         }
 
-        // Čisto tlo: u radijusu gatea ne smije biti ničeg osim same planete.
-        private static bool IsExitSpotClear(Vector3 pos, Transform hub)
+        // Čisto tlo: u radijusu objekta ne smije biti ničeg osim same planete.
+        // Javno jer i GameManager (spawn hub totema) traži čisto mjesto.
+        public static bool IsSpotClear(Vector3 pos, Transform planet)
         {
             foreach (var col in Physics.OverlapSphere(pos, 4f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                if (col.transform != hub) return false;
+                if (col.transform != planet) return false;
             return true;
         }
 
@@ -453,7 +486,8 @@ namespace xyz.germanfica.unity.planet.gravity
             return planet.position + snapDir * radius;
         }
 
-        private static GameObject SpawnObject(GameObject prefab, Vector3 pos, Quaternion rot,
+        // Javno jer i spawn izvan placera (RespawnTotem.Spawn) gradi istim putem.
+        public static GameObject SpawnObject(GameObject prefab, Vector3 pos, Quaternion rot,
             string fallbackName, Color fallbackColor, float scale = 300f, Quaternion? rotationOffset = null,
             bool fitColliderToRenderer = false)
         {
