@@ -35,7 +35,8 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             string name = (data != null ? data.displayName : "Respawn Totem") + (isHubTotem ? " (Hub)" : "");
             GameObject go = MachinePlacer.SpawnObject(data != null ? data.prefab : null, pos, rot,
-                name, TotemColor, scale: 5f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                name, TotemColor, scale: 5f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true,
+                planet: planet);
 
             var totem = go.AddComponent<RespawnTotem>();
             totem.Init(data, planet, isHubTotem);

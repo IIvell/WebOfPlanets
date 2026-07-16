@@ -42,23 +42,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void SpawnZone(Transform planet)
         {
+            // Zajednički helper umjesto lokalnog raycasta: zone se spawnaju isti
+            // frame kad i planet, pa treba SyncTransforms retry; lokalni fallback na
+            // localScale*0.5 bi zonu ostavio na analitičkoj kugli iznad vidljivog mesha.
             Vector3 normal = Random.onUnitSphere;
-            float castStart = planet.localScale.x;
-            Vector3 rayOrigin = planet.position + normal * castStart;
-
-            Vector3 hitPoint;
-            Vector3 hitNormal;
-
-            if (SurfacePlacement.TryRaycastSurface(planet, rayOrigin, -normal, castStart * 2f, out RaycastHit hit))
-            {
-                hitPoint = hit.point;
-                hitNormal = hit.normal;
-            }
-            else
-            {
-                hitPoint = planet.position + normal * (planet.localScale.x * 0.5f);
-                hitNormal = normal;
-            }
+            SurfacePlacement.GetSurfacePoint(planet, normal, out Vector3 hitPoint, out Vector3 hitNormal);
 
             float radius = Random.Range(minZoneRadius, maxZoneRadius);
             Vector3 spawnPos = hitPoint + hitNormal * surfaceOffset;

@@ -6,8 +6,10 @@ namespace xyz.germanfica.unity.planet.gravity
     public class HubResourceSpawner : MonoBehaviour
     {
         [SerializeField] private PlanetResourceSettings settings;
-        [Tooltip("Razmak dna resursa od površine planeta (može biti negativan za lagano ukopavanje).")]
-        [SerializeField] private float surfaceOffset = 0.1f;
+        // Preimenovano sa surfaceOffset: namjerno odbacuje staru scene vrijednost (0.1)
+        // koja je sve resurse držala 0.1 iznad tla. Dno se sada računa iz geometrije.
+        [Tooltip("Dodatni razmak dna resursa od površine (0 = dno na tlu, negativno = ukopavanje).")]
+        [SerializeField] private float surfaceGap = 0f;
 
         private IEnumerator Start()
         {
@@ -56,8 +58,6 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnOne(PlanetResourceSettings.ResourceEntry entry, Transform hub,
             Vector3 baseCenter, float exclusionRadius)
         {
-            float radius = SurfacePlacement.GetPlanetRadius(hub);
-
             Vector3 hitPoint = default;
             Vector3 hitNormal = default;
 
@@ -67,38 +67,28 @@ namespace xyz.germanfica.unity.planet.gravity
             for (int attempt = 0; attempt < 8 && !found; attempt++)
             {
                 Vector3 normal = Random.onUnitSphere;
-                Vector3 rayOrigin = hub.position + normal * radius;
-
-                if (SurfacePlacement.TryRaycastSurface(hub, rayOrigin, -normal, radius * 2f, out RaycastHit hit))
-                {
-                    hitPoint = hit.point;
-                    hitNormal = hit.normal;
-                }
-                else
-                {
-                    hitPoint = hub.position + normal * radius;
-                    hitNormal = normal;
-                }
+                SurfacePlacement.GetSurfacePoint(hub, normal, out hitPoint, out hitNormal);
 
                 found = exclusionRadius <= 0f
                     || (hitPoint - baseCenter).sqrMagnitude >= exclusionRadius * exclusionRadius;
             }
             if (!found) return;
 
-            Vector3 spawnPos = hitPoint + hitNormal * surfaceOffset;
             Quaternion spawnRot = Quaternion.FromToRotation(entry.item.surfaceUpAxis, hitNormal);
 
             bool isPickup = Random.value < entry.pickupChance;
             GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
             if (prefab == null) return;
 
-            GameObject go = Instantiate(prefab, spawnPos, spawnRot);
+            GameObject go = Instantiate(prefab, hitPoint, spawnRot);
 
             go.name = entry.item.displayName;
             go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
 
-            if (entry.item.pivotAtMeshCenter)
-                SnapPivotToBase(go, hitNormal);
+            // Bezuvjetno prizemljenje po stvarnoj geometriji: prije se korigiralo samo
+            // uz pivotAtMeshCenter flag, pa su modeli s drugačijim pivotom lebdjeli
+            // ili upadali u planet.
+            SurfacePlacement.GroundToSurface(go, hub, hitPoint, hitNormal, surfaceGap);
 
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
@@ -110,64 +100,6 @@ namespace xyz.germanfica.unity.planet.gravity
                 interactable = go.AddComponent<ItemInteractable>();
 
             interactable.Init(entry.item, isPickup);
-        }
-
-        // Kopija iz ResourceSpawnManager.SnapPivotToBase (privatna je ondje).
-        // Samo za iteme s pivotAtMeshCenter = true. Pivot im je u sredini mesha umjesto na
-        // dnu, pa bi inače pola objekta završilo ukopano u planet. Pomakni objekt van po
-        // normali dovoljno da mu najniža stvarna točka mesha (ne AABB kutija, koja je
-        // preširoka za nepravilne modele) dođe na razinu površine.
-        private static void SnapPivotToBase(GameObject go, Vector3 hitNormal)
-        {
-            MeshFilter[] filters = go.GetComponentsInChildren<MeshFilter>();
-            if (filters.Length == 0) return;
-
-            float lowestPointOffset;
-            bool usedVertices = TryGetLowestVertexOffset(filters, go.transform.position, hitNormal, out lowestPointOffset);
-
-            if (!usedVertices)
-            {
-                Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
-                if (renderers.Length == 0) return;
-
-                Bounds bounds = renderers[0].bounds;
-                for (int i = 1; i < renderers.Length; i++)
-                    bounds.Encapsulate(renderers[i].bounds);
-
-                float centerOffset = Vector3.Dot(bounds.center - go.transform.position, hitNormal);
-                float halfExtentAlongNormal = Mathf.Abs(bounds.extents.x * hitNormal.x)
-                                             + Mathf.Abs(bounds.extents.y * hitNormal.y)
-                                             + Mathf.Abs(bounds.extents.z * hitNormal.z);
-                lowestPointOffset = centerOffset - halfExtentAlongNormal;
-                Debug.LogWarning($"SnapPivotToBase: '{go.name}' mesh nije Read/Write Enabled, koristim manje precizan AABB fallback (uključi Read/Write Enabled u import postavkama za točan snap).");
-            }
-
-            go.transform.position -= hitNormal * lowestPointOffset;
-        }
-
-        // Prolazi kroz stvarne vrhove mesha (ne bounding box) i nalazi najnižu točku po
-        // normali. Vraća false ako mesh nije Read/Write Enabled (vertices nisu dostupni).
-        private static bool TryGetLowestVertexOffset(MeshFilter[] filters, Vector3 pivot, Vector3 hitNormal, out float lowestOffset)
-        {
-            lowestOffset = float.MaxValue;
-            bool found = false;
-
-            foreach (MeshFilter mf in filters)
-            {
-                Mesh mesh = mf.sharedMesh;
-                if (mesh == null || !mesh.isReadable) continue;
-
-                Vector3[] vertices = mesh.vertices;
-                Transform meshTransform = mf.transform;
-                foreach (Vector3 v in vertices)
-                {
-                    float projection = Vector3.Dot(meshTransform.TransformPoint(v) - pivot, hitNormal);
-                    if (projection < lowestOffset) lowestOffset = projection;
-                }
-                found = true;
-            }
-
-            return found;
         }
     }
 }

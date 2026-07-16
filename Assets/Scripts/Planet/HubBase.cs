@@ -92,12 +92,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private static Vector3 SnapToSurface(Transform hub, Vector3 nearPos)
         {
-            float hubRadius = SurfacePlacement.GetPlanetRadius(hub);
             Vector3 dir = (nearPos - hub.position).normalized;
-            if (SurfacePlacement.TryRaycastSurface(hub, hub.position + dir * (hubRadius + 20f), -dir,
-                    hubRadius + 40f, out RaycastHit hit))
-                return hit.point;
-            return hub.position + dir * hubRadius;
+            SurfacePlacement.GetSurfacePoint(hub, dir, out Vector3 point, out _);
+            return point;
         }
 
         private static void PlaceTileRing(GameObject root, Transform hub, Vector3 center, Vector3 normal,

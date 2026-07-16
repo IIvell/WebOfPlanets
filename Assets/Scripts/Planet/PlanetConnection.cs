@@ -97,12 +97,20 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             Vector3 dir = (toward.position - from.position).normalized;
-            Vector3 pos = SurfacePoint(from, dir);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
+            Vector3 pos = SurfacePoint(from, dir, out Vector3 normal);
+
+            // Uspravno po stvarnoj normali pogođene površine (na neravnom Hub meshu
+            // se razlikuje od radijalnog smjera) — marker stoji na tlu kao totem, a
+            // normala je ujedno i "up" za teleport dolazak (destinationMarker.up).
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, normal);
 
             GameObject marker = Instantiate(_markerPrefab, pos, rot, transform);
             marker.name = "ConnectionMarker";
             marker.transform.localScale = Vector3.one * _markerScale;
+
+            // Prizemlji po stvarnoj geometriji da dno sjedne na površinu bez obzira
+            // na pivot prefaba.
+            SurfacePlacement.GroundToSurface(marker, from, pos, normal);
 
             CapsuleCollider col = marker.AddComponent<CapsuleCollider>();
             col.isTrigger = true;
@@ -113,17 +121,16 @@ namespace xyz.germanfica.unity.planet.gravity
             return marker;
         }
 
-        private static readonly int PlanetLayerMask = LayerMask.GetMask("Planet");
-
+        // Zajednički helper umjesto vlastite matematike: localScale kao radijus laže
+        // za mesh planete (Hub ima localScale 1000 uz stvarni radijus ~19), pa je
+        // fallback markere znao ostaviti stotine jedinica u svemiru pored zrake.
         internal static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet)
+            => SurfacePoint(planet, directionFromPlanet, out _);
+
+        internal static Vector3 SurfacePoint(Transform planet, Vector3 directionFromPlanet, out Vector3 surfaceNormal)
         {
-            float radius = planet.localScale.x * 0.5f;
-            Vector3 origin = planet.position + directionFromPlanet * (radius + 5f);
-
-            if (Physics.Raycast(origin, -directionFromPlanet, out RaycastHit hit, radius + 10f, PlanetLayerMask, QueryTriggerInteraction.Ignore))
-                return hit.point;
-
-            return planet.position + directionFromPlanet * radius;
+            SurfacePlacement.GetSurfacePoint(planet, directionFromPlanet, out Vector3 point, out surfaceNormal);
+            return point;
         }
 
         private void UpdateVisual()

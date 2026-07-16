@@ -137,7 +137,8 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnCollector(MachineData data, Transform planet, Vector3 pos, Quaternion rot,
             Transform linkedPlanet)
         {
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.6f, 1f));
+            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.6f, 1f),
+                planet: planet);
             CollectorMachine collector = go.AddComponent<CollectorMachine>();
             collector.Init(data, planet);
             if (linkedPlanet != null) collector.SetLinkedPlanet(linkedPlanet);
@@ -195,7 +196,8 @@ namespace xyz.germanfica.unity.planet.gravity
             Vector3 pos = FindSurfacePoint(planet);
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.8f, 0.4f, 0f));
+            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.8f, 0.4f, 0f),
+                planet: planet);
             StorageMachine storage = go.AddComponent<StorageMachine>();
             storage.Init(data);
             if (_lastCollector != null)
@@ -221,7 +223,7 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.9f, 0.2f, 0.1f),
-                scale: 3f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                scale: 3f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
             go.AddComponent<SmelterMachine>().Init(data);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
@@ -241,7 +243,7 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.1f, 0.8f, 0.5f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
             go.AddComponent<ExtractorMachine>().Init(data);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
@@ -261,7 +263,7 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.8f, 0.9f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
             go.AddComponent<UplinkMachine>().Init(data);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
@@ -349,12 +351,12 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion exitRot = Quaternion.FromToRotation(Vector3.up, (exitPos - hub.position).normalized);
 
             GameObject entryGo = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.6f, 0.3f, 0.9f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
             TeleporterMachine entry = entryGo.AddComponent<TeleporterMachine>();
             entry.Init(data, planet, planetCreator);
 
             GameObject exitGo = SpawnObject(data.prefab, exitPos, exitRot, data.displayName + " (Hub)", new Color(0.6f, 0.3f, 0.9f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: hub);
             TeleporterMachine exit = exitGo.AddComponent<TeleporterMachine>();
             exit.Init(data, hub, planetCreator);
 
@@ -393,7 +395,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (_pendingTwoWayEntry == null)
             {
                 GameObject entryGo = SpawnObject(data.prefab, pos, rot, data.displayName + " (ulaz)", gateColor,
-                    scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                    scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
                 _pendingTwoWayEntry = entryGo.AddComponent<TeleporterMachine>();
                 _pendingTwoWayEntry.Init(data, planet, planetCreator);
 
@@ -410,7 +412,7 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             GameObject exitGo = SpawnObject(data.prefab, pos, rot, data.displayName + " (izlaz)", gateColor,
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true);
+                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
             TeleporterMachine exit = exitGo.AddComponent<TeleporterMachine>();
             exit.Init(data, planet, planetCreator);
 
@@ -479,17 +481,21 @@ namespace xyz.germanfica.unity.planet.gravity
             float   radius = SurfacePlacement.GetPlanetRadius(planet);
             Vector3 origin = planet.position + snapDir * (radius + 20f);
 
-            if (Physics.Raycast(origin, -snapDir, out RaycastHit hit, radius + 40f,
-                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            // Filtrirano na planet — običan raycast bi stao na kamenju ili stroju
+            // ispred igrača i postavio novi stroj na njih (isti razlog kao
+            // FindHubSurfacePoint gore).
+            if (SurfacePlacement.TryRaycastSurface(planet, origin, -snapDir, radius + 40f, out RaycastHit hit))
                 return hit.point;
 
             return planet.position + snapDir * radius;
         }
 
         // Javno jer i spawn izvan placera (RespawnTotem.Spawn) gradi istim putem.
+        // pos mora biti točka na površini planeta; uz zadan planet objekt se prizemlji
+        // tako da mu dno stvarne geometrije sjedne na pos, bez obzira gdje je pivot prefaba.
         public static GameObject SpawnObject(GameObject prefab, Vector3 pos, Quaternion rot,
             string fallbackName, Color fallbackColor, float scale = 300f, Quaternion? rotationOffset = null,
-            bool fitColliderToRenderer = false)
+            bool fitColliderToRenderer = false, Transform planet = null)
         {
             GameObject go;
             if (prefab != null)
@@ -514,6 +520,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
+
+            // rot je FromToRotation(Vector3.up, normala), pa je rot * up normala površine
+            // i kad rotationOffset dodatno zakrene model.
+            if (planet != null)
+                SurfacePlacement.GroundToSurface(go, planet, pos, rot * Vector3.up);
 
             return go;
         }

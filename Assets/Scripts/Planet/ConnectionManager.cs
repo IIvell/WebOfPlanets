@@ -127,15 +127,22 @@ private void SpawnPotentialMarkers()
             }
 
             Vector3 dir = (toward.position - from.position).normalized;
-            Vector3 pos = PlanetConnection.SurfacePoint(from, dir);
+            Vector3 pos = PlanetConnection.SurfacePoint(from, dir, out Vector3 normal);
 
             if (IsInExclusionZone(pos)) return null;
 
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, dir);
+            // Uspravno po stvarnoj normali pogođene površine (na neravnom Hub meshu
+            // se razlikuje od radijalnog smjera) — marker stoji na tlu kao totem, a
+            // normala je ujedno i "up" za teleport dolazak (destinationMarker.up).
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, normal);
 
             GameObject marker = Instantiate(potentialConnectionMarkerPrefab, pos, rot, transform);
             marker.name = "PotentialConnectionMarker";
             marker.transform.localScale = Vector3.one * markerScale;
+
+            // Prizemlji po stvarnoj geometriji da dno sjedne na površinu bez obzira
+            // na pivot prefaba.
+            SurfacePlacement.GroundToSurface(marker, from, pos, normal);
 
             CapsuleCollider col = marker.AddComponent<CapsuleCollider>();
             col.isTrigger = true;

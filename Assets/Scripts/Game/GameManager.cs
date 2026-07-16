@@ -87,15 +87,11 @@ namespace xyz.germanfica.unity.planet.gravity
             else
             {
                 // Bez računala/skladišta u sceni: bilo koje čisto mjesto na površini.
-                float radius = SurfacePlacement.GetPlanetRadius(hub);
-                pos = hub.position + hub.up * radius;
+                pos = hub.position + hub.up * SurfacePlacement.GetPlanetRadius(hub);
                 for (int attempt = 0; attempt < 8; attempt++)
                 {
                     Vector3 dir = attempt == 0 ? hub.up : Random.onUnitSphere;
-                    if (!SurfacePlacement.TryRaycastSurface(hub, hub.position + dir * (radius + 20f), -dir,
-                            radius + 40f, out RaycastHit hit))
-                        continue;
-                    pos = hit.point;
+                    SurfacePlacement.GetSurfacePoint(hub, dir, out pos, out _);
                     if (MachinePlacer.IsSpotClear(pos, hub)) break;
                 }
             }

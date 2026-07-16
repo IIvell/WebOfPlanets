@@ -75,6 +75,22 @@ namespace xyz.germanfica.unity.planet.gravity
             rb.isKinematic = true;
             rb.useGravity = false;
 
+            // Primitivna sfera nosi analitički SphereCollider (savršena kugla), a
+            // vidljivi mesh je poligonalna aproksimacija koja između vrhova pada do
+            // ~1.3% radijusa ISPOD te kugle (R=50 → ~0.65). Sve što se prizemljuje
+            // raycastom sjelo bi na nevidljivu analitičku kuglu i lebdjelo iznad
+            // vidljivog tla — ista klasa problema kao convex hull na Hubu
+            // (Planet.Awake), samo u suprotnom smjeru. Fizičku površinu zato
+            // izjednačavamo s vidljivim mesheom; non-convex MeshCollider smije na
+            // kinematic rigidbody. Disable prije Destroy: Destroy je odgođen do kraja
+            // framea, a resursi se spawnaju event-lančano još ISTI frame — aktivni
+            // SphereCollider bi bio bliži pogodak od mesha i sve bi opet lebdjelo.
+            SphereCollider sphereCollider = planetGO.GetComponent<SphereCollider>();
+            sphereCollider.enabled = false;
+            Destroy(sphereCollider);
+            MeshCollider meshCollider = planetGO.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = planetGO.GetComponent<MeshFilter>().sharedMesh;
+
             Attractor attractor = planetGO.AddComponent<Attractor>();
             attractor.OrientToGravity = false;
             attractor.enabled = false;
@@ -219,7 +235,9 @@ namespace xyz.germanfica.unity.planet.gravity
             }
             else
             {
-                float radius = targetPlanet.localScale.x * 0.5f;
+                // localScale laže za mesh planete (Hub: localScale 1000, stvarni radijus
+                // ~19) — fallback bi igrača ostavio stotine jedinica iznad površine.
+                float radius = SurfacePlacement.GetPlanetRadius(targetPlanet);
 
                 Vector3 surfaceNormal = fromPlanet != null
                     ? (fromPlanet.position - targetPlanet.position).normalized
