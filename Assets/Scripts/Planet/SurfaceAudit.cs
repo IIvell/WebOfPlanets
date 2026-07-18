@@ -55,13 +55,13 @@ namespace xyz.germanfica.unity.planet.gravity
                 total++;
                 perPlanet[planet]++;
 
-                // Strojevi/totemi se prizemljuju duž VLASTITE (radijalne) osi, a audit
-                // mjeri po normali trokuta pod objektom. Na nagnutom trokutu (do ~8° na
-                // generiranim planetima) objekt je namjerno ukopan da mu niži rub ne
-                // visi: primijenjeni ukop ~w·tanθ (cap 30% visine) + dubina uzbrdnog
-                // kuta ~w·sinθ. Bez te tolerancije svaki širi stroj na nagibu ispadne
-                // lažni "UTONUO". Za resurse/markere (prizemljene po normali trokuta,
-                // θ≈0) slack je ≈0 pa se pragovi ne mijenjaju.
+                // Strojevi/totemi (i totemi veza) se prizemljuju duž VLASTITE
+                // (radijalne) osi, a audit mjeri po normali trokuta pod objektom. Na
+                // nagnutom trokutu (do ~8° na generiranim planetima) objekt je namjerno
+                // ukopan da mu niži rub ne visi: primijenjeni ukop ~w·tanθ (cap 30%
+                // visine) + dubina uzbrdnog kuta ~w·sinθ. Bez te tolerancije svaki širi
+                // stroj na nagibu ispadne lažni "UTONUO". Za resurse (prizemljene po
+                // normali trokuta, θ≈0) slack je ≈0 pa se pragovi ne mijenjaju.
                 float cosTilt = Mathf.Abs(Vector3.Dot(surfaceNormal, t.up));
                 float sinTilt = Mathf.Sqrt(Mathf.Max(0f, 1f - cosTilt * cosTilt));
                 float appliedTiltSink = cosTilt > 0.5f

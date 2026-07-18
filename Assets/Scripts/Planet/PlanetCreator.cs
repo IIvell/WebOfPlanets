@@ -205,10 +205,10 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(markerUp, Vector3.right);
                 tangent.Normalize();
 
-                // Totemi veza su mali triggeri pa je 2 m dovoljno. Teleporter gate ima
-                // veliki solid collider: sleti ispred njegovog otvora (duž forward osi),
-                // tik uz rub collidera — izvan njega (inače fizika izbaci igrača), ali
-                // ne dalje nego što je nužno.
+                // Marker sa solid colliderom (teleporter gate, totemi veza): sleti duž
+                // forward osi tik uz rub collidera — izvan njega (inače fizika izbaci
+                // igrača), ali ne dalje nego što je nužno. Za eventualni trigger marker
+                // bez solid collidera ostaje paušalnih 2 m.
                 float lateral = 2f;
                 if (destinationMarker.TryGetComponent(out Collider markerCollider) && !markerCollider.isTrigger)
                 {

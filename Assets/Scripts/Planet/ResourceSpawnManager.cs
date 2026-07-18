@@ -52,6 +52,17 @@ namespace xyz.germanfica.unity.planet.gravity
             Vector3 normal = Random.onUnitSphere;
             SurfacePlacement.GetSurfacePoint(planet, normal, out Vector3 hitPoint, out Vector3 hitNormal);
 
+            // Markeri veza se spawnaju isti frame kao resursi (redoslijed Start
+            // korutina nije definiran) — kad su markeri prvi, resurs bi se znao
+            // stvoriti unutar totema, pa se smjer ponovno baca dok točka nije
+            // slobodna od markera. Namjerno se NE provjeravaju drugi resursi da
+            // se ne mijenja gustoća spawna; nakon 8 promašaja spawna se svejedno.
+            for (int attempt = 0; attempt < 8 && IsNearConnectionMarker(hitPoint); attempt++)
+            {
+                normal = Random.onUnitSphere;
+                SurfacePlacement.GetSurfacePoint(planet, normal, out hitPoint, out hitNormal);
+            }
+
             Quaternion spawnRot = Quaternion.FromToRotation(entry.item.surfaceUpAxis, hitNormal);
 
             bool isPickup = Random.value < entry.pickupChance;
@@ -78,6 +89,18 @@ namespace xyz.germanfica.unity.planet.gravity
                 interactable = go.AddComponent<ItemInteractable>();
 
             interactable.Init(entry.item, isPickup);
+        }
+
+        // Isti radijus kao MachinePlacer.IsSpotClear; cilja se samo na totem
+        // markere veza (collider i interactable su im na root objektu —
+        // FitColliderToRenderer briše child collidere).
+        private static bool IsNearConnectionMarker(Vector3 pos)
+        {
+            foreach (var col in Physics.OverlapSphere(pos, 4f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                if (col.TryGetComponent<ConnectionInteractable>(out _) ||
+                    col.TryGetComponent<PotentialConnectionInteractable>(out _))
+                    return true;
+            return false;
         }
     }
 }

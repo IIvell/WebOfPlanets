@@ -72,7 +72,27 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (m != null) m.SetActive(active);
         }
 
-private void SpawnPotentialMarkers()
+        // Poza postojećeg potencijalnog totema za svaku stranu para (null ako je
+        // strana bez totema, npr. preskočena zbog exclusion zone). Kojoj planeti
+        // totem pripada određuje se udaljenošću — lista strana ne čuva redoslijed
+        // kad je jedna null.
+        private void GetPotentialMarkerPoses(Transform a, Transform b, out Pose? poseA, out Pose? poseB)
+        {
+            poseA = null;
+            poseB = null;
+            if (!_potentialMarkers.TryGetValue(PairKey(a, b), out var markers)) return;
+
+            foreach (var m in markers)
+            {
+                if (m == null) continue;
+                Vector3 p = m.transform.position;
+                bool closerToA = (p - a.position).sqrMagnitude <= (p - b.position).sqrMagnitude;
+                if (closerToA) poseA = new Pose(p, m.transform.rotation);
+                else           poseB = new Pose(p, m.transform.rotation);
+            }
+        }
+
+        private void SpawnPotentialMarkers()
         {
             Planet[] all = FindObjectsByType<Planet>(FindObjectsSortMode.None);
             int count = 0;
@@ -127,14 +147,24 @@ private void SpawnPotentialMarkers()
             }
 
             Vector3 dir = (toward.position - from.position).normalized;
-            Vector3 pos = PlanetConnection.SurfacePoint(from, dir, out Vector3 normal);
 
+            // Exclusion zonu odlučuje idealna točka (kao i prije), a stvarna
+            // pozicija bježi od zauzetog tla — resursi se spawnaju isti frame pa
+            // bi totem znao završiti unutar kamena/drveta. Bočni pomak ne smije
+            // marker ni naknadno ugurati u exclusion zonu.
+            if (IsInExclusionZone(PlanetConnection.SurfacePoint(from, dir))) return null;
+
+            Vector3 pos = PlanetConnection.FindClearSurfacePoint(from, dir);
             if (IsInExclusionZone(pos)) return null;
 
-            // Uspravno po stvarnoj normali pogođene površine (na neravnom Hub meshu
-            // se razlikuje od radijalnog smjera) — marker stoji na tlu kao totem, a
-            // normala je ujedno i "up" za teleport dolazak (destinationMarker.up).
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, normal);
+            // Radijalno uspravno KAO STROJEVI, ne po normali pogođenog trokuta:
+            // na low-poly planetima normala trokuta zna vidljivo odstupati od
+            // radijalnog "gore", pa visoki totem igraču (koji stoji radijalno po
+            // gravitaciji) izgleda iskrivljeno. Nagnute trokute rješava izmjereni
+            // ukop u GroundToSurface, a radijalni up je ujedno i "up" za teleport
+            // dolazak (destinationMarker.up).
+            Vector3 radial = (pos - from.position).normalized;
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, radial);
 
             GameObject marker = Instantiate(potentialConnectionMarkerPrefab, pos, rot, transform);
             marker.name = "PotentialConnectionMarker";
@@ -142,10 +172,12 @@ private void SpawnPotentialMarkers()
 
             // Prizemlji po stvarnoj geometriji da dno sjedne na površinu bez obzira
             // na pivot prefaba.
-            SurfacePlacement.GroundToSurface(marker, from, pos, normal);
+            SurfacePlacement.GroundToSurface(marker, from, pos, radial);
 
-            CapsuleCollider col = marker.AddComponent<CapsuleCollider>();
-            col.isTrigger = true;
+            // Solid collider po stvarnim granicama vizuala (isto kao strojevi):
+            // totem mora fizički blokirati igrača. Interakciji trigger ne treba —
+            // Interactor cilja OverlapSphere-om po colliderima.
+            MachinePlacer.FitColliderToRenderer(marker);
 
             var interactable = marker.AddComponent<PotentialConnectionInteractable>();
             interactable.Init(this, from, toward);
@@ -161,8 +193,11 @@ private void SpawnPotentialMarkers()
             if (!HasResources(cost)) return false;
 
             ConsumeResources(cost);
-            CreateConnection(a, b, quality, GetLifespan(quality, a, b));
+            // Potencijalni totemi se gase PRIJE spawna aktivnih markera: njihovi
+            // collideri stoje točno na idealnoj točki, pa bi FindClearSurfacePoint
+            // inače svaki aktivni marker bez potrebe otjerao u stranu.
             SetPotentialMarkersActive(a, b, false);
+            CreateConnection(a, b, quality, GetLifespan(quality, a, b));
             return true;
         }
 
@@ -293,8 +328,15 @@ private void SpawnPotentialMarkers()
             GameObject go = new GameObject($"Connection_{a.name}_{b.name}");
             go.transform.SetParent(transform);
 
+            // Totem prave veze mora osvanuti TOČNO gdje je stajao potencijalni
+            // totem na kojem je igrač vezu aktivirao (potencijalni je mogao biti
+            // bočno pomaknut od idealne točke zbog resursa) — ponovni izračun
+            // pozicije bi ga odveo na drugo nasumično mjesto i igraču bi veza
+            // "nestala". Poze se čitaju i s ugašenih totema (transform ostaje).
+            GetPotentialMarkerPoses(a, b, out Pose? poseA, out Pose? poseB);
+
             PlanetConnection conn = go.AddComponent<PlanetConnection>();
-            conn.Init(a, b, type, planetCreator, lifespan, potentialConnectionMarkerPrefab, markerScale, markerHeight, GetThickness(type));
+            conn.Init(a, b, type, planetCreator, lifespan, potentialConnectionMarkerPrefab, markerScale, markerHeight, GetThickness(type), poseA, poseB);
             _connections.Add(conn);
 
             GameEventBus.RaiseConnectionCreated(new ConnectionEvent

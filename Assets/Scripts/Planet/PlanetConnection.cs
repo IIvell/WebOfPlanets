@@ -16,6 +16,8 @@ namespace xyz.germanfica.unity.planet.gravity
         private float _markerScale;
         private float _markerHeight;
         private float _thickness;
+        private GameObject _markerA;
+        private GameObject _markerB;
 
         private static readonly Color HealthColorHigh = Color.green;
         private static readonly Color HealthColorMid = Color.yellow;
@@ -23,7 +25,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private static readonly Color HealthColorCritical = Color.red;
         private const float FlickerThreshold = 20f;
 
-        public void Init(Transform a, Transform b, ConnectionType type, PlanetCreator planetCreator, float lifespan = 0f, GameObject markerPrefab = null, float markerScale = 3f, float markerHeight = 3f, float thickness = 0.6f)
+        public void Init(Transform a, Transform b, ConnectionType type, PlanetCreator planetCreator, float lifespan = 0f, GameObject markerPrefab = null, float markerScale = 3f, float markerHeight = 3f, float thickness = 0.6f, Pose? markerPoseA = null, Pose? markerPoseB = null)
         {
             PlanetA = a;
             PlanetB = b;
@@ -36,20 +38,26 @@ namespace xyz.germanfica.unity.planet.gravity
 
             _cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             _cylinder.transform.SetParent(transform);
-            Destroy(_cylinder.GetComponent<Collider>());
+            // Destroy je odgođen do kraja framea, a SpawnMarker dolje odmah radi
+            // OverlapSphere (FindClearSurfacePoint) — collider zrake se zato gasi
+            // odmah da živi-mrtvi capsule ne otjera marker s idealne točke.
+            Collider beamCollider = _cylinder.GetComponent<Collider>();
+            beamCollider.enabled = false;
+            Destroy(beamCollider);
             _material = _cylinder.GetComponent<Renderer>().material;
 
+            _markerA = SpawnMarker(from: a, toward: b, planetCreator, markerPoseA);
+            _markerB = SpawnMarker(from: b, toward: a, planetCreator, markerPoseB);
+
+            if (_markerA != null && _markerB != null)
+            {
+                _markerA.GetComponent<ConnectionInteractable>().SetDestinationMarker(_markerB.transform);
+                _markerB.GetComponent<ConnectionInteractable>().SetDestinationMarker(_markerA.transform);
+            }
+
+            // Nakon spawna totema: zraka se sidri na njihove stvarne pozicije.
             UpdateHealthColor();
             UpdateVisual();
-
-            GameObject markerA = SpawnMarker(from: a, toward: b, planetCreator);
-            GameObject markerB = SpawnMarker(from: b, toward: a, planetCreator);
-
-            if (markerA != null && markerB != null)
-            {
-                markerA.GetComponent<ConnectionInteractable>().SetDestinationMarker(markerB.transform);
-                markerB.GetComponent<ConnectionInteractable>().SetDestinationMarker(markerA.transform);
-            }
         }
 
         void Update()
@@ -88,7 +96,7 @@ namespace xyz.germanfica.unity.planet.gravity
             return Color.Lerp(HealthColorCritical, HealthColorLow, t * 3f);
         }
 
-        private GameObject SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator)
+        private GameObject SpawnMarker(Transform from, Transform toward, PlanetCreator planetCreator, Pose? pose)
         {
             if (_markerPrefab == null)
             {
@@ -96,24 +104,49 @@ namespace xyz.germanfica.unity.planet.gravity
                 return null;
             }
 
-            Vector3 dir = (toward.position - from.position).normalized;
-            Vector3 pos = SurfacePoint(from, dir, out Vector3 normal);
-
-            // Uspravno po stvarnoj normali pogođene površine (na neravnom Hub meshu
-            // se razlikuje od radijalnog smjera) — marker stoji na tlu kao totem, a
-            // normala je ujedno i "up" za teleport dolazak (destinationMarker.up).
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, normal);
+            Vector3 pos;
+            Quaternion rot;
+            if (pose.HasValue)
+            {
+                // Točna poza potencijalnog totema (isti prefab i scale): igrač je
+                // vezu aktivirao baš na njemu, pa totem prave veze mora osvanuti na
+                // istom mjestu. Ponovni izračun bi ga sa zauzete idealne točke
+                // (resurs) otjerao NOVIM nasumičnim bočnim pomakom na drugo mjesto —
+                // igraču bi veza "nestala".
+                pos = pose.Value.position;
+                rot = pose.Value.rotation;
+            }
+            else
+            {
+                // Bez potencijalnog totema (npr. strana preskočena zbog exclusion
+                // zone): idealna točka prema drugoj planeti, uz bijeg od zauzetog
+                // tla. Radijalno uspravno kao strojevi — normala pogođenog trokuta
+                // na low-poly planetima zna vidljivo odstupati od radijalnog "gore"
+                // pa bi totem izgledao iskrivljeno; nagnute trokute rješava
+                // izmjereni ukop u GroundToSurface, a radijalni up služi i
+                // teleport dolasku (destinationMarker.up).
+                Vector3 dir = (toward.position - from.position).normalized;
+                pos = FindClearSurfacePoint(from, dir);
+                Vector3 radial = (pos - from.position).normalized;
+                rot = Quaternion.FromToRotation(Vector3.up, radial);
+            }
 
             GameObject marker = Instantiate(_markerPrefab, pos, rot, transform);
             marker.name = "ConnectionMarker";
             marker.transform.localScale = Vector3.one * _markerScale;
 
             // Prizemlji po stvarnoj geometriji da dno sjedne na površinu bez obzira
-            // na pivot prefaba.
-            SurfacePlacement.GroundToSurface(marker, from, pos, normal);
+            // na pivot prefaba. Preuzeta poza je VEĆ prizemljena (identičan prefab,
+            // scale i rotacija) — ponovni GroundToSurface bi s pivotom umjesto
+            // surface pointa kao referencom totem podigao/ukopao krivo.
+            if (!pose.HasValue)
+                SurfacePlacement.GroundToSurface(marker, from, pos, rot * Vector3.up);
 
-            CapsuleCollider col = marker.AddComponent<CapsuleCollider>();
-            col.isTrigger = true;
+            // Solid collider po stvarnim granicama vizuala (isto kao strojevi):
+            // totem mora fizički blokirati igrača. Interakciji trigger ne treba —
+            // Interactor cilja OverlapSphere-om po colliderima, a dolazak teleporta
+            // već slijeće uz rub solid collidera (PlanetCreator.TeleportToPlanet).
+            MachinePlacer.FitColliderToRenderer(marker);
 
             ConnectionInteractable interactable = marker.AddComponent<ConnectionInteractable>();
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
@@ -133,18 +166,67 @@ namespace xyz.germanfica.unity.planet.gravity
             return point;
         }
 
+        // Kao SurfacePoint, ali izbjegava zauzeto tlo: resursi se spawnaju isti
+        // frame kao markeri (redoslijed Start korutina nije definiran), pa bi totem
+        // znao završiti unutar kamena/drveta. Ako je idealna točka zauzeta, proba
+        // se nekoliko bočnih pomaka oko nje (isti recept kao izlaz teleportera u
+        // MachinePlacer.TryPlaceTeleporter); ako ni jedan nije čist, vraća zadnji
+        // pokušaj — malo pomaknut marker je bolji od markera zabijenog u resurs.
+        internal static Vector3 FindClearSurfacePoint(Transform planet, Vector3 idealDir)
+        {
+            Vector3 pos = SurfacePoint(planet, idealDir);
+            if (IsGroundFree(pos, planet)) return pos;
+
+            float radius = SurfacePlacement.GetPlanetRadius(planet);
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                Vector3 tangent = Vector3.Cross(idealDir, Random.onUnitSphere);
+                if (tangent.sqrMagnitude < 0.01f) continue;
+                tangent.Normalize();
+
+                Vector3 dir = (idealDir * radius + tangent * 15f).normalized;
+                pos = SurfacePoint(planet, dir);
+                if (IsGroundFree(pos, planet)) break;
+            }
+
+            return pos;
+        }
+
+        // MachinePlacer.IsSpotClear + iznimka za igrača: marker aktivne veze se
+        // spawna dok igrač stoji uz potencijalni totem, pa bi ga vlastiti capsule
+        // inače svaki put otjerao s idealnog mjesta. Igrač se prepoznaje preko
+        // PlayerHealth na rigu (isti uzorak kao VolcanicHazardZone) — čisto
+        // "ima Rigidbody" ne valja jer resursi svoj RB gube kroz ODGOĐENI Destroy,
+        // pa bi ih marker spawnan isti frame promašio.
+        private static bool IsGroundFree(Vector3 pos, Transform planet)
+        {
+            foreach (var col in Physics.OverlapSphere(pos, 4f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                if (col.transform == planet) continue;
+                if (col.attachedRigidbody != null && col.attachedRigidbody.TryGetComponent(out PlayerHealth _)) continue;
+                return false;
+            }
+            return true;
+        }
+
         private void UpdateVisual()
         {
             Vector3 direction = (PlanetB.position - PlanetA.position).normalized;
 
-            Vector3 tipA = SurfacePoint(PlanetA, direction) + direction * _markerHeight;
-            Vector3 tipB = SurfacePoint(PlanetB, -direction) - direction * _markerHeight;
+            // Zraka se sidri na stvarne toteme kad postoje (mogu biti bočno
+            // pomaknuti s idealne točke zbog zauzetog tla); bez totema fallback
+            // na idealne točke površine kao prije.
+            Vector3 baseA = _markerA != null ? _markerA.transform.position : SurfacePoint(PlanetA, direction);
+            Vector3 baseB = _markerB != null ? _markerB.transform.position : SurfacePoint(PlanetB, -direction);
+
+            Vector3 tipA = baseA + direction * _markerHeight;
+            Vector3 tipB = baseB - direction * _markerHeight;
 
             Vector3 midpoint = (tipA + tipB) * 0.5f;
             float distance = Vector3.Distance(tipA, tipB);
 
             _cylinder.transform.position = midpoint;
-            _cylinder.transform.up = direction;
+            _cylinder.transform.up = (tipB - tipA).normalized;
             _cylinder.transform.localScale = new Vector3(_thickness, distance * 0.5f, _thickness);
         }
 

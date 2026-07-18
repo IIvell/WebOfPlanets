@@ -532,7 +532,7 @@ namespace xyz.germanfica.unity.planet.gravity
         // Postavlja jedan BoxCollider koji tačno prati stvarne granice vizuala (renderer bounds),
         // umjesto da se oslanja na default collider primitive kocke ili prefaba koji možda ne
         // odgovara veličini/obliku modela nakon skaliranja i rotacije.
-        private static void FitColliderToRenderer(GameObject go)
+        public static void FitColliderToRenderer(GameObject go)
         {
             var renderers = go.GetComponentsInChildren<Renderer>();
 
