@@ -23,6 +23,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private Planet _planet;
         private float _defaultLinearDamping;
+        private Vector3 _faceDirection;
 
         PlayerInputActions _input;
 
@@ -93,11 +94,25 @@ namespace xyz.germanfica.unity.planet.gravity
             Move();
         }
 
+        void Update()
+        {
+            // Vizual se okreće u Updateu (render framerate), ne u FixedUpdateu (50 Hz),
+            // inače rotacija modela štuca na monitorima s višim refreshom.
+            FaceDirection(_faceDirection);
+        }
+
         private void ApplyGravity()
         {
             if (_planet == null) return;
             Vector3 down = (currentPlanet.position - transform.position).normalized;
             rig.AddForce(down * _planet.Gravity, ForceMode.Acceleration);
+
+            // Fizički linearDamping je isključen (gušio bi i horizontalno kretanje koje
+            // sad ide kroz linearVelocity), pa se stari meki pad reproducira ručno samo
+            // na vertikalnoj komponenti — ista formula kojom PhysX primjenjuje damping.
+            float d = _defaultLinearDamping * Time.fixedDeltaTime;
+            Vector3 vertical = Vector3.Project(rig.linearVelocity, down);
+            rig.linearVelocity -= vertical * (d / (1f + d));
         }
 
         private void Ini()
@@ -116,11 +131,11 @@ namespace xyz.germanfica.unity.planet.gravity
             Vector2 input = _input.PlayerActionmap.Movement.ReadValue<Vector2>();
             bool onIce = _planet != null && _planet.Type == PlanetType.Ice;
 
-            // rig.linearDamping (10 po defaultu) je namješten za MovePosition kretanje koje ga
-            // ignorira. Na ledu kretanje ide kroz linearVelocity pa taj damping guši svako
-            // ubrzanje skoro do nule (izgleda kao da se igrač ne može kretati) - zato ga na ledu
-            // isključimo i sami kontroliramo usporavanje kroz iceDeceleration.
-            rig.linearDamping = onIce ? 0f : _defaultLinearDamping;
+            // Kretanje uvijek ide kroz linearVelocity — MovePosition je na dinamičkom
+            // rigidbodyju teleport koji svaki fizički korak resetira interpolaciju i
+            // radi trzaje. Damping je zato uvijek 0: horizontalu postavljamo sami svaki
+            // korak, a meki pad na vertikali simulira ApplyGravity.
+            rig.linearDamping = 0f;
 
             if (onIce)
             {
@@ -128,17 +143,11 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            if (input == Vector2.zero)
-            {
-                // Zadrži samo vertikalnu brzinu (gravitacija), makni horizontal sliding
-                rig.linearVelocity = Vector3.Project(rig.linearVelocity, transform.up);
-                return;
-            }
-
+            Vector3 verticalVelocity = Vector3.Project(rig.linearVelocity, transform.up);
             Vector3 moveDir = transform.right * input.x + transform.forward * input.y;
-            rig.MovePosition(rig.position + moveDir * (Time.fixedDeltaTime * moveSpeed));
+            rig.linearVelocity = moveDir * moveSpeed + verticalVelocity;
 
-            FaceDirection(moveDir);
+            _faceDirection = moveDir;
         }
 
         private void MoveOnIce(Vector2 input)
@@ -154,7 +163,7 @@ namespace xyz.germanfica.unity.planet.gravity
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.fixedDeltaTime);
             rig.linearVelocity = horizontalVelocity + verticalVelocity;
 
-            FaceDirection(horizontalVelocity);
+            _faceDirection = horizontalVelocity;
         }
 
         private void FaceDirection(Vector3 direction)
@@ -162,7 +171,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (visualModel == null || direction.sqrMagnitude < 0.0001f) return;
 
             Quaternion targetRotation = Quaternion.LookRotation(-direction.normalized, transform.up);
-            visualModel.rotation = Quaternion.Slerp(visualModel.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
+            visualModel.rotation = Quaternion.Slerp(visualModel.rotation, targetRotation, turnSpeed * Time.deltaTime);
         }
     }
 }
