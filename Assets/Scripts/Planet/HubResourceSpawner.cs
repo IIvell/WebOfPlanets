@@ -93,8 +93,10 @@ namespace xyz.germanfica.unity.planet.gravity
             if (go.TryGetComponent<Rigidbody>(out var rb))
                 Destroy(rb);
 
+            // Prefab bez collidera na rootu: box po stvarnoj geometriji umjesto
+            // default 1x1x1 kocke na pivotu (isti fix kao ResourceSpawnManager).
             if (!go.TryGetComponent<Collider>(out _))
-                go.AddComponent<BoxCollider>();
+                SurfacePlacement.FitBoxColliderToGeometry(go);
 
             if (!go.TryGetComponent<ItemInteractable>(out var interactable))
                 interactable = go.AddComponent<ItemInteractable>();

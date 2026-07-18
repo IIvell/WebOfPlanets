@@ -529,41 +529,13 @@ namespace xyz.germanfica.unity.planet.gravity
             return go;
         }
 
-        // Postavlja jedan BoxCollider koji tačno prati stvarne granice vizuala (renderer bounds),
-        // umjesto da se oslanja na default collider primitive kocke ili prefaba koji možda ne
-        // odgovara veličini/obliku modela nakon skaliranja i rotacije.
+        // Postavlja jedan BoxCollider koji prati stvarne granice geometrije, umjesto
+        // da se oslanja na default collider primitive kocke ili prefaba koji možda ne
+        // odgovara veličini/obliku modela nakon skaliranja i rotacije. Mjerenje živi u
+        // SurfacePlacementu (isti izvor točaka kao prizemljenje/audit) — stara verzija
+        // ovdje je mjerila renderer bounds, što za skinnane modele (bone-frame AABB)
+        // daje box pomaknut od vidljive geometrije.
         public static void FitColliderToRenderer(GameObject go)
-        {
-            var renderers = go.GetComponentsInChildren<Renderer>();
-
-            foreach (var existing in go.GetComponentsInChildren<Collider>())
-                Destroy(existing);
-
-            if (renderers.Length == 0)
-            {
-                go.AddComponent<BoxCollider>();
-                return;
-            }
-
-            // Renderer.bounds je uvijek axis-aligned u world prostoru. Ako se izmjeri dok je
-            // objekt već zarotiran (poravnat s površinom planeta), rezultat ne odgovara stvarnom
-            // obliku mesh-a kad se samo "vrati" u lokalni prostor preko InverseTransform — nastaje
-            // iskrivljena/necentrirana kutija. Zato rotaciju privremeno nuliramo prije mjerenja.
-            Quaternion originalRotation = go.transform.rotation;
-            go.transform.rotation = Quaternion.identity;
-
-            Bounds worldBounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-                worldBounds.Encapsulate(renderers[i].bounds);
-
-            Vector3 localCenter = go.transform.InverseTransformPoint(worldBounds.center);
-            Vector3 localSize   = go.transform.InverseTransformVector(worldBounds.size);
-
-            go.transform.rotation = originalRotation;
-
-            var box = go.AddComponent<BoxCollider>();
-            box.center = localCenter;
-            box.size   = new Vector3(Mathf.Abs(localSize.x), Mathf.Abs(localSize.y), Mathf.Abs(localSize.z));
-        }
+            => SurfacePlacement.FitBoxColliderToGeometry(go);
     }
 }

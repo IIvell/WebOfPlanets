@@ -43,8 +43,42 @@ namespace xyz.germanfica.unity.planet.gravity
         void Start()
         {
             Ini();
+            AlignColliderWithVisual();
             if (currentPlanet != null)
                 _planet = currentPlanet.GetComponent<Planet>();
+        }
+
+        // Vizualni robot rotira oko visualModel pivota (FaceDirection), a kapsula je
+        // fiksna na Playeru. U sceni je mesh robota stajao pomaknut od pivota
+        // (~1.3 po z), pa je pri okretanju KRUŽIO oko pivota umjesto da se vrti u
+        // mjestu — vizual i fizika su se razilazili do ~2.5 jedinice ovisno o smjeru
+        // gledanja (igrač "u totemu" s jedne strane, blokiran zrakom s druge).
+        // Umjesto ručnog štimanja scene: izmjeri stvarnu geometriju robota, centriraj
+        // je na pivot (sva djeca pivota zajedno, da alat u ruci zadrži odnos prema
+        // mešu) i postavi kapsulu točno na pivot. Visina (y) se ne dira — visina
+        // stajanja je namještena u sceni i nije bila problem.
+        private void AlignColliderWithVisual()
+        {
+            if (visualModel == null) return;
+
+            // Lokalni AABB stvarne geometrije (vrhovi/bakani skinned vrhovi) u
+            // prostoru pivota; pri Startu alat još nije opremljen pa mjeri samo robota.
+            if (SurfacePlacement.TryGetLocalBounds(visualModel.gameObject, out Bounds local))
+            {
+                Vector3 delta = new Vector3(local.center.x, 0f, local.center.z);
+                if (delta.sqrMagnitude > 0.01f)
+                {
+                    foreach (Transform child in visualModel)
+                        child.localPosition -= delta;
+                    Debug.Log($"PlayerController: vizual robota centriran na pivot (pomak {delta}).");
+                }
+            }
+
+            if (TryGetComponent(out CapsuleCollider capsule))
+            {
+                Vector3 pivotLocal = transform.InverseTransformPoint(visualModel.position);
+                capsule.center = new Vector3(pivotLocal.x, capsule.center.y, pivotLocal.z);
+            }
         }
 
         public void SetPlanet(Transform planet)

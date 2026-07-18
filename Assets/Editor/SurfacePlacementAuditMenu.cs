@@ -17,4 +17,16 @@ public static class SurfacePlacementAuditMenu
 
         SurfaceAudit.LogReport();
     }
+
+    [MenuItem("Tools/Web of Planets/Audit Colliders")]
+    private static void RunColliders()
+    {
+        if (!Application.isPlaying)
+        {
+            Debug.Log("ColliderAudit radi samo u Play modu.");
+            return;
+        }
+
+        ColliderAudit.LogReport();
+    }
 }

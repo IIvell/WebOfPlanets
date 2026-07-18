@@ -144,9 +144,6 @@ namespace xyz.germanfica.unity.planet.gravity
         // lowest: pomak najniže točke geometrije od pivota po normali (obično negativan).
         // halfWidth: najveća radijalna udaljenost geometrije od osi kroz pivot duž normale.
         // height: proteg geometrije duž normale.
-        // Mjeri po stvarnim vrhovima kad je mesh Read/Write, inače po kutovima lokalnog
-        // mesh boundsa transformiranim u world (tight OBB) — world AABB već rotiranog
-        // objekta bi napuhao mjere (širinu do √2) ovisno o orijentaciji na planeti.
         // Internal i zbog SurfaceAudita: dijagnostika mora mjeriti identično kao
         // prizemljenje, inače prijavljuje lažne ukope za velike rotirane objekte.
         internal static bool TryGetExtents(GameObject go, Vector3 normal, out float lowest, out float halfWidth, out float height)
@@ -156,7 +153,7 @@ namespace xyz.germanfica.unity.planet.gravity
             float maxProj = float.MinValue;
             float maxRadialSqr = 0f;
 
-            void Accumulate(Vector3 worldPoint)
+            foreach (Vector3 worldPoint in GeometryPoints(go))
             {
                 Vector3 fromPivot = worldPoint - pivot;
                 float proj = Vector3.Dot(fromPivot, normal);
@@ -166,23 +163,46 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (radialSqr > maxRadialSqr) maxRadialSqr = radialSqr;
             }
 
+            if (minProj == float.MaxValue)
+            {
+                lowest = 0f;
+                halfWidth = 0f;
+                height = 0f;
+                return false;
+            }
+
+            lowest = minProj;
+            height = maxProj - minProj;
+            halfWidth = Mathf.Sqrt(maxRadialSqr);
+            return true;
+        }
+
+        // Sve world točke stvarne geometrije objekta. Mjeri po stvarnim vrhovima kad
+        // je mesh Read/Write, inače po kutovima lokalnog mesh boundsa transformiranim
+        // u world (tight OBB) — world AABB već rotiranog objekta bi napuhao mjere
+        // (širinu do √2) ovisno o orijentaciji na planeti.
+        private static IEnumerable<Vector3> GeometryPoints(GameObject go)
+        {
+            bool any = false;
+
             foreach (MeshFilter mf in go.GetComponentsInChildren<MeshFilter>())
             {
                 Mesh mesh = mf.sharedMesh;
                 if (mesh == null) continue;
+                any = true;
 
                 Vector3[] vertices = GetReadableVertices(mesh);
                 if (vertices != null)
                 {
                     Transform meshTransform = mf.transform;
                     foreach (Vector3 v in vertices)
-                        Accumulate(meshTransform.TransformPoint(v));
+                        yield return meshTransform.TransformPoint(v);
                 }
                 else
                 {
                     Bounds b = mesh.bounds;
                     for (int i = 0; i < 8; i++)
-                        Accumulate(mf.transform.TransformPoint(b.center + Vector3.Scale(b.extents, Corner(i))));
+                        yield return mf.transform.TransformPoint(b.center + Vector3.Scale(b.extents, Corner(i)));
                 }
             }
 
@@ -196,6 +216,7 @@ namespace xyz.germanfica.unity.planet.gravity
             foreach (SkinnedMeshRenderer smr in go.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 if (smr.sharedMesh == null) continue;
+                any = true;
 
                 var baked = new Mesh();
                 try
@@ -210,13 +231,13 @@ namespace xyz.germanfica.unity.planet.gravity
                     {
                         Transform smrTransform = smr.transform;
                         foreach (Vector3 v in bakedVerts)
-                            Accumulate(smrTransform.TransformPoint(v));
+                            yield return smrTransform.TransformPoint(v);
                     }
                     else
                     {
                         Bounds wb = smr.bounds;
                         for (int i = 0; i < 8; i++)
-                            Accumulate(wb.center + Vector3.Scale(wb.extents, Corner(i)));
+                            yield return wb.center + Vector3.Scale(wb.extents, Corner(i));
                     }
                 }
                 finally
@@ -228,28 +249,67 @@ namespace xyz.germanfica.unity.planet.gravity
 
             // Bez ijednog MeshFiltera/skinned mesha (npr. samo particle rendereri):
             // world AABB kutovi.
-            if (minProj == float.MaxValue)
+            if (!any)
             {
                 Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
-                if (renderers.Length == 0)
-                {
-                    lowest = 0f;
-                    halfWidth = 0f;
-                    height = 0f;
-                    return false;
-                }
+                if (renderers.Length == 0) yield break;
 
                 Bounds bounds = renderers[0].bounds;
                 for (int i = 1; i < renderers.Length; i++)
                     bounds.Encapsulate(renderers[i].bounds);
                 for (int i = 0; i < 8; i++)
-                    Accumulate(bounds.center + Vector3.Scale(bounds.extents, Corner(i)));
+                    yield return bounds.center + Vector3.Scale(bounds.extents, Corner(i));
+            }
+        }
+
+        // AABB stvarne geometrije u lokalnom prostoru roota — isti izvor točaka kao
+        // TryGetExtents, pa BoxCollider prati ono što se stvarno crta i za skinned
+        // modele (SMR.bounds su bone-frame AABB, znaju biti jedinice od vidljivog mesha).
+        internal static bool TryGetLocalBounds(GameObject go, out Bounds localBounds)
+        {
+            Transform root = go.transform;
+            bool has = false;
+            Bounds b = default;
+
+            foreach (Vector3 worldPoint in GeometryPoints(go))
+            {
+                Vector3 local = root.InverseTransformPoint(worldPoint);
+                if (!has) { b = new Bounds(local, Vector3.zero); has = true; }
+                else b.Encapsulate(local);
             }
 
-            lowest = minProj;
-            height = maxProj - minProj;
-            halfWidth = Mathf.Sqrt(maxRadialSqr);
-            return true;
+            localBounds = b;
+            return has;
+        }
+
+        // Jedan BoxCollider na rootu po stvarnim granicama geometrije. Briše postojeće
+        // collidere (i po djeci) — collider mora završiti na root objektu jer Interactor
+        // traži IInteractable na istom GameObjectu kao pogođeni collider, a i
+        // ResourceSpawnManager.IsNearConnectionMarker računa na taj raspored.
+        public static void FitBoxColliderToGeometry(GameObject go)
+        {
+            foreach (var existing in go.GetComponentsInChildren<Collider>())
+                Object.Destroy(existing);
+
+            bool measured = TryGetLocalBounds(go, out Bounds local);
+            var box = go.AddComponent<BoxCollider>();
+            if (measured)
+            {
+                box.center = local.center;
+                box.size = local.size;
+            }
+
+            // Collider se u pravilu dodaje NAKON što je transform već pomaknut
+            // (Instantiate → GroundToSurface → fit), a autoSyncTransforms je u
+            // projektu isključen. Transform BEZ collidera pomak ne vodi kao dirty
+            // za fiziku, pa PhysX box zna trajno ostati na pozi prije pomaka —
+            // vizual i Unity-side bounds izgledaju ispravno, ali igrač prolazi kroz
+            // vizual i sudara se s nevidljivim boxom pored njega (totemi veza).
+            // Dodir pozicije objekt eksplicitno označi dirty, sync ga odmah gurne u
+            // PhysX — usput novi collider postane vidljiv i same-frame world-gen
+            // upitima (IsGroundFree, IsNearConnectionMarker).
+            go.transform.position = go.transform.position;
+            Physics.SyncTransforms();
         }
 
         private static Vector3 Corner(int i) => new(
