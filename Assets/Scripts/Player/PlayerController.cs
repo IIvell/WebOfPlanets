@@ -13,6 +13,7 @@ namespace xyz.germanfica.unity.planet.gravity
         [Header("Visual")]
         [Tooltip("Model robota koji se vizualno rotira prema smjeru kretanja (ne rotira Player/collider).")]
         [SerializeField] private Transform visualModel;
+        public Transform VisualModel => visualModel;
         [Tooltip("Koliko brzo se model okreće prema smjeru kretanja.")]
         [SerializeField] private float turnSpeed = 10f;
 

@@ -282,6 +282,34 @@ namespace xyz.germanfica.unity.planet.gravity
             return has;
         }
 
+        // Bounds samo dijela geometrije iznad y praga (0-1, normalizirano po visini
+        // ukupnih boundsa) — npr. glava robota bez ruku koje strše naprijed i koje
+        // bi min.z cijelog modela odvukle daleko od lica (GasMaskVisual).
+        internal static bool TryGetLocalBoundsAbove(GameObject go, float minYNormalized, out Bounds localBounds)
+        {
+            if (!TryGetLocalBounds(go, out Bounds full))
+            {
+                localBounds = default;
+                return false;
+            }
+
+            float minY = full.min.y + full.size.y * Mathf.Clamp01(minYNormalized);
+            Transform root = go.transform;
+            bool has = false;
+            Bounds b = default;
+
+            foreach (Vector3 worldPoint in GeometryPoints(go))
+            {
+                Vector3 local = root.InverseTransformPoint(worldPoint);
+                if (local.y < minY) continue;
+                if (!has) { b = new Bounds(local, Vector3.zero); has = true; }
+                else b.Encapsulate(local);
+            }
+
+            localBounds = has ? b : full;
+            return true;
+        }
+
         // Jedan BoxCollider na rootu po stvarnim granicama geometrije. Briše postojeće
         // collidere (i po djeci) — collider mora završiti na root objektu jer Interactor
         // traži IInteractable na istom GameObjectu kao pogođeni collider, a i

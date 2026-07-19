@@ -82,6 +82,11 @@ namespace xyz.germanfica.unity.planet.gravity
                 case NetworkMapDeviceData:
                     OpenNetworkMap();
                     break;
+
+                // Oprema — P stavlja odnosno skida masku (ostaje u slotu).
+                case GasMaskData mask:
+                    GasMaskData.ToggleWorn(mask);
+                    break;
             }
         }
 

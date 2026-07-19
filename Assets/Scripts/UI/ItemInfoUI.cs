@@ -176,6 +176,18 @@ namespace xyz.germanfica.unity.planet.gravity
                     sb.AppendLine();
                     sb.AppendLine("<color=#888888>P — otvori mapu (dok je slot odabran).</color>");
                     break;
+
+                case GasMaskData:
+                    sb.AppendLine("<color=#aaaaaa>OPREMA</color>");
+                    sb.AppendLine();
+                    sb.AppendLine("Štiti od otrovne atmosfere plinskih planeta —");
+                    sb.AppendLine("bez nje ondje postepeno gubiš zdravlje.");
+                    sb.AppendLine("Jednom stavljena ostaje na glavi i dok");
+                    sb.AppendLine("koristiš druge slotove.");
+                    sb.AppendLine("Ne postavlja se i ne troši korištenjem.");
+                    sb.AppendLine();
+                    sb.AppendLine("<color=#888888>P — stavi/skini masku (dok je slot odabran).</color>");
+                    break;
             }
 
             return sb.ToString().TrimEnd();

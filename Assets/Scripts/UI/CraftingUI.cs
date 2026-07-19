@@ -105,6 +105,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             CraftingRecipe.ResultType.Tool             => Category.Tools,
             CraftingRecipe.ResultType.NetworkMapDevice => Category.Devices,
+            CraftingRecipe.ResultType.GasMask          => Category.Devices,
             _                                          => Category.Machines
         };
 
@@ -314,6 +315,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.TwoWayTeleporterMachine => recipe.resultTwoWayTeleporterMachine,
             CraftingRecipe.ResultType.NetworkMapDevice => recipe.resultNetworkMapDevice,
             CraftingRecipe.ResultType.RespawnTotem     => recipe.resultRespawnTotem,
+            CraftingRecipe.ResultType.GasMask          => recipe.resultGasMask,
             _                                          => null
         };
 
@@ -369,6 +371,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.TwoWayTeleporterMachine => "DVOSMJERNI TELEPORTER",
             CraftingRecipe.ResultType.NetworkMapDevice  => "UREĐAJ",
             CraftingRecipe.ResultType.RespawnTotem      => "RESPAWN TOTEM",
+            CraftingRecipe.ResultType.GasMask           => "OPREMA",
             _                                           => ""
         };
 

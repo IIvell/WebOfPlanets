@@ -15,6 +15,12 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private float surfaceOffset = -1f;
         [SerializeField] private Material hazardMaterial;
 
+        [Header("Kretanje zona")]
+        [Tooltip("Najmanja brzina kretanja zone po površini (m/s).")]
+        [SerializeField] private float minMoveSpeed = 2f;
+        [Tooltip("Najveća brzina kretanja zone po površini (m/s).")]
+        [SerializeField] private float maxMoveSpeed = 5f;
+
         private readonly HashSet<Transform> _processed = new();
 
         void OnEnable()  => GameEventBus.OnPlanetDiscovered += OnPlanetDiscovered;
@@ -67,6 +73,24 @@ namespace xyz.germanfica.unity.planet.gravity
 
             var hazard = zoneGO.AddComponent<VolcanicHazardZone>();
             hazard.Init(damagePerSecond);
+
+            // Predodređeni put: veliki krug kroz točku spawna. Os okomita na smjer
+            // prema centru → zona kruži po površini; kutna brzina iz linearne da
+            // manje planete zone ne obilaze sporije od većih.
+            Vector3 dir = (spawnPos - planet.position).normalized;
+            Vector3 axis = Vector3.Cross(dir, Random.onUnitSphere);
+            if (axis.sqrMagnitude < 0.001f)
+                axis = Vector3.Cross(dir, Vector3.up);
+            if (axis.sqrMagnitude < 0.001f)
+                axis = Vector3.Cross(dir, Vector3.right);
+            axis.Normalize();
+
+            float orbitRadius = Mathf.Max(Vector3.Distance(planet.position, spawnPos), 0.01f);
+            float linearSpeed = Random.Range(minMoveSpeed, maxMoveSpeed);
+            float angularSpeed = Mathf.Rad2Deg * (linearSpeed / orbitRadius);
+
+            var orbit = zoneGO.AddComponent<VolcanicHazardOrbit>();
+            orbit.Init(planet, axis, angularSpeed);
         }
     }
 }
