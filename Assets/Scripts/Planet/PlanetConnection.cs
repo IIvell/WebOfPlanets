@@ -204,6 +204,11 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 if (col.transform == planet) continue;
                 if (col.attachedRigidbody != null && col.attachedRigidbody.TryGetComponent(out PlayerHealth _)) continue;
+                // Mobovi su POKRETNI collideri — mob koji se zatekne na idealnoj
+                // točki bi trajno otjerao totem u stranu (kosa zraka), a sam ode
+                // za par sekundi. Totem se smije spawnati "u mobu": PhysX moba
+                // samo izgura van jer je dinamičan.
+                if (col.attachedRigidbody != null && col.attachedRigidbody.TryGetComponent(out EnemyMob _)) continue;
                 return false;
             }
             return true;
@@ -211,16 +216,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void UpdateVisual()
         {
-            Vector3 direction = (PlanetB.position - PlanetA.position).normalized;
-
-            // Zraka se sidri na stvarne toteme kad postoje (mogu biti bočno
-            // pomaknuti s idealne točke zbog zauzetog tla); bez totema fallback
-            // na idealne točke površine kao prije.
-            Vector3 baseA = _markerA != null ? _markerA.transform.position : SurfacePoint(PlanetA, direction);
-            Vector3 baseB = _markerB != null ? _markerB.transform.position : SurfacePoint(PlanetB, -direction);
-
-            Vector3 tipA = baseA + direction * _markerHeight;
-            Vector3 tipB = baseB - direction * _markerHeight;
+            Vector3 tipA = BeamAnchor(_markerA, PlanetA, PlanetB);
+            Vector3 tipB = BeamAnchor(_markerB, PlanetB, PlanetA);
 
             Vector3 midpoint = (tipA + tipB) * 0.5f;
             float distance = Vector3.Distance(tipA, tipB);
@@ -228,6 +225,51 @@ namespace xyz.germanfica.unity.planet.gravity
             _cylinder.transform.position = midpoint;
             _cylinder.transform.up = (tipB - tipA).normalized;
             _cylinder.transform.localScale = new Vector3(_thickness, distance * 0.5f, _thickness);
+        }
+
+        // Kraj zrake: VISINA je markerHeight iznad pivota totema (izvorna, ne
+        // izvodi se iz geometrije), a PRAVAC iz smjera druge planete prolazi
+        // točno kroz šiljak totema. Bez ciljanja šiljka produžetak kose zrake
+        // promašuje totem pa kapa visi u zraku pored/iznad njega — a to se
+        // vidi tek na planetima gdje GroundToSurface totem UKOPA u neravan
+        // teren (šiljak niže od markerHeight). Kraj nikad nije ispod šiljka,
+        // pa zraka ne može ni progutati vrh. Bez totema: markerHeight iznad
+        // točke površine.
+        private Vector3 BeamAnchor(GameObject marker, Transform planet, Transform otherPlanet)
+        {
+            Vector3 dirToOther = (otherPlanet.position - planet.position).normalized;
+
+            if (marker == null)
+            {
+                Vector3 basePos = SurfacePoint(planet, dirToOther);
+                return basePos + (basePos - planet.position).normalized * _markerHeight;
+            }
+
+            Vector3 up = marker.transform.up;
+            Vector3 pivot = marker.transform.position;
+
+            Vector3 peak = SurfacePlacement.TryGetExtents(marker, up, out float lowest, out _, out float height) && height > 0.01f
+                ? pivot + up * (lowest + height)
+                : pivot + up * _markerHeight;
+
+            // Točka na pravcu (šiljak -> druga planeta) na visini markerHeight
+            // iznad pivota. climb = koliko se pravac penje po jedinici puta.
+            Vector3 toOther = (otherPlanet.position - peak).normalized;
+            float climb = Vector3.Dot(toOther, up);
+            float need = _markerHeight - Vector3.Dot(peak - pivot, up);
+
+            if (climb > 0.05f && need > 0f)
+            {
+                Vector3 candidate = peak + toOther * (need / climb);
+                // Preplitki smjer (jako pomaknut marker na maloj planeti) bi
+                // kraj otjerao daleko od totema — tada radije ostani na šiljku.
+                if ((candidate - peak).sqrMagnitude <= 4f * _markerHeight * _markerHeight)
+                    return candidate;
+            }
+
+            // Šiljak je već na/iznad markerHeight ili je smjer preplitak:
+            // sidri na sam šiljak.
+            return peak;
         }
 
         public void ApplyDamage(float amount)
