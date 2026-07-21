@@ -9,6 +9,8 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private PlanetCreator planetCreator;
         [SerializeField] private float maxConnectionRange = 5000f;
 
+        public float MaxConnectionRange => maxConnectionRange;
+
         [Header("Exclusion Zones (player spawn, chest, computer...)")]
         [SerializeField] private Transform[] exclusionZones;
         [SerializeField] private float exclusionRadius = 20f;
@@ -107,26 +109,41 @@ namespace xyz.germanfica.unity.planet.gravity
                     if (Vector3.Distance(a.position, b.position) > maxConnectionRange) continue;
                     if (AlreadyConnected(a, b)) continue;
 
-                    SpawnPotentialPair(a, b);
-                    count++;
+                    if (SpawnPotentialPair(a, b)) count++;
                 }
             }
 
             Debug.Log($"ConnectionManager: spawnirano {count} potencijalnih veza.");
         }
 
-        private void SpawnPotentialPair(Transform a, Transform b)
+        // Par nastaje samo ako OBJE strane dobiju totem — jednostrani par (druga
+        // strana u exclusion zoni) bi ostavio usamljeni totem na planetu čija se
+        // veza s hub strane uopće ne vidi, pa se tada ne spawna ništa.
+        private bool SpawnPotentialPair(Transform a, Transform b)
         {
-            var key = PairKey(a, b);
-            var markers = new List<GameObject>();
-
             var ma = CreatePotentialMarker(a, b);
+            if (ma == null) return false;
+
             var mb = CreatePotentialMarker(b, a);
+            if (mb == null)
+            {
+                Destroy(ma);
+                return false;
+            }
 
-            if (ma != null) markers.Add(ma);
-            if (mb != null) markers.Add(mb);
+            _potentialMarkers[PairKey(a, b)] = new List<GameObject> { ma, mb };
+            return true;
+        }
 
-            _potentialMarkers[key] = markers;
+        // Bi li SpawnPotentialPair preskočio par zbog exclusion zone na 'from'
+        // strani (provjerava idealnu točku, isto kao CreatePotentialMarker).
+        // PlanetCreator ovime bira smjer zajamčenog prvog planeta — bočni bijeg
+        // od zauzetog tla ovdje ne simuliramo jer resursi u tom trenutku još
+        // nisu spawnani.
+        public bool IsConnectionPointBlocked(Transform from, Vector3 towardPos)
+        {
+            Vector3 dir = (towardPos - from.position).normalized;
+            return IsInExclusionZone(PlanetConnection.SurfacePoint(from, dir));
         }
 
         private bool IsInExclusionZone(Vector3 pos)

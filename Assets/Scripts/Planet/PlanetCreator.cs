@@ -45,8 +45,37 @@ namespace xyz.germanfica.unity.planet.gravity
             if (_currentPlanet != null)
                 _spawnedPositions.Add(origin);
 
+            // Lančani spawn: svaki planet se sidri na NASUMIČNO odabran već
+            // spawnani planet (ili hub) i mora pasti unutar dometa veze od
+            // sidra — graf potencijalnih veza je time po konstrukciji povezan,
+            // pa je svaki planet dostižan iz huba lancem totema. Sa spawnom
+            // uvijek-od-huba (raspon širi od dometa) prosječno je ~12 od 30
+            // planeta bilo trajno nedostižno. Domet se čita runtime lookupom
+            // (bez novog scene polja), uz 1% margine jer ConnectionManager par
+            // odbacuje strogim ">" na točnoj granici. Par sidren na hub mora
+            // imati i čistu hub stranu: par totema se uopće ne spawna ako hub
+            // točka padne u exclusion zonu (oba-ili-nijedan pravilo).
+            ConnectionManager connectionManager = FindFirstObjectByType<ConnectionManager>();
+            if (connectionManager == null)
+                Debug.LogWarning("PlanetCreator: ConnectionManager nije pronađen, planeti bez garancije veze.");
+
+            float chainMaxDist = connectionManager != null
+                ? Mathf.Min(maxSpawnDistance, connectionManager.MaxConnectionRange * 0.99f)
+                : maxSpawnDistance;
+
+            Transform hub = _currentPlanet;
+            System.Predicate<Vector3> hubSideClear = connectionManager != null && hub != null
+                ? pos => !connectionManager.IsConnectionPointBlocked(hub, pos)
+                : null;
+
             for (int i = 0; i < startingPlanets; i++)
-                SpawnPlanet(origin, i);
+            {
+                Vector3 anchor = _spawnedPositions.Count > 0
+                    ? _spawnedPositions[Random.Range(0, _spawnedPositions.Count)]
+                    : origin;
+                bool anchorIsHub = anchor == origin;
+                SpawnPlanet(anchor, i, chainMaxDist, anchorIsHub ? hubSideClear : null);
+            }
         }
 
         void Update()
@@ -56,13 +85,15 @@ namespace xyz.germanfica.unity.planet.gravity
             CreatePlanetAndTeleport();
         }
 
-        private Transform SpawnPlanet(Vector3 origin, int index = -1)
+        private Transform SpawnPlanet(Vector3 origin, int index = -1, float maxDist = -1f, System.Predicate<Vector3> positionValid = null)
         {
+            if (maxDist <= 0f) maxDist = maxSpawnDistance;
+
             float scale   = Random.Range(35f, 100f);
             float gravity = Random.Range(minGravity, maxGravity);
             float minSep  = minPlanetSeparation + scale;
 
-            Vector3 planetPos = FindOpenPosition(origin, minSep);
+            Vector3 planetPos = FindOpenPosition(origin, minSep, maxDist, positionValid);
             _spawnedPositions.Add(planetPos);
 
             GameObject planetGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -127,12 +158,18 @@ namespace xyz.germanfica.unity.planet.gravity
             return planetGO.transform;
         }
 
-        private Vector3 FindOpenPosition(Vector3 origin, float minSep)
+        private Vector3 FindOpenPosition(Vector3 origin, float minSep, float maxDist, System.Predicate<Vector3> positionValid = null)
         {
+            // Domet veze može biti manji od minSpawnDistance — donju granicu tada
+            // stišćemo pod gornju da planet ipak stane unutar dometa.
+            float minDist = Mathf.Min(minSpawnDistance, maxDist);
+
             for (int attempt = 0; attempt < maxPlacementAttempts; attempt++)
             {
-                float dist = Random.Range(minSpawnDistance, maxSpawnDistance);
+                float dist = Random.Range(minDist, maxDist);
                 Vector3 candidate = origin + Random.onUnitSphere * dist;
+
+                if (positionValid != null && !positionValid(candidate)) continue;
 
                 bool tooClose = false;
                 foreach (Vector3 existing in _spawnedPositions)
@@ -147,8 +184,14 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (!tooClose) return candidate;
             }
 
-            // All attempts failed — just place at a random far distance
-            return origin + Random.onUnitSphere * maxSpawnDistance;
+            // All attempts failed — just place at a random far distance. Uvjet
+            // pozicije (čista hub strana) i tada pokušavamo ispoštovati: on čuva
+            // garanciju veze, a separacija je samo estetika.
+            Vector3 fallback = origin + Random.onUnitSphere * maxDist;
+            if (positionValid != null)
+                for (int attempt = 0; attempt < maxPlacementAttempts && !positionValid(fallback); attempt++)
+                    fallback = origin + Random.onUnitSphere * maxDist;
+            return fallback;
         }
 
         private void CreatePlanetAndTeleport()
