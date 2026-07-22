@@ -123,6 +123,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void ShowToast(string message, Color background)
         {
+            AudioManager.PlayAlert();
+
             while (_toasts.Count >= MaxToasts)
             {
                 Destroy(_toasts[0].Root);

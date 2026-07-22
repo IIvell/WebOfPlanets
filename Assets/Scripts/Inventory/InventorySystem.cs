@@ -38,6 +38,11 @@ namespace xyz.germanfica.unity.planet.gravity
                 inventory.Add(newItem);
                 m_itemDictionary.Add(referenceData, newItem);
             }
+
+            // Zajednička točka svih ulaza resursa u inventar (kopanje, preuzimanje
+            // iz strojeva/skladišta) — direktan poziv umjesto OnResourceCollected
+            // eventa jer Item nema ResourceType (mapping po imenu je poznati hack).
+            AudioManager.PlayResourcePickup();
         }
 
         public void Remove(Item referenceData)

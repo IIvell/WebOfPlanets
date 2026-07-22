@@ -300,6 +300,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (!GameManager.TestingMode)
                 recipe.ConsumeIngredients();
+            AudioManager.PlayCraft();
             Refresh();
         }
 

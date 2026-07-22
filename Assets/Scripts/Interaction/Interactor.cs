@@ -66,6 +66,9 @@ namespace xyz.germanfica.unity.planet.gravity
                     CancelMining();
                     return;
                 }
+
+                // Iskrice na točki kopanja, prema igraču (VfxManager throttla ritam).
+                VfxManager.PlayMiningSparks(closestPoint, interactorSource.position - closestPoint);
             }
 
             _holdTimer += Time.deltaTime * PlayerToolSystem.GetSpeedMultiplier();

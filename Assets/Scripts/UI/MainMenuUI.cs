@@ -267,7 +267,7 @@ namespace xyz.germanfica.unity.planet.gravity
             colors.highlightedColor = Color.white;
             colors.pressedColor = new Color(0.6f, 0.6f, 0.6f);
             btn.colors = colors;
-            btn.onClick.AddListener(() => onClick());
+            btn.onClick.AddListener(() => { AudioManager.PlayUiClick(); onClick(); });
 
             var labelGO = new GameObject("Label");
             labelGO.transform.SetParent(go.transform, false);

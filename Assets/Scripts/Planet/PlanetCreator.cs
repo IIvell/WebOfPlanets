@@ -317,6 +317,11 @@ namespace xyz.germanfica.unity.planet.gravity
             _currentPlanet = targetPlanet;
             player.SetPlanet(_currentPlanet);
             if (playerCamera != null) playerCamera.SetPlanet(_currentPlanet);
+
+            // Centralna točka svih teleporta (veze, strojevi, respawn) — ovdje se
+            // UsedConnection/ResourceCost ne znaju pa ostaju default; trenutni
+            // subscriber (AudioManager) treba samo činjenicu teleporta.
+            GameEventBus.Raise(new PlayerTeleportEvent { FromPlanet = fromPlanet, ToPlanet = targetPlanet });
         }
     }
 }

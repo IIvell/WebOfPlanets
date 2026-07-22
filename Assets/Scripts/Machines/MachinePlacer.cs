@@ -531,6 +531,9 @@ namespace xyz.germanfica.unity.planet.gravity
             if (planet != null)
                 SurfacePlacement.GroundToSurface(go, planet, pos, rot * Vector3.up);
 
+            // Zajednički put svih postavljanja (strojevi, totemi) — prašina oko baze.
+            VfxManager.PlayMachinePlaced(pos, rot * Vector3.up);
+
             return go;
         }
 
