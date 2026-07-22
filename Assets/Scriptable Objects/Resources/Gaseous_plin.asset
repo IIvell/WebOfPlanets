@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Gaseous_plin
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.Item
   id: 8
-  displayName: Plin
+  displayName: Gas
   icon: {fileID: 0}
   pickupPrefab: {fileID: 919132149155446097, guid: 7250c5a3e5e422645a3bc4a30e35e1d2, type: 3}
   miningPrefab: {fileID: 0}

@@ -126,7 +126,7 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             MachineTeleporterUI.Instance.Show(
-                title: "Poveži stroj s teleporterom",
+                title: "Connect machine to teleporter",
                 planets: reachable,
                 onPicked: linked =>
                 {

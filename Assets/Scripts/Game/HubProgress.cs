@@ -64,7 +64,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public static readonly string[] TierUnlocks =
         {
             "Collector Machine, Ore Collector, Network Scanner",
-            "Drill, Hub Uplink, Teleporter, Gas Maska",
+            "Drill, Hub Uplink, Teleporter, Gas Mask",
             "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem",
             "Blast Furnace, Eternal Pickaxe",
             "Two-Way Teleporter",

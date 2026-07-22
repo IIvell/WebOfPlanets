@@ -184,7 +184,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _mapContent.localScale      = new Vector3(_zoom, _zoom, 1f);
             _mapContent.anchoredPosition = _pan;
             if (_zoomLabel != null)
-                _zoomLabel.text = $"Zoom: {_zoom * 100f:F0}%  |  Scroll = zoom  |  Drag = pan  |  ESC = zatvori";
+                _zoomLabel.text = $"Zoom: {_zoom * 100f:F0}%  |  Scroll = zoom  |  Drag = pan  |  ESC = close";
         }
 
         // ── Build UI hierarchy once ───────────────────────────────────────────
@@ -211,7 +211,7 @@ namespace xyz.germanfica.unity.planet.gravity
             titleRT.anchoredPosition = new Vector2(0f, -10f);
             titleRT.sizeDelta        = new Vector2(0f, 50f);
             var titleTxt = title.AddComponent<TextMeshProUGUI>();
-            titleTxt.text      = "MREŽNA MAPA";
+            titleTxt.text      = "NETWORK MAP";
             titleTxt.fontSize  = 28;
             titleTxt.alignment = TextAlignmentOptions.Center;
             titleTxt.color     = Color.white;
@@ -237,7 +237,7 @@ namespace xyz.germanfica.unity.planet.gravity
             closeLabelRT.offsetMin = Vector2.zero;
             closeLabelRT.offsetMax = Vector2.zero;
             var closeTxt = closeLabelGO.AddComponent<TextMeshProUGUI>();
-            closeTxt.text      = "ESC / Zatvori";
+            closeTxt.text      = "ESC / Close";
             closeTxt.fontSize  = 14;
             closeTxt.alignment = TextAlignmentOptions.Center;
             closeTxt.color     = Color.white;
@@ -276,7 +276,7 @@ namespace xyz.germanfica.unity.planet.gravity
             rt.anchoredPosition = new Vector2(0f, 4f);
             rt.sizeDelta        = new Vector2(0f, 20f);
             _zoomLabel          = legend.AddComponent<TextMeshProUGUI>();
-            _zoomLabel.text     = "Scroll = zoom  |  Drag = pan  |  ESC = zatvori";
+            _zoomLabel.text     = "Scroll = zoom  |  Drag = pan  |  ESC = close";
             _zoomLabel.fontSize  = 12;
             _zoomLabel.alignment = TextAlignmentOptions.Center;
             _zoomLabel.color     = new Color(0.7f, 0.7f, 0.7f);

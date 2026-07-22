@@ -174,7 +174,7 @@ namespace xyz.germanfica.unity.planet.gravity
             hintRT.sizeDelta        = new Vector2(0f, 28f);
 
             var hint           = hintGO.AddComponent<TextMeshProUGUI>();
-            hint.text          = "ESC — odustani (stroj neće biti izgrađen)";
+            hint.text          = "ESC — cancel (machine will not be built)";
             hint.fontSize      = 11;
             hint.alignment     = TextAlignmentOptions.Center;
             hint.color         = new Color(0.6f, 0.6f, 0.6f);

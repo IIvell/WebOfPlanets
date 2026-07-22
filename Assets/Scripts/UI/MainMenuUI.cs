@@ -96,7 +96,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public void Open()
         {
             _isOpen = true;
-            _playLabel.text = _startedOnce ? "Nastavi" : "Igraj";
+            _playLabel.text = _startedOnce ? "Resume" : "Play";
             ShowControls(false);
             _root.SetActive(true);
 
@@ -200,9 +200,9 @@ namespace xyz.germanfica.unity.planet.gravity
             rt.anchoredPosition = new Vector2(0f, -20f);
             rt.sizeDelta = new Vector2(ButtonWidth, 3f * ButtonHeight + 2f * ButtonSpacing);
 
-            _playLabel = MakeButton(_mainPanel.transform, "Igraj", ButtonHeight + ButtonSpacing, Play);
-            MakeButton(_mainPanel.transform, "Kontrole", 0f, () => ShowControls(true));
-            MakeButton(_mainPanel.transform, "Izlaz", -(ButtonHeight + ButtonSpacing), Quit);
+            _playLabel = MakeButton(_mainPanel.transform, "Play", ButtonHeight + ButtonSpacing, Play);
+            MakeButton(_mainPanel.transform, "Controls", 0f, () => ShowControls(true));
+            MakeButton(_mainPanel.transform, "Quit", -(ButtonHeight + ButtonSpacing), Quit);
         }
 
         private void BuildControlsPanel(Transform parent)
@@ -231,20 +231,20 @@ namespace xyz.germanfica.unity.planet.gravity
             text.color = Color.white;
             text.raycastTarget = false;
             text.text =
-                "<b>KONTROLE</b>\n\n" +
-                "<b>W A S D</b> — kretanje\n" +
-                "<b>Miš</b> — kamera\n" +
-                "<b>Space</b> — skok\n" +
-                "<b>E</b> — interakcija (kopanje, preuzimanje, strojevi, računalo)\n" +
-                "<b>I</b> — inventar\n" +
-                "<b>Q</b> — opis odabranog predmeta\n" +
-                "<b>1–9</b> — odabir hotbar slota\n" +
-                "<b>P</b> — postavljanje stroja iz odabranog slota\n" +
-                "<b>X</b> — otkazivanje dvosmjernog teleportera\n" +
-                "<b>R</b> — oživljavanje nakon smrti\n" +
-                "<b>Esc</b> — pauza / zatvaranje prozora";
+                "<b>CONTROLS</b>\n\n" +
+                "<b>W A S D</b> — move\n" +
+                "<b>Mouse</b> — camera\n" +
+                "<b>Space</b> — jump\n" +
+                "<b>E</b> — interact (mining, pickup, machines, computer)\n" +
+                "<b>I</b> — inventory\n" +
+                "<b>Q</b> — description of selected item\n" +
+                "<b>1–9</b> — select hotbar slot\n" +
+                "<b>P</b> — place machine from selected slot\n" +
+                "<b>X</b> — cancel two-way teleporter\n" +
+                "<b>R</b> — respawn after death\n" +
+                "<b>Esc</b> — pause / close window";
 
-            MakeButton(_controlsPanel.transform, "Natrag",
+            MakeButton(_controlsPanel.transform, "Back",
                 -rt.sizeDelta.y * 0.5f + ButtonHeight * 0.5f + 16f, () => ShowControls(false));
         }
 

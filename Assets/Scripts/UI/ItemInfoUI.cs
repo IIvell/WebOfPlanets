@@ -76,117 +76,117 @@ namespace xyz.germanfica.unity.planet.gravity
             switch (item)
             {
                 case Tool tool:
-                    sb.AppendLine("<color=#aaaaaa>ALAT</color>");
+                    sb.AppendLine("<color=#aaaaaa>TOOL</color>");
                     sb.AppendLine();
-                    sb.AppendLine($"Brzina kopanja: <b>{tool.miningSpeedMultiplier:0.#}x</b>");
+                    sb.AppendLine($"Mining speed: <b>{tool.miningSpeedMultiplier:0.#}x</b>");
                     sb.AppendLine(tool.maxDurability <= 0
-                        ? "Trajnost: <b>beskonačna</b>"
+                        ? "Durability: <b>infinite</b>"
                         : currentDurability >= 0
-                            ? $"Trajnost: <b>{currentDurability} / {tool.maxDurability}</b>"
-                            : $"Trajnost: <b>{tool.maxDurability}</b>");
+                            ? $"Durability: <b>{currentDurability} / {tool.maxDurability}</b>"
+                            : $"Durability: <b>{tool.maxDurability}</b>");
                     sb.AppendLine();
-                    sb.AppendLine("<color=#888888>Odaberi slot (1-9) da ga opremiš.</color>");
+                    sb.AppendLine("<color=#888888>Select slot (1-9) to equip.</color>");
                     break;
 
                 case MachineData collector:
-                    sb.AppendLine("<color=#aaaaaa>KOLEKTOR</color>");
+                    sb.AppendLine("<color=#aaaaaa>COLLECTOR</color>");
                     sb.AppendLine();
-                    sb.AppendLine($"Skuplja s planete: <b>{ItemList(collector.collectableItems)}</b>");
-                    sb.AppendLine($"Ciklus: <b>{collector.collectionInterval:0.#}s</b>, po ciklusu: <b>{collector.amountPerCycle}</b>");
+                    sb.AppendLine($"Collects from planet: <b>{ItemList(collector.collectableItems)}</b>");
+                    sb.AppendLine($"Cycle: <b>{collector.collectionInterval:0.#}s</b>, per cycle: <b>{collector.amountPerCycle}</b>");
                     AppendMaintenance(sb, collector.maintenanceCost);
-                    sb.AppendLine("Pritisni <b>E</b> da preuzmeš skupljeno.");
+                    sb.AppendLine("Press <b>E</b> to collect the gathered items.");
                     AppendPlaceHint(sb);
                     break;
 
                 case StorageMachineData:
                     sb.AppendLine("<color=#aaaaaa>STORAGE</color>");
                     sb.AppendLine();
-                    sb.AppendLine("Prima resurse iz povezanog kolektora.");
-                    sb.AppendLine("Pritisni <b>E</b> za pregled sadržaja.");
+                    sb.AppendLine("Receives resources from a connected collector.");
+                    sb.AppendLine("Press <b>E</b> to view contents.");
                     AppendPlaceHint(sb);
                     break;
 
                 case SmelterMachineData smelter:
-                    sb.AppendLine("<color=#aaaaaa>TOPIONICA</color>");
+                    sb.AppendLine("<color=#aaaaaa>SMELTER</color>");
                     sb.AppendLine();
                     if (smelter.recipes != null)
                         foreach (var r in smelter.recipes)
                             if (r.input != null && r.output != null)
                                 sb.AppendLine($"<b>{r.inputAmount}x {r.input.displayName} -> {r.outputAmount}x {r.output.displayName}</b>");
-                    sb.AppendLine($"Ciklus: <b>{smelter.processInterval:0.#}s</b>");
-                    sb.AppendLine("Pritisni <b>E</b> da pokupiš gotovo i ubaciš sirovine.");
+                    sb.AppendLine($"Cycle: <b>{smelter.processInterval:0.#}s</b>");
+                    sb.AppendLine("Press <b>E</b> to collect output and insert raw materials.");
                     AppendPlaceHint(sb);
                     break;
 
                 case ExtractorMachineData extractor:
-                    sb.AppendLine("<color=#aaaaaa>EKSTRAKTOR</color>");
+                    sb.AppendLine("<color=#aaaaaa>EXTRACTOR</color>");
                     sb.AppendLine();
                     if (extractor.outputs != null)
                         foreach (var o in extractor.outputs)
                             if (o.item != null)
-                                sb.AppendLine($"Proizvodi: <b>{o.amount}x {o.item.displayName}</b>");
-                    sb.AppendLine($"Ciklus: <b>{extractor.extractionInterval:0.#}s</b>, kapacitet: <b>{extractor.maxStored}</b>");
+                                sb.AppendLine($"Produces: <b>{o.amount}x {o.item.displayName}</b>");
+                    sb.AppendLine($"Cycle: <b>{extractor.extractionInterval:0.#}s</b>, capacity: <b>{extractor.maxStored}</b>");
                     AppendMaintenance(sb, extractor.maintenanceCost);
-                    sb.AppendLine("Pritisni <b>E</b> da preuzmeš proizvedeno.");
+                    sb.AppendLine("Press <b>E</b> to collect the produced items.");
                     AppendPlaceHint(sb);
                     break;
 
                 case UplinkMachineData uplink:
                     sb.AppendLine("<color=#aaaaaa>UPLINK</color>");
                     sb.AppendLine();
-                    sb.AppendLine($"Šalje <b>{uplink.itemsPerCycle}</b> resursa svakih <b>{uplink.transmitInterval:0.#}s</b> u Hub storage.");
-                    sb.AppendLine("Pritisni <b>E</b> da ubaciš sve materijale iz inventara.");
+                    sb.AppendLine($"Sends <b>{uplink.itemsPerCycle}</b> resources every <b>{uplink.transmitInterval:0.#}s</b> to Hub storage.");
+                    sb.AppendLine("Press <b>E</b> to deposit all materials from inventory.");
                     AppendPlaceHint(sb);
                     break;
 
                 // Podklasa mora ići prije TeleporterMachineData case-a.
                 case TwoWayTeleporterMachineData:
-                    sb.AppendLine("<color=#aaaaaa>DVOSMJERNI TELEPORTER</color>");
+                    sb.AppendLine("<color=#aaaaaa>TWO-WAY TELEPORTER</color>");
                     sb.AppendLine();
-                    sb.AppendLine("Prvi <b>P</b> postavlja ulaz na trenutnoj planeti,");
-                    sb.AppendLine("drugi <b>P</b> postavlja izlaz na drugoj planeti.");
-                    sb.AppendLine("<b>X</b> — odustani (ruši postavljeni ulaz).");
-                    sb.AppendLine("Pritisni <b>E</b> za teleport u oba smjera.");
+                    sb.AppendLine("First <b>P</b> places the entrance on the current planet,");
+                    sb.AppendLine("second <b>P</b> places the exit on another planet.");
+                    sb.AppendLine("<b>X</b> — cancel (demolishes the placed entrance).");
+                    sb.AppendLine("Press <b>E</b> to teleport in both directions.");
                     AppendPlaceHint(sb);
                     break;
 
                 case TeleporterMachineData:
                     sb.AppendLine("<color=#aaaaaa>TELEPORTER</color>");
                     sb.AppendLine();
-                    sb.AppendLine("Postavljanjem se izlazni teleporter automatski gradi na Hubu.");
-                    sb.AppendLine("Pritisni <b>E</b> za teleport na povezani teleporter.");
+                    sb.AppendLine("Placing it automatically builds the exit teleporter on the Hub.");
+                    sb.AppendLine("Press <b>E</b> to teleport to the linked teleporter.");
                     AppendPlaceHint(sb);
                     break;
 
                 case RespawnTotemMachineData:
                     sb.AppendLine("<color=#aaaaaa>RESPAWN TOTEM</color>");
                     sb.AppendLine();
-                    sb.AppendLine("Postavlja respawn točku na trenutnoj planeti.");
-                    sb.AppendLine("Pritisni <b>E</b> na totemu da ga aktiviraš —");
-                    sb.AppendLine("smrt te tada vraća na njega umjesto na Hub.");
+                    sb.AppendLine("Sets a respawn point on the current planet.");
+                    sb.AppendLine("Press <b>E</b> on the totem to activate it —");
+                    sb.AppendLine("death then returns you to it instead of the Hub.");
                     AppendPlaceHint(sb);
                     break;
 
                 case NetworkMapDeviceData:
-                    sb.AppendLine("<color=#aaaaaa>UREĐAJ</color>");
+                    sb.AppendLine("<color=#aaaaaa>DEVICE</color>");
                     sb.AppendLine();
-                    sb.AppendLine("Prikazuje mapu mreže planeta: sve planete,");
-                    sb.AppendLine("veze i njihovo zdravlje, uživo.");
-                    sb.AppendLine("Ne postavlja se i ne troši korištenjem.");
+                    sb.AppendLine("Shows the planet network map: all planets,");
+                    sb.AppendLine("connections and their health, live.");
+                    sb.AppendLine("Not placeable, not consumed by use.");
                     sb.AppendLine();
-                    sb.AppendLine("<color=#888888>P — otvori mapu (dok je slot odabran).</color>");
+                    sb.AppendLine("<color=#888888>P — open map (while slot is selected).</color>");
                     break;
 
                 case GasMaskData:
-                    sb.AppendLine("<color=#aaaaaa>OPREMA</color>");
+                    sb.AppendLine("<color=#aaaaaa>EQUIPMENT</color>");
                     sb.AppendLine();
-                    sb.AppendLine("Štiti od otrovne atmosfere plinskih planeta —");
-                    sb.AppendLine("bez nje ondje postepeno gubiš zdravlje.");
-                    sb.AppendLine("Jednom stavljena ostaje na glavi i dok");
-                    sb.AppendLine("koristiš druge slotove.");
-                    sb.AppendLine("Ne postavlja se i ne troši korištenjem.");
+                    sb.AppendLine("Protects against the toxic atmosphere of gas planets —");
+                    sb.AppendLine("without it you gradually lose health there.");
+                    sb.AppendLine("Once put on it stays on your head even while");
+                    sb.AppendLine("you use other slots.");
+                    sb.AppendLine("Not placeable, not consumed by use.");
                     sb.AppendLine();
-                    sb.AppendLine("<color=#888888>P — stavi/skini masku (dok je slot odabran).</color>");
+                    sb.AppendLine("<color=#888888>P — put on/take off mask (while slot is selected).</color>");
                     break;
             }
 
@@ -195,12 +195,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private static string ItemList(List<Item> items)
         {
-            if (items == null || items.Count == 0) return "ništa";
+            if (items == null || items.Count == 0) return "nothing";
 
             var parts = new List<string>();
             foreach (var item in items)
                 if (item != null) parts.Add(item.displayName);
-            return parts.Count > 0 ? string.Join(", ", parts) : "ništa";
+            return parts.Count > 0 ? string.Join(", ", parts) : "nothing";
         }
 
         private static void AppendMaintenance(StringBuilder sb, ConnectionRequirement[] cost)
@@ -212,14 +212,14 @@ namespace xyz.germanfica.unity.planet.gravity
                         parts.Add($"{req.amount}x {req.item.displayName}");
 
             sb.AppendLine(parts.Count > 0
-                ? $"Održavanje po ciklusu: <b>{string.Join(", ", parts)}</b> (iz Huba)"
-                : "Održavanje: <b>besplatno</b>");
+                ? $"Maintenance per cycle: <b>{string.Join(", ", parts)}</b> (from Hub)"
+                : "Maintenance: <b>free</b>");
         }
 
         private static void AppendPlaceHint(StringBuilder sb)
         {
             sb.AppendLine();
-            sb.AppendLine("<color=#888888>P — postavi na planetu (dok je slot odabran).</color>");
+            sb.AppendLine("<color=#888888>P — place on planet (while slot is selected).</color>");
         }
 
         // ── UI construction ───────────────────────────────────────────────────
@@ -259,7 +259,7 @@ namespace xyz.germanfica.unity.planet.gravity
             hintRT.anchoredPosition = new Vector2(0f, 8f);
             hintRT.sizeDelta        = new Vector2(280f, 20f);
             var hint = hintGO.AddComponent<TextMeshProUGUI>();
-            hint.text      = "Q / ESC — zatvori";
+            hint.text      = "Q / ESC — close";
             hint.fontSize  = 11;
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
             hint.alignment = TextAlignmentOptions.Center;

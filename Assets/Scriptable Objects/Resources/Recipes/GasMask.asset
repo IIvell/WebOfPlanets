@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
   m_Name: GasMask
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
-  displayName: Gas Maska
+  displayName: Gas Mask
   resultType: 10
   unlockTier: 2
   resultGasMask: {fileID: 11400000, guid: a8a2daa79e384d3da663a5e82c01d425, type: 2}

@@ -111,9 +111,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private static string CategoryLabel(Category cat) => cat switch
         {
-            Category.Tools    => "ALATI",
-            Category.Machines => "STROJEVI",
-            Category.Devices  => "UREĐAJI",
+            Category.Tools    => "TOOLS",
+            Category.Machines => "MACHINES",
+            Category.Devices  => "DEVICES",
             _                 => ""
         };
 
@@ -266,8 +266,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
             bool hotbarFull = QuickSlotInventory.current != null && QuickSlotInventory.current.IsFull;
             bool canCraft   = !locked && (GameManager.TestingMode || recipe.CanAfford()) && !hotbarFull;
-            if (locked)          lbl.text = $"PRAG {recipe.unlockTier}";
-            else if (hotbarFull) lbl.text = "PUN\nHOTBAR";
+            if (locked)          lbl.text = $"TIER {recipe.unlockTier}";
+            else if (hotbarFull) lbl.text = "HOTBAR\nFULL";
 
             Color btnColor = canCraft ? new Color(0.1f, 0.55f, 0.2f) : new Color(0.22f, 0.22f, 0.22f);
             btnImg.color     = btnColor;
@@ -331,22 +331,22 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private string BuildLockedText(CraftingRecipe recipe)
         {
-            return $"<color=#ffaa44>ZAKLJUČANO — prag {recipe.unlockTier}</color>\n" +
-                   "<color=#aaaaaa>Otključaj na Hub računalu</color>";
+            return $"<color=#ffaa44>LOCKED — tier {recipe.unlockTier}</color>\n" +
+                   "<color=#aaaaaa>Unlock at Hub computer</color>";
         }
 
         private void UpdateProgressLabel()
         {
             if (_progressLbl == null) return;
             _progressLbl.text = HubProgress.Tier >= HubProgress.MaxTier
-                ? $"Hub napredak: prag {HubProgress.Tier}/{HubProgress.MaxTier} — svi recepti otključani"
-                : $"Hub napredak: prag {HubProgress.Tier}/{HubProgress.MaxTier} — sljedeći prag otključava se na Hub računalu";
+                ? $"Hub progress: tier {HubProgress.Tier}/{HubProgress.MaxTier} — all recipes unlocked"
+                : $"Hub progress: tier {HubProgress.Tier}/{HubProgress.MaxTier} — next tier unlocks at Hub computer";
         }
 
         private string BuildIngredientsText(CraftingRecipe recipe)
         {
             if (recipe.ingredients == null || recipe.ingredients.Length == 0)
-                return "<color=#aaaaaa>Besplatno</color>";
+                return "<color=#aaaaaa>Free</color>";
 
             var sb = new StringBuilder();
             foreach (var ing in recipe.ingredients)
@@ -362,17 +362,17 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private static string TypeLabel(CraftingRecipe.ResultType type) => type switch
         {
-            CraftingRecipe.ResultType.Tool             => "ALAT",
-            CraftingRecipe.ResultType.CollectorMachine => "KOLEKTOR",
+            CraftingRecipe.ResultType.Tool             => "TOOL",
+            CraftingRecipe.ResultType.CollectorMachine => "COLLECTOR",
             CraftingRecipe.ResultType.StorageMachine   => "STORAGE",
-            CraftingRecipe.ResultType.SmelterMachine   => "TOPIONICA",
-            CraftingRecipe.ResultType.ExtractorMachine => "EKSTRAKTOR",
+            CraftingRecipe.ResultType.SmelterMachine   => "SMELTER",
+            CraftingRecipe.ResultType.ExtractorMachine => "EXTRACTOR",
             CraftingRecipe.ResultType.UplinkMachine    => "UPLINK",
             CraftingRecipe.ResultType.TeleporterMachine => "TELEPORTER",
-            CraftingRecipe.ResultType.TwoWayTeleporterMachine => "DVOSMJERNI TELEPORTER",
-            CraftingRecipe.ResultType.NetworkMapDevice  => "UREĐAJ",
+            CraftingRecipe.ResultType.TwoWayTeleporterMachine => "TWO-WAY TELEPORTER",
+            CraftingRecipe.ResultType.NetworkMapDevice  => "DEVICE",
             CraftingRecipe.ResultType.RespawnTotem      => "RESPAWN TOTEM",
-            CraftingRecipe.ResultType.GasMask           => "OPREMA",
+            CraftingRecipe.ResultType.GasMask           => "EQUIPMENT",
             _                                           => ""
         };
 
@@ -434,7 +434,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             BuildScrollbar(scrollGO.transform, scrollRect);
 
-            MakeLabel(_panel.transform, "ESC — zatvori", 11, new Vector2(0f, -200f), new Vector2(500f, 24f))
+            MakeLabel(_panel.transform, "ESC — close", 11, new Vector2(0f, -200f), new Vector2(500f, 24f))
                 .color = new Color(0.6f, 0.6f, 0.6f);
         }
 

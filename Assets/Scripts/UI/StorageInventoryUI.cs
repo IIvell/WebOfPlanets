@@ -238,7 +238,7 @@ namespace xyz.germanfica.unity.planet.gravity
             emptyRT.offsetMin = new Vector2(0f, 60f);
             emptyRT.offsetMax = new Vector2(0f, -40f);
             _emptyLabel           = emptyGO.AddComponent<TextMeshProUGUI>();
-            _emptyLabel.text      = "Storage je prazan.";
+            _emptyLabel.text      = "Storage is empty.";
             _emptyLabel.fontSize  = 14;
             _emptyLabel.alignment = TextAlignmentOptions.Center;
             _emptyLabel.color     = new Color(0.6f, 0.6f, 0.6f);
@@ -263,7 +263,7 @@ namespace xyz.germanfica.unity.planet.gravity
             takeLabelRT.offsetMin = Vector2.zero;
             takeLabelRT.offsetMax = Vector2.zero;
             var takeTxt = takeLabelGO.AddComponent<TextMeshProUGUI>();
-            takeTxt.text      = "Pokupi sve";
+            takeTxt.text      = "Take All";
             takeTxt.fontSize  = 15;
             takeTxt.alignment = TextAlignmentOptions.Center;
             takeTxt.color     = Color.white;

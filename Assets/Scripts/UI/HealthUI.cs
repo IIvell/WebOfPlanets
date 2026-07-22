@@ -171,7 +171,7 @@ namespace xyz.germanfica.unity.planet.gravity
             text.fontSize = 36;
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.white;
-            text.text = "Poginuo si\n<size=20>Pritisni <b>R</b> za povratak na respawn totem</size>";
+            text.text = "You died\n<size=20>Press <b>R</b> to return to the respawn totem</size>";
 
             _deathPanel.SetActive(false);
         }

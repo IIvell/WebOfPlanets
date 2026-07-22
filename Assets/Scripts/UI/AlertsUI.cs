@@ -89,7 +89,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (e.PlanetA == null || e.PlanetB == null) return;
             if (!_criticalPairs.Add(PairKey(e.PlanetA, e.PlanetB))) return;
 
-            ShowToast($"Veza {e.PlanetA.name} – {e.PlanetB.name} je kritična ({e.Health:F0}%)!", CriticalColor);
+            ShowToast($"Connection {e.PlanetA.name} – {e.PlanetB.name} is critical ({e.Health:F0}%)!", CriticalColor);
         }
 
         private void OnConnectionHealthChanged(ConnectionHealthChangedEvent e)
@@ -110,7 +110,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (Time.unscaledTime < _nextStorageToastTime) return;
             _nextStorageToastTime = Time.unscaledTime + StorageFullCooldown;
 
-            ShowToast("Hub skladište je puno — dolazni resursi se odbacuju!", WarningColor);
+            ShowToast("Hub storage full — incoming resources are discarded!", WarningColor);
         }
 
         private static (int, int) PairKey(Transform a, Transform b)
@@ -209,7 +209,7 @@ namespace xyz.germanfica.unity.planet.gravity
             rt.sizeDelta = new Vector2(420f, 22f);
 
             var text = _testingWatermark.AddComponent<TextMeshProUGUI>();
-            text.text = "TESTING MOD — svi troškovi resursa isključeni";
+            text.text = "TESTING MODE — all resource costs disabled";
             text.fontSize = 13;
             text.color = new Color(1f, 0.8f, 0.2f, 0.9f);
             text.alignment = TextAlignmentOptions.BottomLeft;

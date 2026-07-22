@@ -243,7 +243,7 @@ namespace xyz.germanfica.unity.planet.gravity
             emptyRT.offsetMin = new Vector2(0f, 60f);
             emptyRT.offsetMax = new Vector2(0f, -40f);
             _emptyLabel           = emptyGO.AddComponent<TextMeshProUGUI>();
-            _emptyLabel.text      = "Hub storage je prazan.";
+            _emptyLabel.text      = "Hub storage empty.";
             _emptyLabel.fontSize  = 14;
             _emptyLabel.alignment = TextAlignmentOptions.Center;
             _emptyLabel.color     = new Color(0.6f, 0.6f, 0.6f);
@@ -268,7 +268,7 @@ namespace xyz.germanfica.unity.planet.gravity
             depositLabelRT.offsetMin = Vector2.zero;
             depositLabelRT.offsetMax = Vector2.zero;
             var depositTxt = depositLabelGO.AddComponent<TextMeshProUGUI>();
-            depositTxt.text      = "Položi sve";
+            depositTxt.text      = "Deposit all";
             depositTxt.fontSize  = 15;
             depositTxt.alignment = TextAlignmentOptions.Center;
             depositTxt.color     = Color.white;

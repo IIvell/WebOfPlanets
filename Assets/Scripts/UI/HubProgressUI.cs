@@ -84,8 +84,8 @@ namespace xyz.germanfica.unity.planet.gravity
             _sections.Clear();
 
             _statusLbl.text = HubProgress.Tier >= HubProgress.MaxTier
-                ? $"Trenutni prag: {HubProgress.Tier}/{HubProgress.MaxTier} — sve otključano"
-                : $"Trenutni prag: {HubProgress.Tier}/{HubProgress.MaxTier}";
+                ? $"Current tier: {HubProgress.Tier}/{HubProgress.MaxTier} — everything unlocked"
+                : $"Current tier: {HubProgress.Tier}/{HubProgress.MaxTier}";
 
             float yCursor = 248f;
             for (int t = 0; t < HubProgress.MaxTier; t++)
@@ -114,11 +114,11 @@ namespace xyz.germanfica.unity.planet.gravity
             bool unlocked = HubProgress.Tier > tierIndex;
             bool isNext   = HubProgress.Tier == tierIndex;
 
-            string status = unlocked ? "<color=#66ff66>OTKLJUČANO</color>"
-                          : isNext   ? "<color=#ffaa44>SLJEDEĆI PRAG</color>"
-                                     : "<color=#888888>ZAKLJUČANO</color>";
+            string status = unlocked ? "<color=#66ff66>UNLOCKED</color>"
+                          : isNext   ? "<color=#ffaa44>NEXT TIER</color>"
+                                     : "<color=#888888>LOCKED</color>";
 
-            var header = MakeText(section.transform, $"<b>PRAG {tierIndex + 1}</b>   {status}", 13,
+            var header = MakeText(section.transform, $"<b>TIER {tierIndex + 1}</b>   {status}", 13,
                 new Vector2(12f, -6f), new Vector2(300f, 20f));
             header.alignment = TextAlignmentOptions.TopLeft;
 
@@ -127,7 +127,7 @@ namespace xyz.germanfica.unity.planet.gravity
             reqTxt.alignment = TextAlignmentOptions.TopLeft;
 
             var desc = MakeText(section.transform,
-                $"<color=#8899aa>Otključava: {HubProgress.TierUnlocks[tierIndex]}</color>", 10,
+                $"<color=#8899aa>Unlocks: {HubProgress.TierUnlocks[tierIndex]}</color>", 10,
                 new Vector2(12f, -(height - 18f)), new Vector2(396f, 16f));
             desc.alignment = TextAlignmentOptions.TopLeft;
 
@@ -191,7 +191,7 @@ namespace xyz.germanfica.unity.planet.gravity
                     Refresh();
             });
 
-            var lbl = MakeText(btnGO.transform, "OTKLJUČAJ", 11, Vector2.zero, Vector2.zero);
+            var lbl = MakeText(btnGO.transform, "UNLOCK", 11, Vector2.zero, Vector2.zero);
             var lblRT = lbl.rectTransform;
             lblRT.anchorMin = Vector2.zero;
             lblRT.anchorMax = Vector2.one;
@@ -215,7 +215,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
-            var title = MakeText(_panel.transform, "HUB NAPREDAK", 20, Vector2.zero, new Vector2(420f, 32f));
+            var title = MakeText(_panel.transform, "HUB PROGRESS", 20, Vector2.zero, new Vector2(420f, 32f));
             CenterAnchor(title.rectTransform, new Vector2(0f, 300f));
             title.alignment = TextAlignmentOptions.Center;
 
@@ -224,7 +224,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _statusLbl.alignment = TextAlignmentOptions.Center;
             _statusLbl.color     = new Color(0.65f, 0.75f, 0.85f);
 
-            var hint = MakeText(_panel.transform, "ESC — zatvori", 11, Vector2.zero, new Vector2(420f, 24f));
+            var hint = MakeText(_panel.transform, "ESC — close", 11, Vector2.zero, new Vector2(420f, 24f));
             CenterAnchor(hint.rectTransform, new Vector2(0f, -312f));
             hint.alignment = TextAlignmentOptions.Center;
             hint.color     = new Color(0.6f, 0.6f, 0.6f);

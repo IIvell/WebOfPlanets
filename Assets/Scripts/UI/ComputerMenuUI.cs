@@ -92,14 +92,14 @@ namespace xyz.germanfica.unity.planet.gravity
 
             _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
-            var title = MakeLabel(_panel.transform, "KOMPJUTER", 18, new Vector2(0f, 110f), new Vector2(260f, 36f));
+            var title = MakeLabel(_panel.transform, "COMPUTER", 18, new Vector2(0f, 110f), new Vector2(260f, 36f));
             title.alignment = TextAlignmentOptions.Center;
 
-            MakeButton(_panel.transform, "Mreža planeta", new Vector2(0f, 58f),  OpenNetworkMap);
-            MakeButton(_panel.transform, "Crafting",      new Vector2(0f, -2f),  OpenCrafting);
-            MakeButton(_panel.transform, "Hub napredak",  new Vector2(0f, -62f), OpenHubProgress);
+            MakeButton(_panel.transform, "Planet Network", new Vector2(0f, 58f),  OpenNetworkMap);
+            MakeButton(_panel.transform, "Crafting",       new Vector2(0f, -2f),  OpenCrafting);
+            MakeButton(_panel.transform, "Hub Progress",   new Vector2(0f, -62f), OpenHubProgress);
 
-            var hint = MakeLabel(_panel.transform, "ESC — odustani", 11, new Vector2(0f, -118f), new Vector2(260f, 24f));
+            var hint = MakeLabel(_panel.transform, "ESC — cancel", 11, new Vector2(0f, -118f), new Vector2(260f, 24f));
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
             hint.alignment = TextAlignmentOptions.Center;
         }

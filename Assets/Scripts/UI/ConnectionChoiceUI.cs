@@ -26,7 +26,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private static readonly ConnectionType[] Types =
             { ConnectionType.Weak, ConnectionType.Mid, ConnectionType.Strong };
 
-        private static readonly string[] TypeNames = { "SLABA", "SREDNJA", "JAKA" };
+        private static readonly string[] TypeNames = { "WEAK", "MEDIUM", "STRONG" };
 
         private static readonly Color[] TypeColors =
         {
@@ -125,7 +125,7 @@ namespace xyz.germanfica.unity.planet.gravity
             var cost = _mgr.GetCost(Types[i]);
             if (cost == null || cost.Length == 0)
             {
-                sb.AppendLine("Besplatno");
+                sb.AppendLine("Free");
             }
             else
             {
@@ -148,7 +148,7 @@ namespace xyz.germanfica.unity.planet.gravity
             var cost = _mgr.GetTeleportCost(_source, _target);
             if (cost == null || cost.Length == 0)
             {
-                sb.Append("Besplatno");
+                sb.Append("Free");
             }
             else
             {
@@ -158,7 +158,7 @@ namespace xyz.germanfica.unity.planet.gravity
                         sb.AppendLine($"{req.amount}x {req.item.displayName}");
 
                 if (_source != null && _target != null)
-                    sb.Append($"<size=10>udaljenost {Vector3.Distance(_source.position, _target.position):F0}</size>");
+                    sb.Append($"<size=10>distance {Vector3.Distance(_source.position, _target.position):F0}</size>");
             }
 
             return sb.ToString().TrimEnd();
@@ -181,13 +181,13 @@ namespace xyz.germanfica.unity.planet.gravity
             bg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
             // Title
-            var title = MakeText(_panel.transform, "Izaberi akciju", 20,
+            var title = MakeText(_panel.transform, "Choose action", 20,
                 new Vector2(0f, 128f), new Vector2(500f, 36f));
             title.alignment = TextAlignmentOptions.Center;
             title.color = Color.white;
 
             // Connection section label
-            var connLabel = MakeText(_panel.transform, "— VEZA —", 11,
+            var connLabel = MakeText(_panel.transform, "— CONNECTION —", 11,
                 new Vector2(0f, 86f), new Vector2(500f, 22f));
             connLabel.alignment = TextAlignmentOptions.Center;
             connLabel.color = new Color(0.6f, 0.6f, 0.6f);
@@ -218,7 +218,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _teleportButton.onClick.AddListener(ChooseTeleport);
 
             // Hint
-            var hint = MakeText(_panel.transform, "ESC — odustani", 11,
+            var hint = MakeText(_panel.transform, "ESC — cancel", 11,
                 new Vector2(0f, -148f), new Vector2(500f, 24f));
             hint.alignment = TextAlignmentOptions.Center;
             hint.color = new Color(0.6f, 0.6f, 0.6f);

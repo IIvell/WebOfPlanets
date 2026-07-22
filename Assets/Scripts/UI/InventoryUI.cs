@@ -153,7 +153,7 @@ namespace xyz.germanfica.unity.planet.gravity
             titleRT.anchoredPosition = new Vector2(0f, -12f);
             titleRT.sizeDelta        = new Vector2(0f, 36f);
             var titleTxt = titleGO.AddComponent<TextMeshProUGUI>();
-            titleTxt.text      = "INVENTAR";
+            titleTxt.text      = "INVENTORY";
             titleTxt.fontSize  = 20;
             titleTxt.alignment = TextAlignmentOptions.Center;
             titleTxt.color     = Color.white;
@@ -228,7 +228,7 @@ namespace xyz.germanfica.unity.planet.gravity
             emptyRT.offsetMin = Vector2.zero;
             emptyRT.offsetMax = new Vector2(0f, -40f);
             _emptyLabel           = emptyGO.AddComponent<TextMeshProUGUI>();
-            _emptyLabel.text      = "Inventar je prazan.";
+            _emptyLabel.text      = "Inventory empty.";
             _emptyLabel.fontSize  = 14;
             _emptyLabel.alignment = TextAlignmentOptions.Center;
             _emptyLabel.color     = new Color(0.6f, 0.6f, 0.6f);
@@ -243,7 +243,7 @@ namespace xyz.germanfica.unity.planet.gravity
             hintRT.anchoredPosition = new Vector2(0f, 6f);
             hintRT.sizeDelta        = new Vector2(0f, 20f);
             var hint           = hintGO.AddComponent<TextMeshProUGUI>();
-            hint.text          = "I / ESC — zatvori";
+            hint.text          = "I / ESC — close";
             hint.fontSize      = 11;
             hint.alignment     = TextAlignmentOptions.Center;
             hint.color         = new Color(0.6f, 0.6f, 0.6f);
