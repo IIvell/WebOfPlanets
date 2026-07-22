@@ -29,7 +29,7 @@ namespace xyz.germanfica.unity.planet.gravity
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            if (keyboard.qKey.wasPressedThisFrame)
+            if (GameManager.IsPlaying && keyboard.qKey.wasPressedThisFrame)
             {
                 var slots = QuickSlotInventory.current;
                 var item = slots != null ? slots.GetSlot(slots.SelectedIndex) : null;

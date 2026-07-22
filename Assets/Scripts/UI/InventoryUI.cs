@@ -30,7 +30,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (Keyboard.current.iKey.wasPressedThisFrame)
+            if (Keyboard.current == null) return;
+
+            // Gate kao Interactor/MachinePlacer: bez otvaranja u pauzi/game overu
+            // (Close bi zaključao kursor i upalio input usred main menija).
+            if (GameManager.IsPlaying && Keyboard.current.iKey.wasPressedThisFrame)
             {
                 if (_isOpen) Close(); else Open();
                 return;

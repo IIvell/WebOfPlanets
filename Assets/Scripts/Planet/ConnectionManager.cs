@@ -40,6 +40,8 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private float teleportCostDistanceStep = 2000f;
 
         [Header("Potencijalna veza (marker)")]
+        [Tooltip("Meki limit potencijalnih veza po planetu. Razapinjuće stablo (garancija da je svaki planet dostižan iz huba) gradi se UVIJEK, bez obzira na limit; dodatne veze se dodaju samo dok su oba kraja ispod limita. 0 = samo stablo.")]
+        [SerializeField] private int maxPotentialPerPlanet = 3;
         [SerializeField] private GameObject potentialConnectionMarkerPrefab;
         [SerializeField] private float markerScale = 3f;
         [SerializeField] private float markerHeight = 3f;
@@ -94,26 +96,67 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
+        // Umjesto totema za SVAKI par u dometu (gotovo potpun graf): najprije
+        // razapinjuće stablo po udaljenosti (Kruskal) — ono garantira da je
+        // svaki planet dostižan iz huba lancem totema, jer PlanetCreator
+        // lančanim spawnom osigurava da je graf svih parova u dometu povezan —
+        // a zatim još pokoja kratka veza dok su oba kraja ispod limita.
         private void SpawnPotentialMarkers()
         {
             Planet[] all = FindObjectsByType<Planet>(FindObjectsSortMode.None);
-            int count = 0;
 
+            var edges = new List<(float dist, int i, int j)>();
             for (int i = 0; i < all.Length; i++)
             {
                 for (int j = i + 1; j < all.Length; j++)
                 {
-                    Transform a = all[i].transform;
-                    Transform b = all[j].transform;
-
-                    if (Vector3.Distance(a.position, b.position) > maxConnectionRange) continue;
-                    if (AlreadyConnected(a, b)) continue;
-
-                    if (SpawnPotentialPair(a, b)) count++;
+                    float dist = Vector3.Distance(all[i].transform.position, all[j].transform.position);
+                    if (dist > maxConnectionRange) continue;
+                    if (AlreadyConnected(all[i].transform, all[j].transform)) continue;
+                    edges.Add((dist, i, j));
                 }
             }
+            edges.Sort((x, y) => x.dist.CompareTo(y.dist));
 
-            Debug.Log($"ConnectionManager: spawnirano {count} potencijalnih veza.");
+            var parent = new int[all.Length];
+            for (int k = 0; k < parent.Length; k++) parent[k] = k;
+            int Find(int x)
+            {
+                while (parent[x] != x) x = parent[x] = parent[parent[x]];
+                return x;
+            }
+
+            var degree = new int[all.Length];
+            var extras = new List<(float dist, int i, int j)>();
+            int count = 0;
+
+            foreach (var e in edges)
+            {
+                if (Find(e.i) == Find(e.j))
+                {
+                    extras.Add(e);
+                    continue;
+                }
+                // Par odbijen zbog exclusion zone ne smije potrošiti mjesto u
+                // stablu — komponente ostaju razdvojene i Kruskal ih spaja
+                // prvim sljedećim (duljim) kandidatom koji uspije.
+                if (!SpawnPotentialPair(all[e.i].transform, all[e.j].transform)) continue;
+                parent[Find(e.i)] = Find(e.j);
+                degree[e.i]++;
+                degree[e.j]++;
+                count++;
+            }
+
+            foreach (var e in extras)
+            {
+                if (degree[e.i] >= maxPotentialPerPlanet || degree[e.j] >= maxPotentialPerPlanet) continue;
+                if (!SpawnPotentialPair(all[e.i].transform, all[e.j].transform)) continue;
+                degree[e.i]++;
+                degree[e.j]++;
+                count++;
+            }
+
+            Debug.Log($"ConnectionManager: spawnirano {count} potencijalnih veza ({all.Length} planeta, limit {maxPotentialPerPlanet}/planet).");
         }
 
         // Par nastaje samo ako OBJE strane dobiju totem — jednostrani par (druga

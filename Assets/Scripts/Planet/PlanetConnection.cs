@@ -227,14 +227,13 @@ namespace xyz.germanfica.unity.planet.gravity
             _cylinder.transform.localScale = new Vector3(_thickness, distance * 0.5f, _thickness);
         }
 
-        // Kraj zrake: VISINA je markerHeight iznad pivota totema (izvorna, ne
-        // izvodi se iz geometrije), a PRAVAC iz smjera druge planete prolazi
-        // točno kroz šiljak totema. Bez ciljanja šiljka produžetak kose zrake
-        // promašuje totem pa kapa visi u zraku pored/iznad njega — a to se
-        // vidi tek na planetima gdje GroundToSurface totem UKOPA u neravan
-        // teren (šiljak niže od markerHeight). Kraj nikad nije ispod šiljka,
-        // pa zraka ne može ni progutati vrh. Bez totema: markerHeight iznad
-        // točke površine.
+        // Kraj zrake: UVIJEK izmjereni šiljak totema, pa kapa fizički dodiruje
+        // vrh. Ranije pravilo "kraj nikad ispod markerHeight iznad pivota" je
+        // na ukopanim totemima (šiljak niže od markerHeight) kraj guralo uzduž
+        // pravca prema drugoj planeti za need/climb — na plitkim zrakama
+        // (najbliži susjed nisko na horizontu, mali climb) i do 2x markerHeight
+        // od šiljka, pa je kapa visjela u zraku pored totema. markerHeight
+        // ostaje samo fallback: strana bez totema ili neuspjelo mjerenje.
         private Vector3 BeamAnchor(GameObject marker, Transform planet, Transform otherPlanet)
         {
             Vector3 dirToOther = (otherPlanet.position - planet.position).normalized;
@@ -248,28 +247,9 @@ namespace xyz.germanfica.unity.planet.gravity
             Vector3 up = marker.transform.up;
             Vector3 pivot = marker.transform.position;
 
-            Vector3 peak = SurfacePlacement.TryGetExtents(marker, up, out float lowest, out _, out float height) && height > 0.01f
+            return SurfacePlacement.TryGetExtents(marker, up, out float lowest, out _, out float height) && height > 0.01f
                 ? pivot + up * (lowest + height)
                 : pivot + up * _markerHeight;
-
-            // Točka na pravcu (šiljak -> druga planeta) na visini markerHeight
-            // iznad pivota. climb = koliko se pravac penje po jedinici puta.
-            Vector3 toOther = (otherPlanet.position - peak).normalized;
-            float climb = Vector3.Dot(toOther, up);
-            float need = _markerHeight - Vector3.Dot(peak - pivot, up);
-
-            if (climb > 0.05f && need > 0f)
-            {
-                Vector3 candidate = peak + toOther * (need / climb);
-                // Preplitki smjer (jako pomaknut marker na maloj planeti) bi
-                // kraj otjerao daleko od totema — tada radije ostani na šiljku.
-                if ((candidate - peak).sqrMagnitude <= 4f * _markerHeight * _markerHeight)
-                    return candidate;
-            }
-
-            // Šiljak je već na/iznad markerHeight ili je smjer preplitak:
-            // sidri na sam šiljak.
-            return peak;
         }
 
         public void ApplyDamage(float amount)
