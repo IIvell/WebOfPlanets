@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachineData
   displayName: Cryo Harvester
   icon: {fileID: 0}
-  prefab: {fileID: 919132149155446097, guid: 1ea8448ca3a84df49a74fe6e18afb222, type: 3}
+  prefab: {fileID: 919132149155446097, guid: 5745d5b3ae6d8c84889bedb538cb9ffc, type: 3}
+  worldScale: 7
   collectableItems:
   - {fileID: 11400000, guid: 86ab3e17a4b979748a271dd85a69ab48, type: 2}
   - {fileID: 11400000, guid: 1f370dedf7149de4dbe163fe78755a94, type: 2}

@@ -8,6 +8,8 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [Tooltip("Prefab vizuala stroja. Prazno = sfera.")]
         public GameObject prefab;
+        [Tooltip("Uniformni scale vizuala pri postavljanju — modeli raznih packova imaju razne nativne veličine.")]
+        [Min(0.01f)] public float worldScale = 7f;
 
         [Header("Skupljanje")]
         [Tooltip("Koje vrste resursa ovaj stroj skuplja s planete.")]

@@ -15,8 +15,15 @@ public class PlayerCamera : MonoBehaviour
     public float scrollSpeed = 1.5f;
 
     private bool _inputEnabled = true;
+    private Vector3 _startForward;
 
     public void SetInputEnabled(bool enabled) => _inputEnabled = enabled;
+
+    void Start()
+    {
+        if (player != null)
+            _startForward = player.forward;
+    }
 
     public void SetPlanet(Transform newPlanet)
     {
@@ -37,6 +44,9 @@ public class PlayerCamera : MonoBehaviour
             float scroll = Mouse.current?.scroll.ReadValue().y ?? 0f;
             if (Mathf.Abs(scroll) > 0.01f)
                 height = Mathf.Clamp(height - Mathf.Sign(scroll) * scrollSpeed, minHeight, maxHeight);
+
+            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
+                ResetDirection();
         }
 
         if (player == null || planet == null) return;
@@ -54,5 +64,23 @@ public class PlayerCamera : MonoBehaviour
             (player.position + planetUp * 1.5f) - transform.position,
             planetUp);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, t);
+    }
+
+    // Kamera nema vlastiti yaw — uvijek stoji iza player.forward, a taj se smjer
+    // "zakreće" hodanjem po kugli. Reset zato okreće igrača: početni world-space
+    // forward projicira se na trenutnu tangentnu ravninu planeta.
+    private void ResetDirection()
+    {
+        if (player == null || planet == null) return;
+
+        Vector3 planetUp = (player.position - planet.position).normalized;
+        Vector3 dir = Vector3.ProjectOnPlane(_startForward, planetUp);
+        if (dir.sqrMagnitude < 0.0001f) return;
+
+        Quaternion target = Quaternion.LookRotation(dir.normalized, planetUp);
+        if (player.TryGetComponent(out Rigidbody rb))
+            rb.rotation = target;
+        else
+            player.rotation = target;
     }
 }

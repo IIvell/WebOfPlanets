@@ -143,6 +143,7 @@ namespace xyz.germanfica.unity.planet.gravity
             Transform linkedPlanet)
         {
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.6f, 1f),
+                scale: data.worldScale, rotationOffset: Quaternion.identity, fitColliderToRenderer: true,
                 planet: planet);
             CollectorMachine collector = go.AddComponent<CollectorMachine>();
             collector.Init(data, planet);
@@ -202,7 +203,7 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.8f, 0.4f, 0f),
-                planet: planet);
+                scale: 150f, planet: planet);
             StorageMachine storage = go.AddComponent<StorageMachine>();
             storage.Init(data);
             if (_lastCollector != null)

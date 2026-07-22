@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.SmelterMachineData
   displayName: Blast Furnace
   icon: {fileID: 0}
-  prefab: {fileID: 919132149155446097, guid: 3b5ef02bb7d67a0498b4541e6a0013e7, type: 3}
+  prefab: {fileID: 919132149155446097, guid: 67c7bf4019642744b8c144858f75e026, type: 3}
   recipes:
   - input: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
     inputAmount: 3

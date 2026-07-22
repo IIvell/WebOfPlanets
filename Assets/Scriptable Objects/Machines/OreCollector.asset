@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.MachineData
   displayName: Ore Collector
   icon: {fileID: 0}
-  prefab: {fileID: 919132149155446097, guid: 1ea8448ca3a84df49a74fe6e18afb222, type: 3}
+  prefab: {fileID: 919132149155446097, guid: a2c1cee7dfe9ac8489f603abf1ab2818, type: 3}
+  worldScale: 3
   collectableItems:
   - {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
   - {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}

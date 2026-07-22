@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.TeleporterMachineData
   displayName: Teleporter
   icon: {fileID: 0}
-  prefab: {fileID: 919132149155446097, guid: c0493b9d02b55b84f94287354a37d3c5, type: 3}
+  prefab: {fileID: 919132149155446097, guid: 60beebd0bdb7ea34fbd09bcaffdec11a, type: 3}

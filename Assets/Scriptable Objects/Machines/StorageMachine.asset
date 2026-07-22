@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: StorageMachine
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.StorageMachineData
   displayName: Storage Machine
-  prefab: {fileID: 919132149155446097, guid: 99a04328b2958ec4c9c4430bd90d9adb, type: 3}
+  prefab: {fileID: 919132149155446097, guid: d38449c021f88b547b6637f7f4994aa1, type: 3}
