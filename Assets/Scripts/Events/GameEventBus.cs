@@ -31,13 +31,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         // ── Hub ───────────────────────────────────────────────────────────────
         public static event Action<HubUpgradedEvent> OnHubUpgraded;
-        public static event Action<ArtifactType>     OnBlueprintUnlocked;
         public static event Action<int>              OnRecipeTierUnlocked;
-
-        // ── Artifacts ─────────────────────────────────────────────────────────
-        public static event Action<ArtifactEvent> OnArtifactFound;
-        public static event Action<ArtifactEvent> OnArtifactActivated;
-        public static event Action<Transform>     OnPairedArtifactCombined;
 
         // ── Machines ──────────────────────────────────────────────────────────
         public static event Action<MachineEvent> OnMachinePlaced;
@@ -88,12 +82,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public static void RaiseSecondaryHubCreated(Transform planet) => OnSecondaryHubCreated?.Invoke(planet);
 
         public static void Raise(HubUpgradedEvent e)             => OnHubUpgraded?.Invoke(e);
-        public static void RaiseBlueprintUnlocked(ArtifactType t) => OnBlueprintUnlocked?.Invoke(t);
         public static void RaiseRecipeTierUnlocked(int tier)      => OnRecipeTierUnlocked?.Invoke(tier);
-
-        public static void RaiseArtifactFound(ArtifactEvent e)      => OnArtifactFound?.Invoke(e);
-        public static void RaiseArtifactActivated(ArtifactEvent e)  => OnArtifactActivated?.Invoke(e);
-        public static void RaisePairedCombined(Transform planet)     => OnPairedArtifactCombined?.Invoke(planet);
 
         public static void RaiseMachinePlaced(MachineEvent e)   => OnMachinePlaced?.Invoke(e);
         public static void RaiseMachineBroken(MachineEvent e)   => OnMachineBroken?.Invoke(e);

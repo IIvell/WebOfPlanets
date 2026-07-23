@@ -92,6 +92,11 @@ namespace xyz.germanfica.unity.planet.gravity
             return true;
         }
 
+        // Load iz save datoteke: postavlja prag BEZ RaiseRecipeTierUnlocked —
+        // event bi na max tieru ponovno okinuo VictoryUI; UI-i ionako čitaju
+        // Tier direktno pri svakom renderu.
+        public static void LoadTier(int tier) => Tier = Mathf.Clamp(tier, 0, MaxTier);
+
         // Troši resurse iz Hub skladišta i otključava sljedeći prag.
         public static bool TryUnlockNext()
         {

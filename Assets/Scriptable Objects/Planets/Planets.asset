@@ -47,13 +47,3 @@ MonoBehaviour:
       minDensity: 0.05
       maxDensity: 0.1
       pickupChance: 0
-  - planetType: 5
-    resources:
-    - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
-      minDensity: 0.2
-      maxDensity: 0.4
-      pickupChance: 0.5
-    - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
-      minDensity: 0.1
-      maxDensity: 0.2
-      pickupChance: 0.5

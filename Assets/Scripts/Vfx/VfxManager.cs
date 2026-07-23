@@ -16,6 +16,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private ParticleSystem _sparks;
         private ParticleSystem _teleportBurst;
         private ParticleSystem _placeDust;
+        private ParticleSystem _breakSmoke;
 
         private PlayerController _player;
         private float _nextSparkTime;
@@ -45,6 +46,10 @@ namespace xyz.germanfica.unity.planet.gravity
             _placeDust = CreateSystem("Vfx_PlaceDust", mat,
                 lifetime: 0.6f, sizeMin: 0.15f, sizeMax: 0.35f,
                 new Color(0.6f, 0.55f, 0.5f, 0.8f), new Color(0.45f, 0.4f, 0.35f, 0.8f));
+
+            _breakSmoke = CreateSystem("Vfx_BreakSmoke", mat,
+                lifetime: 1.4f, sizeMin: 0.25f, sizeMax: 0.55f,
+                new Color(0.25f, 0.22f, 0.2f, 0.85f), new Color(0.1f, 0.1f, 0.1f, 0.85f));
         }
 
         void OnDestroy()
@@ -86,6 +91,13 @@ namespace xyz.germanfica.unity.planet.gravity
                 EmitBurst(Instance._placeDust, pos + radial * 0.2f, dir,
                     count: 1, speedMin: 1f, speedMax: 2.5f, spread: 0.15f);
             }
+        }
+
+        // Tamni dim pri kvaru stroja — stup uz normalu površine.
+        public static void PlayMachineBroken(Vector3 pos, Vector3 up)
+        {
+            if (Instance == null) return;
+            EmitBurst(Instance._breakSmoke, pos, up, count: 25, speedMin: 0.8f, speedMax: 2.5f, spread: 0.5f);
         }
 
         private void HandleTeleported(PlayerTeleportEvent e)

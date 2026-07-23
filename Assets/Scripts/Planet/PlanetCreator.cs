@@ -23,15 +23,13 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Material miningMaterial;
         [SerializeField] private Material volcanicMaterial;
         [SerializeField] private Material gaseousMaterial;
-        [SerializeField] private Material abandonedMaterial;
         [SerializeField] private Material organicMaterial;
 
         private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
 
         private static readonly PlanetType[] AllTypes =
         {
-            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic, PlanetType.Gaseous,
-            PlanetType.Abandoned
+            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic, PlanetType.Gaseous
         };
 
         void Start()
@@ -94,10 +92,22 @@ namespace xyz.germanfica.unity.planet.gravity
             float minSep  = minPlanetSeparation + scale;
 
             Vector3 planetPos = FindOpenPosition(origin, minSep, maxDist, positionValid);
+            string  name      = index >= 0 ? $"Planet_{index:D2}" : "GeneratedPlanet";
+            PlanetType type   = AllTypes[Random.Range(0, AllTypes.Length)];
+
+            return CreatePlanetObject(name, planetPos, scale, gravity, type);
+        }
+
+        // Load iz save datoteke: planet s točno zadanim svojstvima umjesto nasumičnih.
+        public Transform SpawnPlanetFromSave(string name, Vector3 pos, float scale, float gravity, PlanetType type)
+            => CreatePlanetObject(name, pos, scale, gravity, type);
+
+        private Transform CreatePlanetObject(string name, Vector3 planetPos, float scale, float gravity, PlanetType type)
+        {
             _spawnedPositions.Add(planetPos);
 
             GameObject planetGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            planetGO.name = index >= 0 ? $"Planet_{index:D2}" : "GeneratedPlanet";
+            planetGO.name = name;
             planetGO.layer = LayerMask.NameToLayer("Planet");
             planetGO.transform.position = planetPos;
             planetGO.transform.localScale = Vector3.one * scale;
@@ -128,7 +138,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             Planet planet = planetGO.AddComponent<Planet>();
             planet.Gravity = gravity;
-            planet.Type = AllTypes[Random.Range(0, AllTypes.Length)];
+            planet.Type = type;
 
             if (planet.Type == PlanetType.Ice && iceMaterial != null)
                 planetGO.GetComponent<Renderer>().material = iceMaterial;
@@ -138,14 +148,6 @@ namespace xyz.germanfica.unity.planet.gravity
                 planetGO.GetComponent<Renderer>().material = volcanicMaterial;
             else if (planet.Type == PlanetType.Gaseous && gaseousMaterial != null)
                 planetGO.GetComponent<Renderer>().material = gaseousMaterial;
-            else if (planet.Type == PlanetType.Abandoned)
-            {
-                if (abandonedMaterial != null)
-                    planetGO.GetComponent<Renderer>().material = abandonedMaterial;
-                else
-                    // Fallback tint dok materijal nije dodijeljen u Inspectoru.
-                    planetGO.GetComponent<Renderer>().material.color = new Color(0.35f, 0.32f, 0.30f);
-            }
             else if (planet.Type == PlanetType.Organic)
             {
                 if (organicMaterial != null)

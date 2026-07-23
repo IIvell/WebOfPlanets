@@ -9,7 +9,9 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [SerializeField] private ExtractorMachineData data;
 
+        private Transform _planet;
         private MachineState _state = MachineState.Idle;
+        private MachineBreakdown _breakdown;
         private float _timer;
 
         private readonly Dictionary<Item, InventoryItem> _dict = new();
@@ -17,19 +19,23 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public MachineState State => _state;
         public ExtractorMachineData Data => data;
+        public Transform Planet => _planet;
         public IReadOnlyList<InventoryItem> StoredItems => _storedItems;
 
         public override float HoldTime => 0f;
 
-        public void Init(ExtractorMachineData machineData)
+        public void Init(ExtractorMachineData machineData, Transform planet)
         {
             data = machineData;
+            _planet = planet;
             _state = MachineState.Active;
         }
 
         void Update()
         {
             if (data == null || _state == MachineState.Broken) return;
+
+            EnsureBreakdown();
 
             _timer += Time.deltaTime;
             if (_timer >= data.extractionInterval)
@@ -44,6 +50,12 @@ namespace xyz.germanfica.unity.planet.gravity
             if (TotalStored() >= data.maxStored)
             {
                 _state = MachineState.Idle;
+                return;
+            }
+
+            if (_breakdown.RollBreakdown())
+            {
+                _state = MachineState.Broken;
                 return;
             }
 
@@ -104,6 +116,32 @@ namespace xyz.germanfica.unity.planet.gravity
             return total;
         }
 
+        // Lazy umjesto u Init-u da pokrije i eventualne scene-serijalizirane strojeve.
+        private void EnsureBreakdown()
+        {
+            if (_breakdown == null)
+                _breakdown = MachineBreakdown.Attach(gameObject, data.displayName, _planet,
+                    data.breakdownChancePerCycle, data.repairCost);
+        }
+
+        // ── Save/load ─────────────────────────────────────────────────────────
+
+        public void LoadStoredItem(Item item, int count)
+        {
+            if (item == null) return;
+            for (int i = 0; i < count; i++)
+                StoreItem(item);
+        }
+
+        // Vraća Broken stanje bez eventa/toasta.
+        public void LoadBroken()
+        {
+            if (data == null) return;
+            EnsureBreakdown();
+            _breakdown.LoadBroken();
+            _state = MachineState.Broken;
+        }
+
         private void StoreItem(Item item)
         {
             if (_dict.TryGetValue(item, out var existing))
@@ -116,9 +154,17 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
-        // Igrač pritisne E na stroju da preuzme sve proizvedene resurse
+        // Igrač pritisne E na stroju da preuzme sve proizvedene resurse;
+        // na polomljenom stroju E umjesto toga pokušava popravak.
         public override void Interact()
         {
+            if (_state == MachineState.Broken)
+            {
+                if (_breakdown != null && _breakdown.TryRepair())
+                    _state = MachineState.Active;
+                return;
+            }
+
             if (InventorySystem.current == null) return;
 
             if (_storedItems.Count == 0)

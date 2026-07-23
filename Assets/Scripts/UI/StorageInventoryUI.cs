@@ -47,7 +47,6 @@ namespace xyz.germanfica.unity.planet.gravity
 
             _target          = storage;
             _isOpen          = true;
-            _titleText.text  = storage.MachineName;
             _panel.SetActive(true);
 
             Cursor.lockState = CursorLockMode.None;
@@ -90,6 +89,9 @@ namespace xyz.germanfica.unity.planet.gravity
             _rows.Clear();
 
             if (_target == null) return;
+
+            // Naslov nosi i popunjenost — mijenja se nakon Take All, zato u Refresh-u.
+            _titleText.text = $"{_target.MachineName} ({_target.TotalStored()}/{_target.Capacity})";
 
             var items = _target.Inventory;
             _emptyLabel.gameObject.SetActive(items.Count == 0);

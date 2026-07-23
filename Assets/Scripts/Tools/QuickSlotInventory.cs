@@ -94,6 +94,31 @@ namespace xyz.germanfica.unity.planet.gravity
             GameEventBus.RaiseQuickSlotsChanged();
         }
 
+        // ── Save/load ─────────────────────────────────────────────────────────
+
+        public void ClearForLoad()
+        {
+            for (int i = 0; i < SlotCount; i++)
+            {
+                slots[i] = null;
+                _durabilities[i] = 0;
+            }
+            _selectedIndex = -1;
+            PlayerToolSystem.current?.UnequipTool();
+            GameEventBus.RaiseQuickSlotsChanged();
+        }
+
+        public void LoadSlot(int index, QuickSlotItem item, int durability)
+        {
+            if (index < 0 || index >= SlotCount || item == null) return;
+
+            slots[index] = item;
+            _durabilities[index] = item is Tool tool
+                ? (durability > 0 ? durability : tool.maxDurability)
+                : 0;
+            GameEventBus.RaiseQuickSlotsChanged();
+        }
+
         private int GetFirstEmptySlot()
         {
             for (int i = 0; i < SlotCount; i++)

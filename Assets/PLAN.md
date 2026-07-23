@@ -38,16 +38,16 @@
 > Čini igru punom, ali prototip funkcionira bez ovih.
 
 - [x] Proceduralna generacija planeta (tip → biom → resursi) *(pojednostavljeno po dopunskom planu: tint + resursna konfiguracija po tipu)*
-- [x] Svi tipovi planeta (6 tipova) s različitim resursima
+- [x] Svi tipovi planeta (6 tipova) s različitim resursima *(23.7.: Napušteni/Abandoned tip IZBAČEN zajedno s artefaktima kojima je služio — ostaje 5 tipova)*
 - [x] Alati (Faza 2 skupljanja) — nacrti, trošenje alata *(trajnost po slotu + prikaz od 15.7.)*
-- [ ] Automatizacija skupljanja (Faza 3) — strojevi, kapacitet *(strojevi rade; kapacitet skladišnog stroja + kvar = T3, 17.7–23.7)*
+- [x] Automatizacija skupljanja (Faza 3) — strojevi, kapacitet *(23.7.: kvar strojeva (MachineBreakdown, ×3 na nestabilnim, E = popravak) + kapacitet skladišnog stroja sa zaustavljanjem collectora — T3 zatvoren)*
 - [x] Automatski transport resursa kroz veze *(pojednostavljena 1:1 verzija collector→storage, po dopunskom planu)*
-- [ ] Artefakti — pronalaženje, tipovi, efekti
+- ~~Artefakti — pronalaženje, tipovi, efekti~~ *(IZREZANO 23.7. — odluka: artefakata u igri neće biti; ArtifactType/ArtifactEvent/eventi obrisani iz koda, Abandoned planet izbačen)*
 - [ ] Sekundarni hubovi — pretvorba planeta, klasteri
 - [ ] Portal Terminal — besplatno putovanje do sekundarnog huba
 - [ ] Hub upgrade stablo (Računalo, Skladište, Portal) *(HubProgress pragovi recepata rade — stablo ne postoji)*
-- [ ] Skrivene drevne veze — otkrivanje i aktivacija
-- [ ] Mrežni fragmenti (artefakt) — otkrivanje skrivenih veza
+- [ ] Skrivene drevne veze — otkrivanje i aktivacija *(23.7.: otkrivanje NE ide preko artefakta — treba drugi mehanizam, npr. skeniranje s Računala/mape)*
+- ~~Mrežni fragmenti (artefakt) — otkrivanje skrivenih veza~~ *(IZREZANO 23.7. s artefaktima)*
 
 ---
 
@@ -57,7 +57,7 @@
 - [ ] Vizualno uljepšavanje huba (kozmetika)
 - [ ] Relej stanice na čvorišnim planetima
 - [ ] Pojačivači na vezama i strojevima
-- [ ] Parnjaci artefakata (kombinacija s posebnim bonusom)
+- ~~Parnjaci artefakata (kombinacija s posebnim bonusom)~~ *(IZREZANO 23.7. s artefaktima)*
 - [ ] Automatski monitoring zdravlja mreže (Računalo Nivo 3)
 - [ ] Vizualni "mrežni pogled" (zoom out, graf prikaz)
 - [ ] Zvukovi i glazba koji reagiraju na veličinu mreže
@@ -179,14 +179,12 @@ Ožujak    Travanj       Svibanj       Lipanj        Srpanj    Kolovoz      Ruja
 - Strojevi: implementiraj kvar (Broken stanje) — šansa po tick-u, veća na nestabilnim planetima
 - Skladišni stroj: dodaj kapacitet, zaustavi collector kad je pun
 
-### Tjedan 4 (24.7–30.7) — Artefakti (novi sustav)
-- Spawn logika vezana za "potencijal artefakta" po planetu, pronalazak isključivo ručnom interakcijom
-- Samo 3 tipa: Nacrti, Pojačivači, Energetski jezgri — Parnjaci (POŽELJNO) se preskaču
-- Poveži event sustav za pronalazak artefakta koji trenutno postoji ali se nigdje ne poziva
+### ~~Tjedan 4 (24.7–30.7) — Artefakti (novi sustav)~~ IZREZANO 23.7.
+*Odluka 23.7.2026.: artefakata u igri neće biti. Iz koda obrisano sve artefakt-vezano (ArtifactType, ArtifactEvent, OnArtifactFound/Activated/PairedCombined, OnBlueprintUnlocked, FirstArtifact milestone) i Napušteni/Abandoned tip planeta koji je postojao radi artefakata (spawn lista, materijal, resursna konfiguracija). Tjedan 24.7–30.7 se oslobađa — povući Tjedan 5 ranije i/ili iskoristiti kao buffer.*
 
 ### Tjedan 5 (31.7–6.8) — Drevne veze + Hub upgrade stablo
 - Skeniranje/otkrivanje i aktivacija drevnih veza s varijabilnim stanjem
-- Mrežni fragment (4. tip artefakta) otkriva drevne veze u okolici (jednostavna radius provjera)
+- ~~Mrežni fragment (4. tip artefakta) otkriva drevne veze u okolici~~ *(izrezano s artefaktima — otkrivanje riješiti bez artefakata, npr. skeniranje s Računala ili uređaja za mapu u radijusu)*
 - Hub upgrade stablo: 3 nivoa računala + 2 nivoa skladišta sa stvarnim efektima (bez punog stabla iz GDD-a)
 
 ### Tjedan 6 (7.8–13.8) — Sekundarni hubovi + Portal + buffer

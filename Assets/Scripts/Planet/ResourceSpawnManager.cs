@@ -94,6 +94,44 @@ namespace xyz.germanfica.unity.planet.gravity
             interactable.Init(entry.item, isPickup);
         }
 
+        // ── Save/load ─────────────────────────────────────────────────────────
+
+        // SaveSystem označava load-ane planete obrađenima PRIJE njihovog
+        // Planet.Start-a: svježi spawn se preskače jer se spremljeni raspored
+        // resursa vraća kroz SpawnSavedResource.
+        public void MarkProcessed(Transform planet) => _processed.Add(planet);
+
+        // Vraća spremljeni resurs na spremljenu poziciju/rotaciju. Spremljena
+        // pozicija je već prizemljeni pivot, pa se ponovno prizemljuje na točku
+        // površine ispod njega (isti obrazac kao strojevi u SaveSystemu).
+        public GameObject SpawnSavedResource(Item item, bool isPickup, Transform planet, Vector3 position, Quaternion rotation)
+        {
+            if (item == null || planet == null) return null;
+
+            GameObject prefab = isPickup ? item.pickupPrefab : item.miningPrefab;
+            if (prefab == null) return null;
+
+            Vector3 dir = (position - planet.position).normalized;
+            SurfacePlacement.GetSurfacePoint(planet, dir, out Vector3 surfacePos, out Vector3 surfaceNormal);
+
+            GameObject go = Instantiate(prefab, surfacePos, rotation);
+            go.name = item.displayName;
+            go.transform.localScale = isPickup ? item.pickupWorldScale : item.miningWorldScale;
+
+            SurfacePlacement.GroundToSurface(go, planet, surfacePos, surfaceNormal, surfaceGap);
+
+            if (go.TryGetComponent<Rigidbody>(out var rb))
+                Destroy(rb);
+            if (!go.TryGetComponent<Collider>(out _))
+                SurfacePlacement.FitBoxColliderToGeometry(go);
+
+            if (!go.TryGetComponent<ItemInteractable>(out var interactable))
+                interactable = go.AddComponent<ItemInteractable>();
+            interactable.Init(item, isPickup);
+
+            return go;
+        }
+
         // Isti radijus kao MachinePlacer.IsSpotClear; cilja se samo na totem
         // markere veza (collider i interactable su im na root objektu —
         // FitColliderToRenderer briše child collidere).

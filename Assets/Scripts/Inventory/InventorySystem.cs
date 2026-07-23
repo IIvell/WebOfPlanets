@@ -58,5 +58,29 @@ namespace xyz.germanfica.unity.planet.gravity
                 }
             }
         }
+
+        // ── Save/load ─────────────────────────────────────────────────────────
+
+        public void ClearForLoad()
+        {
+            inventory.Clear();
+            m_itemDictionary.Clear();
+        }
+
+        // Kao Add, ali cijeli stack odjednom i bez pickup zvuka po itemu.
+        public void LoadItem(Item referenceData, int count)
+        {
+            if (referenceData == null || count <= 0) return;
+
+            if (!m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            {
+                value = new InventoryItem(referenceData); // konstruktor već broji 1
+                inventory.Add(value);
+                m_itemDictionary.Add(referenceData, value);
+                count--;
+            }
+            for (int i = 0; i < count; i++)
+                value.AddToStack();
+        }
     }
 }

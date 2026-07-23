@@ -26,5 +26,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
         [Tooltip("Resursi koji se troše iz Hub storage-a svaki ciklus (prazno = besplatno).")]
         public ConnectionRequirement[] maintenanceCost;
+
+        [Header("Kvar")]
+        [Tooltip("Šansa (0–1) da se stroj pokvari po radnom ciklusu; 0 = nikad. Na nestabilnim planetama množi se s 3.")]
+        [Range(0f, 1f)] public float breakdownChancePerCycle = 0.03f;
+        [Tooltip("Resursi iz inventara igrača potrebni za popravak (E na polomljenom stroju). Prazno = besplatan popravak.")]
+        public ConnectionRequirement[] repairCost;
     }
 }

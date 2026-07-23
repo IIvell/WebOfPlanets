@@ -28,6 +28,9 @@ namespace xyz.germanfica.unity.planet.gravity
         private GameObject _mainPanel;
         private GameObject _controlsPanel;
         private TextMeshProUGUI _playLabel;
+        private TextMeshProUGUI _saveLabel;
+        private TextMeshProUGUI _loadLabel;
+        private bool _loading;
 
         private PlayerController _playerController;
         private PlayerCamera _playerCamera;
@@ -76,6 +79,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
+            if (_loading) return; // tijekom učitavanja Esc ne smije zatvoriti meni
 
             if (_isOpen)
             {
@@ -97,6 +101,8 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             _isOpen = true;
             _playLabel.text = _startedOnce ? "Resume" : "Play";
+            _saveLabel.text = "Save Game";
+            _loadLabel.text = SaveSystem.SaveExists ? "Load Game" : "Load Game (none)";
             ShowControls(false);
             _root.SetActive(true);
 
@@ -135,6 +141,34 @@ namespace xyz.germanfica.unity.planet.gravity
 #else
             Application.Quit();
 #endif
+        }
+
+        private void SaveGame()
+        {
+            if (_loading) return;
+            _saveLabel.text = SaveSystem.Save() ? "Saved" : "Save failed";
+        }
+
+        private void LoadGame()
+        {
+            if (_loading) return;
+            if (!SaveSystem.SaveExists)
+            {
+                _loadLabel.text = "No save found";
+                return;
+            }
+            StartCoroutine(LoadThenPlay());
+        }
+
+        // Load vrti par frameova (rušenje + ponovna izgradnja svijeta); meni ostaje
+        // otvoren s ugašenim Esc-om dok ne završi, pa se igra sama nastavi.
+        private System.Collections.IEnumerator LoadThenPlay()
+        {
+            _loading = true;
+            _loadLabel.text = "Loading...";
+            yield return SaveSystem.LoadRoutine();
+            _loading = false;
+            Play();
         }
 
         private void ShowControls(bool show)
@@ -198,11 +232,14 @@ namespace xyz.germanfica.unity.planet.gravity
             var rt = _mainPanel.AddComponent<RectTransform>();
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
             rt.anchoredPosition = new Vector2(0f, -20f);
-            rt.sizeDelta = new Vector2(ButtonWidth, 3f * ButtonHeight + 2f * ButtonSpacing);
+            rt.sizeDelta = new Vector2(ButtonWidth, 5f * ButtonHeight + 4f * ButtonSpacing);
 
-            _playLabel = MakeButton(_mainPanel.transform, "Play", ButtonHeight + ButtonSpacing, Play);
-            MakeButton(_mainPanel.transform, "Controls", 0f, () => ShowControls(true));
-            MakeButton(_mainPanel.transform, "Quit", -(ButtonHeight + ButtonSpacing), Quit);
+            float step = ButtonHeight + ButtonSpacing;
+            _playLabel = MakeButton(_mainPanel.transform, "Play", 2f * step, Play);
+            _saveLabel = MakeButton(_mainPanel.transform, "Save Game", step, SaveGame);
+            _loadLabel = MakeButton(_mainPanel.transform, "Load Game", 0f, LoadGame);
+            MakeButton(_mainPanel.transform, "Controls", -step, () => ShowControls(true));
+            MakeButton(_mainPanel.transform, "Quit", -2f * step, Quit);
         }
 
         private void BuildControlsPanel(Transform parent)

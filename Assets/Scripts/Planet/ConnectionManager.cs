@@ -407,6 +407,40 @@ namespace xyz.germanfica.unity.planet.gravity
             });
         }
 
+        // ── Save/load ─────────────────────────────────────────────────────────
+
+        // Ruši sve aktivne veze (totemi su djeca connection GO-a pa padaju s njima)
+        // i sve potencijalne markere; SaveSystem zove prije ponovne izgradnje
+        // svijeta iz save datoteke.
+        public void ResetForLoad()
+        {
+            foreach (var c in _connections)
+                if (c != null) Destroy(c.gameObject);
+            _connections.Clear();
+
+            foreach (var markers in _potentialMarkers.Values)
+                foreach (var m in markers)
+                    if (m != null) Destroy(m);
+            _potentialMarkers.Clear();
+        }
+
+        // Ponovno gradi potencijalne totem parove za novo-učitane planete (isti
+        // Kruskal tok kao pri startu scene).
+        public void SpawnPotentialMarkersForLoad() => SpawnPotentialMarkers();
+
+        // Vraća učitanu vezu: puni lifespan za tip/par pa šteta do spremljenog
+        // zdravlja — degradacija time nastavlja istim tempom kao prije spremanja.
+        public void RestoreConnection(Transform a, Transform b, ConnectionType type, float health)
+        {
+            if (a == null || b == null || AlreadyConnected(a, b)) return;
+
+            SetPotentialMarkersActive(a, b, false);
+            CreateConnection(a, b, type, GetLifespan(type, a, b));
+
+            PlanetConnection conn = _connections[_connections.Count - 1];
+            if (health < 100f) conn.ApplyDamage(100f - health);
+        }
+
         private bool AlreadyConnected(Transform a, Transform b)
         {
             foreach (var c in _connections)

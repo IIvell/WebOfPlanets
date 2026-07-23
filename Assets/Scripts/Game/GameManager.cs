@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
-    public enum GameState { Playing, Paused, GameOver }
+    public enum GameState { Playing, Paused, GameOver, Victory }
 
     // Game over tok: PlayerDiedEvent -> zamrzni simulaciju i ugasi player input;
     // R oživljava igrača na aktivnom respawn totemu (default: glavni totem na Hubu).
@@ -125,6 +125,8 @@ namespace xyz.germanfica.unity.planet.gravity
         public void Pause()    => SetState(GameState.Paused);
         public void Resume()   => SetState(GameState.Playing);
         public void GameOver() => SetState(GameState.GameOver);
+        // Pobjeda (svi hub pragovi otključani) — ekran i input rješava VictoryUI.
+        public void Win()      => SetState(GameState.Victory);
 
         void SetState(GameState newState)
         {

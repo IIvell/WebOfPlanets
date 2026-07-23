@@ -6,8 +6,8 @@ using TMPro;
 namespace xyz.germanfica.unity.planet.gravity
 {
     // Attach to a Canvas (Screen Space – Overlay). Toast upozorenja gore desno:
-    // kritična veza (<20% zdravlja) i puno hub skladište — eventi su se do sada
-    // raise-ali bez ijednog subscribera pa igrač nije dobivao nikakvo upozorenje.
+    // kritična veza (<20% zdravlja), puno hub skladište i kvar stroja — eventi su
+    // se ranije raise-ali bez ijednog subscribera pa igrač nije dobivao upozorenja.
     [RequireComponent(typeof(RectTransform))]
     public class AlertsUI : MonoBehaviour
     {
@@ -51,6 +51,7 @@ namespace xyz.germanfica.unity.planet.gravity
             GameEventBus.OnConnectionHealthChanged += OnConnectionHealthChanged;
             GameEventBus.OnConnectionDestroyed += OnConnectionDestroyed;
             GameEventBus.OnStorageFull += OnStorageFull;
+            GameEventBus.OnMachineBroken += OnMachineBroken;
         }
 
         void OnDisable()
@@ -59,6 +60,7 @@ namespace xyz.germanfica.unity.planet.gravity
             GameEventBus.OnConnectionHealthChanged -= OnConnectionHealthChanged;
             GameEventBus.OnConnectionDestroyed -= OnConnectionDestroyed;
             GameEventBus.OnStorageFull -= OnStorageFull;
+            GameEventBus.OnMachineBroken -= OnMachineBroken;
         }
 
         // Unscaled vrijeme da toastovi žive i dok je simulacija pauzirana/game over.
@@ -111,6 +113,13 @@ namespace xyz.germanfica.unity.planet.gravity
             _nextStorageToastTime = Time.unscaledTime + StorageFullCooldown;
 
             ShowToast("Hub storage full — incoming resources are discarded!", WarningColor);
+        }
+
+        private void OnMachineBroken(MachineEvent e)
+        {
+            string name = string.IsNullOrEmpty(e.MachineName) ? "A machine" : e.MachineName;
+            string where = e.Planet != null ? $" on {e.Planet.name}" : "";
+            ShowToast($"{name}{where} broke down — press E on it to repair!", CriticalColor);
         }
 
         private static (int, int) PairKey(Transform a, Transform b)

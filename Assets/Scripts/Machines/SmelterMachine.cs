@@ -7,7 +7,9 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         [SerializeField] private SmelterMachineData data;
 
+        private Transform _planet;
         private MachineState _state = MachineState.Idle;
+        private MachineBreakdown _breakdown;
         private float _timer;
 
         private readonly Dictionary<Item, InventoryItem> _inputDict = new();
@@ -18,20 +20,24 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public MachineState State => _state;
         public SmelterMachineData Data => data;
+        public Transform Planet => _planet;
         public IReadOnlyList<InventoryItem> InputItems => _inputItems;
         public IReadOnlyList<InventoryItem> OutputItems => _outputItems;
 
         public override float HoldTime => 0f;
 
-        public void Init(SmelterMachineData machineData)
+        public void Init(SmelterMachineData machineData, Transform planet)
         {
             data = machineData;
+            _planet = planet;
             _state = MachineState.Active;
         }
 
         void Update()
         {
             if (data == null || _state == MachineState.Broken) return;
+
+            EnsureBreakdown();
 
             _timer += Time.deltaTime;
             if (_timer >= data.processInterval)
@@ -44,6 +50,13 @@ namespace xyz.germanfica.unity.planet.gravity
         private void TryCycle()
         {
             if (data.recipes == null || data.recipes.Length == 0) return;
+
+            // Kvar samo dok stroj stvarno radi — prazan smelter se ne troši.
+            if (_inputItems.Count > 0 && _breakdown.RollBreakdown())
+            {
+                _state = MachineState.Broken;
+                return;
+            }
 
             bool processedAny = false;
             foreach (var recipe in data.recipes)
@@ -64,9 +77,16 @@ namespace xyz.germanfica.unity.planet.gravity
 
         // Igrač pritisne E: prvo pokupi gotove pretopljene resurse, zatim ubaci iz svog
         // inventara sve sirovine koje ovaj stroj zna preraditi. Bez ovoga stroj nema
-        // šta preraditi — ne vuče sirovine sam.
+        // šta preraditi — ne vuče sirovine sam. Na polomljenom stroju E pokušava popravak.
         public override void Interact()
         {
+            if (_state == MachineState.Broken)
+            {
+                if (_breakdown != null && _breakdown.TryRepair())
+                    _state = MachineState.Active;
+                return;
+            }
+
             CollectOutput();
             DepositInputFromPlayer();
         }
@@ -106,6 +126,39 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (deposited > 0)
                 Debug.Log($"[{data?.displayName}] Ubačeno {deposited} sirovina za preradu.");
+        }
+
+        // Lazy umjesto u Init-u da pokrije i eventualne scene-serijalizirane strojeve.
+        private void EnsureBreakdown()
+        {
+            if (_breakdown == null)
+                _breakdown = MachineBreakdown.Attach(gameObject, data.displayName, _planet,
+                    data.breakdownChancePerCycle, data.repairCost);
+        }
+
+        // ── Save/load ─────────────────────────────────────────────────────────
+
+        public void LoadInputItem(Item item, int count)
+        {
+            if (item == null) return;
+            for (int i = 0; i < count; i++)
+                AddInput(item);
+        }
+
+        public void LoadOutputItem(Item item, int count)
+        {
+            if (item == null) return;
+            for (int i = 0; i < count; i++)
+                StoreOutput(item);
+        }
+
+        // Vraća Broken stanje bez eventa/toasta.
+        public void LoadBroken()
+        {
+            if (data == null) return;
+            EnsureBreakdown();
+            _breakdown.LoadBroken();
+            _state = MachineState.Broken;
         }
 
         private bool AcceptsInput(Item item)

@@ -230,7 +230,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.9f, 0.2f, 0.1f),
                 scale: 3f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
-            go.AddComponent<SmelterMachine>().Init(data);
+            go.AddComponent<SmelterMachine>().Init(data, planet);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             return true;
@@ -250,7 +250,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.1f, 0.8f, 0.5f),
                 scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
-            go.AddComponent<ExtractorMachine>().Init(data);
+            go.AddComponent<ExtractorMachine>().Init(data, planet);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             return true;
@@ -270,7 +270,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.8f, 0.9f),
                 scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
-            go.AddComponent<UplinkMachine>().Init(data);
+            go.AddComponent<UplinkMachine>().Init(data, planet);
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             return true;

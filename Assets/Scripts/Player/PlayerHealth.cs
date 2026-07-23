@@ -64,6 +64,15 @@ namespace xyz.germanfica.unity.planet.gravity
             GameEventBus.Raise(new PlayerHealthChangedEvent { Current = CurrentHealth, Max = maxHealth });
         }
 
+        // Load iz save datoteke: postavi zdravlje bez damage/death tokova.
+        // Minimum 1 — save nastaje samo dok je igrač živ.
+        public void LoadHealth(float current)
+        {
+            IsDead = false;
+            CurrentHealth = Mathf.Clamp(current, 1f, maxHealth);
+            GameEventBus.Raise(new PlayerHealthChangedEvent { Current = CurrentHealth, Max = maxHealth });
+        }
+
         private void Die()
         {
             IsDead = true;

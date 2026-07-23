@@ -232,8 +232,12 @@ namespace xyz.germanfica.unity.planet.gravity
         // na ukopanim totemima (šiljak niže od markerHeight) kraj guralo uzduž
         // pravca prema drugoj planeti za need/climb — na plitkim zrakama
         // (najbliži susjed nisko na horizontu, mali climb) i do 2x markerHeight
-        // od šiljka, pa je kapa visjela u zraku pored totema. markerHeight
-        // ostaje samo fallback: strana bez totema ili neuspjelo mjerenje.
+        // od šiljka, pa je kapa visjela u zraku pored totema. Šiljak je STVARNI
+        // najviši vrh geometrije (world točka), ne osna točka na visini vrha —
+        // nagnuti/asimetrični totem modeli imaju šiljak pomaknut od osi pivota
+        // pa je osna varijanta kapu ostavljala da visi bočno pored šiljka.
+        // markerHeight ostaje samo fallback: strana bez totema ili neuspjelo
+        // mjerenje.
         private Vector3 BeamAnchor(GameObject marker, Transform planet, Transform otherPlanet)
         {
             Vector3 dirToOther = (otherPlanet.position - planet.position).normalized;
@@ -244,12 +248,10 @@ namespace xyz.germanfica.unity.planet.gravity
                 return basePos + (basePos - planet.position).normalized * _markerHeight;
             }
 
-            Vector3 up = marker.transform.up;
-            Vector3 pivot = marker.transform.position;
+            if (SurfacePlacement.TryGetTopPoint(marker, marker.transform.up, out Vector3 tip))
+                return tip;
 
-            return SurfacePlacement.TryGetExtents(marker, up, out float lowest, out _, out float height) && height > 0.01f
-                ? pivot + up * (lowest + height)
-                : pivot + up * _markerHeight;
+            return marker.transform.position + marker.transform.up * _markerHeight;
         }
 
         public void ApplyDamage(float amount)

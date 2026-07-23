@@ -177,11 +177,38 @@ namespace xyz.germanfica.unity.planet.gravity
             return true;
         }
 
+        // Stvarni najviši vrh geometrije duž normale, kao world TOČKA (ne samo
+        // visina): kod nagnutih/asimetričnih modela šiljak nije na osi pivota,
+        // pa "osna točka na visini vrha" promašuje vidljivi vrh bočno — zraka
+        // veze mora ciljati baš vrh (PlanetConnection.BeamAnchor). SAMO stvarni
+        // vrhovi (preciseOnly): najviši KUT bounds boxa nije vrh — bočno je
+        // pomaknut za pola širine modela, pa je gore od bilo kojeg fallbacka.
+        // Mesh bez Read/Write → false, pozivatelj neka koristi svoj fallback.
+        public static bool TryGetTopPoint(GameObject go, Vector3 normal, out Vector3 top)
+        {
+            top = default;
+            float maxProj = float.MinValue;
+
+            foreach (Vector3 worldPoint in GeometryPoints(go, preciseOnly: true))
+            {
+                float proj = Vector3.Dot(worldPoint, normal);
+                if (proj > maxProj)
+                {
+                    maxProj = proj;
+                    top = worldPoint;
+                }
+            }
+
+            return maxProj != float.MinValue;
+        }
+
         // Sve world točke stvarne geometrije objekta. Mjeri po stvarnim vrhovima kad
         // je mesh Read/Write, inače po kutovima lokalnog mesh boundsa transformiranim
         // u world (tight OBB) — world AABB već rotiranog objekta bi napuhao mjere
-        // (širinu do √2) ovisno o orijentaciji na planeti.
-        private static IEnumerable<Vector3> GeometryPoints(GameObject go)
+        // (širinu do √2) ovisno o orijentaciji na planeti. preciseOnly preskače sve
+        // bounds fallbackove i vraća isključivo stvarne vrhove (za TryGetTopPoint:
+        // ekstremi projekcija po boundsima su OK, ali kut boxa kao TOČKA nije).
+        private static IEnumerable<Vector3> GeometryPoints(GameObject go, bool preciseOnly = false)
         {
             bool any = false;
 
@@ -198,7 +225,7 @@ namespace xyz.germanfica.unity.planet.gravity
                     foreach (Vector3 v in vertices)
                         yield return meshTransform.TransformPoint(v);
                 }
-                else
+                else if (!preciseOnly)
                 {
                     Bounds b = mesh.bounds;
                     for (int i = 0; i < 8; i++)
@@ -233,7 +260,7 @@ namespace xyz.germanfica.unity.planet.gravity
                         foreach (Vector3 v in bakedVerts)
                             yield return smrTransform.TransformPoint(v);
                     }
-                    else
+                    else if (!preciseOnly)
                     {
                         Bounds wb = smr.bounds;
                         for (int i = 0; i < 8; i++)
@@ -249,7 +276,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             // Bez ijednog MeshFiltera/skinned mesha (npr. samo particle rendereri):
             // world AABB kutovi.
-            if (!any)
+            if (!any && !preciseOnly)
             {
                 Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
                 if (renderers.Length == 0) yield break;

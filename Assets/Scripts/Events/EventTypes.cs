@@ -3,12 +3,11 @@ using UnityEngine;
 namespace xyz.germanfica.unity.planet.gravity
 {
     public enum ResourceType { Ore, Crystal, Biomass, Ice, Gas, VolcanicMatter }
-    public enum PlanetType { Mining, Organic, Ice, Gaseous, Volcanic, Abandoned }
+    public enum PlanetType { Mining, Organic, Ice, Gaseous, Volcanic }
     public enum ConnectionType { Ancient, Weak, Mid, Strong }
-    public enum ArtifactType { Blueprint, Enhancer, NetworkFragment, EnergyCore, PairedArtifact }
     public enum MachineState { Active, Idle, Broken }
     public enum HubLevel { Basic, Upgraded, Advanced }
-    public enum MilestoneType { FirstResource, FirstConnection, FirstArtifact, HubUpgraded, NetworkComplete }
+    public enum MilestoneType { FirstResource, FirstConnection, HubUpgraded, NetworkComplete }
 
     public struct ResourceCollectedEvent
     {
@@ -40,17 +39,12 @@ namespace xyz.germanfica.unity.planet.gravity
         public ConnectionType ConnectionType;
     }
 
-    public struct ArtifactEvent
-    {
-        public ArtifactType Type;
-        public Transform Planet;
-    }
-
     public struct MachineEvent
     {
         public MachineState State;
         public Transform Planet;
         public ResourceType ResourceType;
+        public string MachineName;
     }
 
     public struct TransportRouteEvent
