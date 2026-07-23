@@ -25,7 +25,8 @@ namespace xyz.germanfica.unity.planet.gravity
     public static class SaveSystem
     {
         private const int KindCollector = 0, KindStorage = 1, KindSmelter = 2,
-                          KindExtractor = 3, KindUplink = 4, KindTeleporter = 5, KindTotem = 6;
+                          KindExtractor = 3, KindUplink = 4, KindTeleporter = 5, KindTotem = 6,
+                          KindComputer = 7;
 
         [Serializable] public class ItemCountSave { public string item; public int count; }
 
@@ -265,6 +266,17 @@ namespace xyz.germanfica.unity.planet.gravity
                 });
             }
 
+            // Hub Računalo je scenski objekt (NetworkComputerInteractable) — sprema se
+            // samo postavljeno ComputerMachine.
+            foreach (var c in UnityEngine.Object.FindObjectsByType<ComputerMachine>(FindObjectsSortMode.None))
+                if (c.Planet != null)
+                    Add(c, new MachineSave
+                    {
+                        kind = KindComputer,
+                        data = c.Data != null ? c.Data.name : "",
+                        planet = c.Planet.name
+                    });
+
             comps = list;
         }
 
@@ -347,6 +359,7 @@ namespace xyz.germanfica.unity.planet.gravity
             DestroyAll<ExtractorMachine>();
             DestroyAll<UplinkMachine>();
             DestroyAll<TeleporterMachine>();
+            DestroyAll<ComputerMachine>();
             DestroyAll<EnemyMob>();
             DestroyAll<VolcanicHazardZone>();
 
@@ -581,6 +594,11 @@ namespace xyz.germanfica.unity.planet.gravity
                     var t = RespawnTotem.Spawn(d, planet, surfacePos, ms.rotation);
                     if (ms.totemActive) t.Interact();
                     return t;
+                }
+                case KindComputer:
+                {
+                    var d = Resolve<ComputerMachineData>(ms.data);
+                    return ComputerMachine.Spawn(d, planet, surfacePos, ms.rotation);
                 }
             }
 

@@ -4,7 +4,8 @@ namespace xyz.germanfica.unity.planet.gravity
 {
     // Hub napredak: pragovi se otključavaju na Hub računalu (HubProgressUI) trošenjem
     // specifičnih resursa iz Hub skladišta, od čestih prema rijetkima. Otključan prag
-    // otključava recepte (CraftingRecipe.unlockTier).
+    // otključava recepte (CraftingRecipe.unlockTier) i povećava kapacitet Hub
+    // skladišta (TierStorageBonus → HubStorage.MaxCapacity).
     public static class HubProgress
     {
         public class Requirement
@@ -60,14 +61,30 @@ namespace xyz.germanfica.unity.planet.gravity
             },
         };
 
+        // Bonus kapaciteta Hub skladišta koji donosi otključavanje praga (indeks = prag-1).
+        // Kumulativno: na max pragu skladište je baznih 100 + 250.
+        public static readonly int[] TierStorageBonus = { 25, 25, 50, 50, 100 };
+
+        // Zbroj bonusa svih dosad otključanih pragova; HubStorage.MaxCapacity ga pribraja.
+        public static int StorageBonus
+        {
+            get
+            {
+                int bonus = 0;
+                for (int i = 0; i < Tier && i < TierStorageBonus.Length; i++)
+                    bonus += TierStorageBonus[i];
+                return bonus;
+            }
+        }
+
         // Kratki opis što koji prag otključava (prikaz na Hub računalu).
         public static readonly string[] TierUnlocks =
         {
-            "Collector Machine, Ore Collector, Network Scanner",
-            "Drill, Hub Uplink, Teleporter, Gas Mask",
-            "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem",
-            "Blast Furnace, Eternal Pickaxe",
-            "Two-Way Teleporter",
+            "Collector Machine, Ore Collector, Network Scanner, Hub Storage +25",
+            "Drill, Hub Uplink, Teleporter, Gas Mask, Hub Storage +25",
+            "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem, Hub Storage +50",
+            "Blast Furnace, Eternal Pickaxe, Network Computer, Hub Storage +50",
+            "Two-Way Teleporter, Hub Storage +100",
         };
 
         public static int Tier { get; private set; }

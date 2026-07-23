@@ -32,7 +32,21 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 Renderer renderer = GetComponentInChildren<Renderer>();
                 if (renderer != null)
-                    renderer.material = surfaceMaterial;
+                {
+                    // Kameni planeti (uklj. Hub) dobivaju seamless proceduralni kamen
+                    // umjesto venus fotke sa šavom — isto što PlanetCreator radi za
+                    // spawnane Mining planete. Autorski UV otoci FBX mesha bi uzorak
+                    // rezali na granicama, pa se UV-ovi prvo preračunaju sferno.
+                    if (Type == PlanetType.Mining)
+                    {
+                        SphericalUV.Apply(renderer);
+                        renderer.material = RockPlanetTexture.GetMaterial(surfaceMaterial);
+                    }
+                    else
+                    {
+                        renderer.material = surfaceMaterial;
+                    }
+                }
             }
         }
 

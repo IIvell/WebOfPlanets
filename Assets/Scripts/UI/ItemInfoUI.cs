@@ -167,6 +167,16 @@ namespace xyz.germanfica.unity.planet.gravity
                     AppendPlaceHint(sb);
                     break;
 
+                case ComputerMachineData:
+                    sb.AppendLine("<color=#aaaaaa>COMPUTER</color>");
+                    sb.AppendLine();
+                    sb.AppendLine("Places a Computer on the current planet with the");
+                    sb.AppendLine("same menu as the Hub Computer (network map, hub");
+                    sb.AppendLine("tiers). With a Respawn Totem it makes a remote base.");
+                    sb.AppendLine("Press <b>E</b> on it to open the menu.");
+                    AppendPlaceHint(sb);
+                    break;
+
                 case NetworkMapDeviceData:
                     sb.AppendLine("<color=#aaaaaa>DEVICE</color>");
                     sb.AppendLine();
@@ -220,6 +230,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             sb.AppendLine();
             sb.AppendLine("<color=#888888>P — place on planet (while slot is selected).</color>");
+            sb.AppendLine("<color=#888888>X — near a placed machine, pick it back up.</color>");
         }
 
         // ── UI construction ───────────────────────────────────────────────────

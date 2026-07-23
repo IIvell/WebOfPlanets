@@ -6,7 +6,7 @@ namespace xyz.germanfica.unity.planet.gravity
     [CreateAssetMenu(fileName = "Recipe", menuName = "Crafting/Recipe")]
     public class CraftingRecipe : ScriptableObject
     {
-        public enum ResultType { Tool, CollectorMachine, StorageMachine, SmelterMachine, ExtractorMachine, UplinkMachine, TeleporterMachine, TwoWayTeleporterMachine, NetworkMapDevice, RespawnTotem, GasMask }
+        public enum ResultType { Tool, CollectorMachine, StorageMachine, SmelterMachine, ExtractorMachine, UplinkMachine, TeleporterMachine, TwoWayTeleporterMachine, NetworkMapDevice, RespawnTotem, GasMask, Computer }
 
         [Serializable]
         public struct Ingredient
@@ -32,6 +32,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public NetworkMapDeviceData resultNetworkMapDevice;
         public RespawnTotemMachineData resultRespawnTotem;
         public GasMaskData resultGasMask;
+        public ComputerMachineData resultComputer;
 
         public Ingredient[] ingredients;
 

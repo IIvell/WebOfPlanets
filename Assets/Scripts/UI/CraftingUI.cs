@@ -317,6 +317,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.NetworkMapDevice => recipe.resultNetworkMapDevice,
             CraftingRecipe.ResultType.RespawnTotem     => recipe.resultRespawnTotem,
             CraftingRecipe.ResultType.GasMask          => recipe.resultGasMask,
+            CraftingRecipe.ResultType.Computer         => recipe.resultComputer,
             _                                          => null
         };
 
@@ -373,6 +374,7 @@ namespace xyz.germanfica.unity.planet.gravity
             CraftingRecipe.ResultType.NetworkMapDevice  => "DEVICE",
             CraftingRecipe.ResultType.RespawnTotem      => "RESPAWN TOTEM",
             CraftingRecipe.ResultType.GasMask           => "EQUIPMENT",
+            CraftingRecipe.ResultType.Computer          => "COMPUTER",
             _                                           => ""
         };
 

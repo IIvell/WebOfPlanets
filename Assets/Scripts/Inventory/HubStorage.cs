@@ -12,7 +12,8 @@ namespace xyz.germanfica.unity.planet.gravity
         private Dictionary<Item, InventoryItem> m_itemDictionary;
         [SerializeField] private List<InventoryItem> inventory = new List<InventoryItem>();
 
-        public int MaxCapacity => maxCapacity;
+        // Bazni kapacitet + bonus otključanih hub pragova.
+        public int MaxCapacity => maxCapacity + HubProgress.StorageBonus;
 
         void Awake()
         {
@@ -30,7 +31,7 @@ namespace xyz.germanfica.unity.planet.gravity
             return total;
         }
 
-        public bool IsFull() => TotalCount() >= maxCapacity;
+        public bool IsFull() => TotalCount() >= MaxCapacity;
 
         public InventoryItem Get(Item referenceData)
         {

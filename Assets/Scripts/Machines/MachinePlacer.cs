@@ -27,7 +27,12 @@ namespace xyz.germanfica.unity.planet.gravity
             if (Cursor.lockState != CursorLockMode.Locked) return;
 
             if (Keyboard.current.xKey.wasPressedThisFrame)
-                CancelPendingTwoWay();
+            {
+                if (_pendingTwoWayEntry != null)
+                    CancelPendingTwoWay();
+                else
+                    TryPickupMachine();
+            }
 
             if (!Keyboard.current.pKey.wasPressedThisFrame) return;
             if (QuickSlotInventory.current == null) return;
@@ -75,6 +80,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
                 case RespawnTotemMachineData totem:
                     if (TryPlaceRespawnTotem(totem))
+                        QuickSlotInventory.current.RemoveSlot(index);
+                    break;
+
+                case ComputerMachineData computer:
+                    if (TryPlaceComputer(computer))
                         QuickSlotInventory.current.RemoveSlot(index);
                     break;
 
@@ -300,6 +310,135 @@ namespace xyz.germanfica.unity.planet.gravity
 
             GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
             Debug.Log($"[MachinePlacer] {data.displayName} postavljen — pritisni E na njemu da postane respawn točka.");
+            return true;
+        }
+
+        // X pokraj postavljenog stroja: item se vrati u hotbar, stroj nestane iz
+        // svijeta, a njegov sadržaj se istrese u inventar igrača. Teleporter par
+        // nestaje zajedno (item je potrošen jednom za oba kraja).
+        private void TryPickupMachine()
+        {
+            if (QuickSlotInventory.current == null) return;
+
+            if (interactor == null)
+                interactor = FindFirstObjectByType<Interactor>();
+            if (interactor == null) return;
+
+            Vector3 source = interactor.InteractorSource != null
+                ? interactor.InteractorSource.position
+                : playerController.rig.position;
+
+            // Najbliži stroj u dosegu interakcije (isti doseg kao E).
+            Component closest = null;
+            float closestDist = float.PositiveInfinity;
+            foreach (var col in Physics.OverlapSphere(source, interactor.InteractRange,
+                         Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide))
+            {
+                if (!col.TryGetComponent(out BaseInteractable bi)) continue;
+                if (bi is not (CollectorMachine or StorageMachine or SmelterMachine or ExtractorMachine
+                    or UplinkMachine or TeleporterMachine or RespawnTotem or ComputerMachine)) continue;
+
+                float dist = Vector3.Distance(source, col.ClosestPoint(source));
+                if (dist < closestDist) { closestDist = dist; closest = bi; }
+            }
+            if (closest == null) return;
+
+            QuickSlotItem item = null;
+            var stored  = new List<InventoryItem>();
+            var destroy = new List<GameObject> { closest.gameObject };
+
+            switch (closest)
+            {
+                case CollectorMachine m:
+                    if (Broken(m.State)) return;
+                    item = m.Data; stored.AddRange(m.StoredItems); break;
+
+                case StorageMachine m:
+                    item = m.Data; stored.AddRange(m.Inventory); break;
+
+                case SmelterMachine m:
+                    if (Broken(m.State)) return;
+                    item = m.Data; stored.AddRange(m.InputItems); stored.AddRange(m.OutputItems); break;
+
+                case ExtractorMachine m:
+                    if (Broken(m.State)) return;
+                    item = m.Data; stored.AddRange(m.StoredItems); break;
+
+                case UplinkMachine m:
+                    if (Broken(m.State)) return;
+                    item = m.Data; stored.AddRange(m.Buffer); break;
+
+                case TeleporterMachine m:
+                    // Nepovezani ulaz je pending dvosmjerni — njega ruši X kroz CancelPendingTwoWay.
+                    if (m.Linked == null) return;
+                    item = m.Data; destroy.Add(m.Linked.gameObject); break;
+
+                case RespawnTotem m:
+                    if (m == RespawnTotem.HubTotem || m.Data == null)
+                    {
+                        Debug.Log("[MachinePlacer] Glavni hub totem se ne može podići.");
+                        return;
+                    }
+                    item = m.Data; break;
+
+                case ComputerMachine m:
+                    item = m.Data; break;
+            }
+
+            if (item == null) return;
+
+            if (!QuickSlotInventory.current.TryAdd(item, out _))
+            {
+                Debug.Log("[MachinePlacer] Hotbar je pun — stroj se ne može vratiti.");
+                return;
+            }
+
+            if (InventorySystem.current != null)
+                foreach (var s in stored)
+                    if (s != null && s.data != null)
+                        for (int i = 0; i < s.GetStackSize(); i++)
+                            InventorySystem.current.Add(s.data);
+
+            foreach (var go in destroy)
+            {
+                VfxManager.PlayMachinePlaced(go.transform.position, go.transform.up);
+                Destroy(go);
+            }
+
+            Debug.Log($"[MachinePlacer] {item.displayName} vraćen u hotbar.");
+        }
+
+        private static bool Broken(MachineState state)
+        {
+            if (state != MachineState.Broken) return false;
+            Debug.Log("[MachinePlacer] Stroj je polomljen — popravi ga (E) prije podizanja.");
+            return true;
+        }
+
+        // Računalo: E na njemu otvara isti izbornik kao hub Računalo (mapa mreže,
+        // hub pragovi) — s Respawn Totemom čini udaljenu bazu umjesto sekundarnog huba.
+        private bool TryPlaceComputer(ComputerMachineData data)
+        {
+            Transform planet = playerController?.currentPlanet;
+            if (planet == null)
+            {
+                Debug.Log("[MachinePlacer] Igrač nije na planeti — računalo se ne može postaviti.");
+                return false;
+            }
+
+            if (planet.TryGetComponent(out Planet planetInfo) && planetInfo.IsHub)
+            {
+                Debug.Log("[MachinePlacer] Hub već ima Računalo.");
+                return false;
+            }
+
+            Vector3 pos = FindSurfacePoint(planet);
+            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+
+            ComputerMachine.Spawn(data, planet, pos, rot);
+
+            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            Debug.Log($"[MachinePlacer] {data.displayName} postavljen — pritisni E na njemu za izbornik Računala.");
             return true;
         }
 

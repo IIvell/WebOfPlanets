@@ -125,6 +125,21 @@ namespace xyz.germanfica.unity.planet.gravity
                 rig.constraints = RigidbodyConstraints.FreezeRotation;
             else
                 rig.constraints = RigidbodyConstraints.None;
+
+            // Kretanje smiju oblikovati samo naši accel/decel parametri. PhysX trenje
+            // na kontaktu kapsula-planet inače troši naslijeđenu brzinu na ledu,
+            // najjače na rubovima faceta mesh collidera (planet je poligonalna kugla),
+            // pa je klizanje bilo mjestimično sporije. Običan hod ne ovisi o ovome
+            // (brzina se ionako prepisuje svaki tick), a stajanje čuva kod, ne trenje.
+            if (TryGetComponent(out CapsuleCollider capsule))
+                capsule.material = new PhysicsMaterial("PlayerFrictionless")
+                {
+                    staticFriction = 0f,
+                    dynamicFriction = 0f,
+                    bounciness = 0f,
+                    frictionCombine = PhysicsMaterialCombine.Minimum,
+                    bounceCombine = PhysicsMaterialCombine.Minimum
+                };
         }
 
         private void Move()
@@ -155,8 +170,23 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             // Umjesto direktnog namještanja pozicije, brzina teži cilju s ograničenim ubrzanjem
             // pa igrač klizi po ledu - ne staje odmah i ne skreće trenutno.
-            Vector3 verticalVelocity = Vector3.Project(rig.linearVelocity, transform.up);
+            // Up je radijala od centra planeta, ne transform.up — poravnanje tijela
+            // (Attractor slerp) kasni za stvarnom normalom pa bi split krivo režao.
+            Vector3 up = currentPlanet != null
+                ? (transform.position - currentPlanet.position).normalized
+                : transform.up;
+
+            Vector3 verticalVelocity = Vector3.Project(rig.linearVelocity, up);
             Vector3 horizontalVelocity = rig.linearVelocity - verticalVelocity;
+
+            // Hodom po kugli tangentna ravnina se okreće, a naslijeđena brzina ostaje
+            // u world prostoru — dio bi svakim tickom "iscurio" u vertikalu gdje ga
+            // pojedu damping i kontakt s tlom. Re-projekcija na trenutnu tangentu uz
+            // očuvanje iznosa: brzinu smiju mijenjati samo rate-ovi ispod.
+            float speed = horizontalVelocity.magnitude;
+            horizontalVelocity = Vector3.ProjectOnPlane(horizontalVelocity, up);
+            if (horizontalVelocity.sqrMagnitude > 0.0001f)
+                horizontalVelocity = horizontalVelocity.normalized * speed;
 
             Vector3 targetVelocity = (transform.right * input.x + transform.forward * input.y) * moveSpeed;
             float rate = input == Vector2.zero ? iceDeceleration : iceAcceleration;

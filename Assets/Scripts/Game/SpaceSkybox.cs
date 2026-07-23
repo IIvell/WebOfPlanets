@@ -133,7 +133,8 @@ namespace xyz.germanfica.unity.planet.gravity
             return falloff * falloff * brightness * intensity;
         }
 
-        static float Hash(Vector3Int cell, int seed)
+        // Noise helperi su internal — dijeli ih GasPlanetTexture (isti value-noise obrazac).
+        internal static float Hash(Vector3Int cell, int seed)
         {
             unchecked
             {
@@ -145,7 +146,7 @@ namespace xyz.germanfica.unity.planet.gravity
         }
 
         // Value noise (trilinearna interpolacija hash vrijednosti na 3D gridu) + fbm oktave.
-        static float ValueNoise(Vector3 p)
+        internal static float ValueNoise(Vector3 p)
         {
             Vector3Int i = Vector3Int.FloorToInt(p);
             Vector3 f = p - i;
@@ -167,7 +168,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         static float Smooth(float t) => t * t * (3f - 2f * t);
 
-        static float Fbm(Vector3 p, int octaves)
+        internal static float Fbm(Vector3 p, int octaves)
         {
             float sum = 0f, amp = 0.5f, freq = 1f, norm = 0f;
             for (int i = 0; i < octaves; i++)

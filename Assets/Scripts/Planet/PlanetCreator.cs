@@ -143,15 +143,31 @@ namespace xyz.germanfica.unity.planet.gravity
             if (planet.Type == PlanetType.Ice && iceMaterial != null)
                 planetGO.GetComponent<Renderer>().material = iceMaterial;
             else if (planet.Type == PlanetType.Mining && miningMaterial != null)
-                planetGO.GetComponent<Renderer>().material = miningMaterial;
+            {
+                // Seamless proceduralni kamen umjesto venus fotke (imala je vidljiv
+                // šav na UV spoju); rotacija za varijaciju kao kod plinovitih.
+                planetGO.GetComponent<Renderer>().material = RockPlanetTexture.GetMaterial(miningMaterial);
+                planetGO.transform.rotation = Random.rotation;
+            }
             else if (planet.Type == PlanetType.Volcanic && volcanicMaterial != null)
                 planetGO.GetComponent<Renderer>().material = volcanicMaterial;
             else if (planet.Type == PlanetType.Gaseous && gaseousMaterial != null)
-                planetGO.GetComponent<Renderer>().material = gaseousMaterial;
+            {
+                // Proceduralne trake plinovitog diva umjesto plošnog tinta; dijeljena
+                // tekstura, a nasumična rotacija sfere daje varijaciju među planetima
+                // (kugla je simetrična pa rotacija ne mijenja ništa osim izgleda).
+                planetGO.GetComponent<Renderer>().material = GasPlanetTexture.GetMaterial(gaseousMaterial);
+                planetGO.transform.rotation = Random.rotation;
+            }
             else if (planet.Type == PlanetType.Organic)
             {
                 if (organicMaterial != null)
-                    planetGO.GetComponent<Renderer>().material = organicMaterial;
+                {
+                    // Proceduralna "priroda" (šume, livade, jezera) umjesto plošnog
+                    // tinta; rotacija za varijaciju kao kod plinovitih/kamenih.
+                    planetGO.GetComponent<Renderer>().material = OrganicPlanetTexture.GetMaterial(organicMaterial);
+                    planetGO.transform.rotation = Random.rotation;
+                }
                 else
                     // Fallback tint dok materijal nije dodijeljen u Inspectoru.
                     planetGO.GetComponent<Renderer>().material.color = new Color(0.30f, 0.55f, 0.25f);
