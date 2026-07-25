@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Zajednički kostur četiri proizvodna stroja (Collector/Smelter/Extractor/
     // Uplink): timer-ciklus u Update-u, vezanje MachineBreakdown komponente,

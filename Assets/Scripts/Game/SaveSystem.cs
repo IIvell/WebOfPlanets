@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Save/load u JSON (jedan slot, Application.persistentDataPath). Sprema se:
     // proceduralne planete, aktivne veze (tip + zdravlje), strojevi s vezama

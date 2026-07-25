@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Load: rušenje proceduralnog svijeta u mjestu i ponovna izgradnja iz save
     // datoteke kroz ISTE puteve kao world-gen. Redoslijed koraka i yieldovi su

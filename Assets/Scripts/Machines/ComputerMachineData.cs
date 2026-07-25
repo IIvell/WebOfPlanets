@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(fileName = "NetworkComputer", menuName = "Machines/Network Computer")]
     public class ComputerMachineData : QuickSlotItem

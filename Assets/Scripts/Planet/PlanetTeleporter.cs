@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Izvedba teleporta igrača na planet — zove se za veze, teleporter strojeve,
     // respawn i load. PlanetCreator ostaje javna ulazna točka (scena drži tri

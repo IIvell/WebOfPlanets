@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Periodički skuplja resurse s površine planete u vlastiti spremnik ili u
     // povezani storage; troši održavanje iz Hub storage-a i može se pokvariti.

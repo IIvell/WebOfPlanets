@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Teleporteri se grade u paru: ulaz na planeti igrača, izlaz na Hubu
     // (MachinePlacer ih postavlja i povezuje). Pritisak na E teleportira

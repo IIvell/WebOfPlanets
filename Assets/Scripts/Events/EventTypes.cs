@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     public enum ResourceType { Ore, Biomass, Ice, Gas, VolcanicMatter }
     public enum PlanetType { Mining, Organic, Ice, Gaseous, Volcanic }

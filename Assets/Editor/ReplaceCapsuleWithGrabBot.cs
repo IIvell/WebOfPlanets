@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     public static class ReplaceCapsuleWithGrabBot
     {

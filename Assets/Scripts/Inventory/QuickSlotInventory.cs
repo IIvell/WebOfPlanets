@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // 9 fiksnih slotova za alate (i buduće strojeve). Rude/materijali idu u InventorySystem, ne ovdje.
     public class QuickSlotInventory : MonoBehaviour

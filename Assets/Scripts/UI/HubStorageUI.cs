@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Panel hub skladišta (otvara HubStorageInteractable); lista i input-mode
     // žive u bazi ItemListUI.

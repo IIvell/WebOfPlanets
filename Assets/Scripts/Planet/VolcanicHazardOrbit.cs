@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Kružna putanja zone po površini planeta: rotacija oko fiksne osi kroz centar
     // planeta. Vulkanski planeti su uniformno skalirane primitivne sfere, pa je

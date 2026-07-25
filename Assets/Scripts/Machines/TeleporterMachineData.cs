@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(fileName = "TeleporterMachine", menuName = "Machines/Teleporter Machine")]
     public class TeleporterMachineData : QuickSlotItem

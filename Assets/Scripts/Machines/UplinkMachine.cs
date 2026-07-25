@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Igrač pritisne E da ubaci sve materijale iz inventara; stroj ih zatim postupno
     // šalje u Hub storage — odakle strojevi plaćaju održavanje, a veze svoje zahtjeve.

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Zaštitna oprema — ne postavlja se na planetu i ne troši se korištenjem.
     // Tipka P na odabranom slotu s maskom (MachinePlacer) je stavlja odnosno

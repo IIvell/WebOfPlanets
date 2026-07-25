@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Game over tok: PlayerDiedEvent -> zamrzni simulaciju i ugasi player input;
     // R oživljava igrača na aktivnom respawn totemu (default: glavni totem na Hubu).

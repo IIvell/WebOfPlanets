@@ -1,6 +1,6 @@
 using UnityEngine.InputSystem;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Sve tipke IZVAN Input Actions asseta (on pokriva samo Movement/Jump/
     // MouseLook) na jednom mjestu, zajedno s prikaznim imenima za CONTROLS

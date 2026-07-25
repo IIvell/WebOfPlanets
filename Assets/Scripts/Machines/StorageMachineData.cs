@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(menuName = "Machines/Storage Machine")]
     public class StorageMachineData : QuickSlotItem

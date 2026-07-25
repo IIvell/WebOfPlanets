@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Kad je u hotbaru selektan stroj (CollectorMachine/StorageMachine), tipka P ga postavlja
     // na trenutnu planetu ispred igrača i troši ga iz hotbar slota. X podiže stroj natrag.

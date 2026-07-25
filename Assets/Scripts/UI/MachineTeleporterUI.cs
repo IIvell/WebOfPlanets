@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     public class MachineTeleporterUI : MonoBehaviour
     {

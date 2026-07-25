@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // DTO shema save datoteke (JsonUtility). Odvojena od capture/restore logike
     // (SaveSystem.Capture.cs / SaveSystem.Restore.cs) — imena polja SU format

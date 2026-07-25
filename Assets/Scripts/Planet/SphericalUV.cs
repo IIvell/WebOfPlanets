@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Runtime zamjena UV-ova mesha sfernim (equirect lat-long) mapiranjem iz same
     // geometrije. Hub FBX ima autorske UV otoke po kojima se proceduralna planetna

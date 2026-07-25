@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Pretvara sirovine iz ulaznog spremnika u pretopljene resurse po receptima.
     public class SmelterMachine : ProductionMachine

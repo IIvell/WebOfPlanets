@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Dijagnostika za prijave "objekt lebdi/tone": za svaki interaktivni objekt u
     // sceni izmjeri razmak najniže točke geometrije od površine najbliže planete i

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(fileName = "ExtractorMachine", menuName = "Machines/Extractor Machine")]
     public class ExtractorMachineData : QuickSlotItem

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Ručni uređaj — ne postavlja se na planetu i ne troši se korištenjem.
     // Dok je odabran u hotbaru, tipka P otvara mapu mreže planeta (NetworkMapUI).

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Proceduralna tekstura kamenog (Mining) planeta: višeslojno kamenje s tamnim
     // rudnim žilama i ponekim kraterom, u rđastoj paleti dosadašnje venus fotke.

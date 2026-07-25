@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     public class HubResourceSpawner : MonoBehaviour
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     public abstract class BaseInteractable : MonoBehaviour, IInteractable
     {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Vizualni feedback za postojeće akcije: iskrice pri kopanju, burst pri
     // teleportu, prašina pri postavljanju stroja. Sve je generirano runtime —

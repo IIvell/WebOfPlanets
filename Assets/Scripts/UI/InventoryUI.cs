@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Inventar igrača (I); lista i input-mode žive u bazi ItemListUI.
     public class InventoryUI : ItemListUI

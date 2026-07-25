@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Postavljivo Računalo: E otvara isti ComputerMenuUI kao hub Računalo
     // (NetworkComputerInteractable), pa udaljena baza s Respawn Totemom pokriva

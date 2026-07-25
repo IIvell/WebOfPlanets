@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Vrsta resursa na assetu. Auto = izvedi iz prefiksa imena asseta
     // ("Kategorija_naziv", npr. Mining_ore) — naslijeđeni fallback dok se

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(menuName = "Planets/Resource Settings")]
     public class PlanetResourceSettings : ScriptableObject

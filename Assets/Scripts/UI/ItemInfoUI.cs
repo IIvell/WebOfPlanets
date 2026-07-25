@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Panel s opisom alata/stroja. Otvara se klikom na red recepta u crafting UI-ju
     // ili tipkom Q za item u trenutno odabranom hotbar slotu.

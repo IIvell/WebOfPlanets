@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Zajednički završni korak spawna resursa na površinu planeta — svjež spawn
     // (ResourceSpawnManager), hub dekor (HubResourceSpawner) i povratak iz save

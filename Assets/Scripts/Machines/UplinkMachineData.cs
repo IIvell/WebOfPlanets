@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(fileName = "UplinkMachine", menuName = "Machines/Uplink Machine")]
     public class UplinkMachineData : QuickSlotItem

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Baza na Hubu: prostor oko računala i skladišta. Odavde se računa središte i
     // radijus baze — GameManager tu smješta glavni respawn totem i gradi dekoraciju,

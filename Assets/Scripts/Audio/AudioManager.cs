@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Sav zvuk je proceduralno sintetiziran u kodu — projekt nema audio asseta,
     // a runtime sinteza ne traži ni datoteke ni izmjene scene (isti samopokretajući

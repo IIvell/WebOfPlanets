@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Dvosmjerni teleporter: za razliku od običnog (izlaz auto na Hubu),
     // igrač sam postavlja ulaz i izlaz na dvije različite planete.

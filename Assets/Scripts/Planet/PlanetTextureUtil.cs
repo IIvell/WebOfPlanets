@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Zajednički dio tri proceduralne planet-teksture (Gas/Rock/Organic): petlja
     // generiranja je bila byte-identična u sve tri klase, a keš materijala je u

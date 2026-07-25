@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Tekstura za Grab-Bot robota (playable character). FBX ima UV-e, ali samo
     // jedan materijal bez teksture (siva "FrontColor"), pa robot izgleda golo.

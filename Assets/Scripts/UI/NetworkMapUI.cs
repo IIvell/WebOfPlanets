@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Attach to a Canvas (Screen Space – Overlay).
     // Assign ConnectionManager, PlayerController, PlayerCamera, Interactor in Inspector.

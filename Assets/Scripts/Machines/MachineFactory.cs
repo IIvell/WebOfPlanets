@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Statički factory svjetskih objekata (strojevi, totemi, markeri, mobovi).
     // Ranije je živio u MachinePlaceru — input komponenti — a zvali su ga

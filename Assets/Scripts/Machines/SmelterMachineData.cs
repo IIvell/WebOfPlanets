@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(menuName = "Machines/Smelter Machine")]
     public class SmelterMachineData : QuickSlotItem

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Attach to a Canvas (Screen Space – Overlay). Uvijek vidljiv, vrh ekrana sredina.
     [RequireComponent(typeof(RectTransform))]

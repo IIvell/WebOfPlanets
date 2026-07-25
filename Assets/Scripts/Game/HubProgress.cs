@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Hub napredak: pragovi se otključavaju na Hub računalu (HubProgressUI) trošenjem
     // specifičnih resursa iz Hub skladišta, od čestih prema rijetkima. Otključan prag

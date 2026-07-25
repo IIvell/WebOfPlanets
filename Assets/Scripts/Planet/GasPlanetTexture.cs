@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Proceduralna tekstura plinovitog diva: horizontalne trake s fbm turbulencijom
     // i jednom velikom olujom, u ljubičastoj paleti postojećeg Planet_Gaseous

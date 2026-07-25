@@ -1,7 +1,7 @@
 using System.Text;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Dijagnostika za prijave "prolazim kroz totem": za svaki interaktivni objekt
     // ispiše stanje collidera (postoji li, enabled, trigger, layer) i usporedi ga

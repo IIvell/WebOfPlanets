@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Proceduralna tekstura organskog (nature) planeta: vegetacijske regije od tamne
     // šume do svijetlih livada, jezera s pješčanim obalama i sitni "lisnati" šum.

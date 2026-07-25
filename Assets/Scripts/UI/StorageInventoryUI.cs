@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Panel spremnika storage stroja (otvara StorageMachine); lista i
     // input-mode žive u bazi ItemListUI.

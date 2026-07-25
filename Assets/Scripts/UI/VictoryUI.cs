@@ -4,7 +4,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Pobjeda: otključan zadnji hub prag (OnRecipeTierUnlocked == MaxTier) otvara
     // ekran "mreža je potpuna" s izborom nastavi igrati / izađi. Samopokretajući

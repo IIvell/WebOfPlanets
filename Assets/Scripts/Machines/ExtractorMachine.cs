@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Pasivno proizvodi resurse (iz atmosfere/tla) — za razliku od CollectorMachine
     // ne treba spawnove na planeti, ali može trošiti održavanje iz Hub storage-a.

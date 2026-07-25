@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Attach to a Canvas (Screen Space – Overlay). Zdravstvena traka gore lijevo + flash na štetu + poruka pri smrti.
     [RequireComponent(typeof(RectTransform))]

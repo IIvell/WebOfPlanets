@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Čista DSP sinteza (bez Unity scene ovisnosti osim AudioClip/Mathf):
     // toneovi, šum, pad slojevi i ambient glazba. Izdvojeno iz AudioManagera —

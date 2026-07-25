@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Attach to a Canvas (Screen Space – Overlay). Toast upozorenja gore desno:
     // kritična veza (<20% zdravlja), puno hub skladište i kvar stroja — eventi su

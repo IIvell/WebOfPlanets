@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Neprijatelj vezan uz jedan planet: stoji na mjestu dok mu se igrač ne
     // približi unutar detekcijskog radijusa, tada ga prati KONSTANTNOM brzinom

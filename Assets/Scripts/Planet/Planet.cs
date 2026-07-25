@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [RequireComponent(typeof(Rigidbody))]
     public class Planet : MonoBehaviour

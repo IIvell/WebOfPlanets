@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Svemirska pozadina: proceduralni starfield cubemap (zvijezde + suptilna nebula)
     // generiran pri startu i postavljen kao RenderSettings.skybox. Radi bez ikakvih

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Vizualno sunce: svijetleća kugla postavljena u smjeru IZ kojeg dolazi svjetlo
     // Directional Lighta. Kamera ima far clip 1000, a planeti se protežu tisućama

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Kvar strojeva: svaki RADNI ciklus stroj baca kocku i može prijeći u Broken
     // stanje — na nestabilnim planetama (Volcanic/Gaseous) šansa je veća. Polomljeni

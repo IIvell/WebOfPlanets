@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Jedini vlasnik "UI otvoren" protokola: kursor, input igrača/kamere i
     // Interactor na jednom mjestu, s brojačem otvorenih panela. Prije je isti

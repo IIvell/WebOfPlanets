@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(fileName = "Recipe", menuName = "Crafting/Recipe")]
     public class CraftingRecipe : ScriptableObject

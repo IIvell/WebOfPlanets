@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-using xyz.germanfica.unity.planet.gravity;
+using WebOfPlanets;
 
 // Play mode dijagnostika: ispiše svaki spawnani objekt koji lebdi iznad ili je
 // utonuo u površinu planete, s izmjerenim razmakom.

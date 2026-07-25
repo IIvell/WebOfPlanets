@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Panel na Hub računalu: prikazuje pragove hub napretka i troši resurse iz
     // Hub skladišta za njihovo otključavanje (HubProgress). Dodaje ga ComputerMenuUI

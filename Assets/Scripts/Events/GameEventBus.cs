@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Središnja statična sabirnica događaja. NAPOMENA O REZERVIRANIM EVENTIMA
     // (odluka iz audita 14.7.2026. — ne brisati): eventi za buduće featuree T5/T6

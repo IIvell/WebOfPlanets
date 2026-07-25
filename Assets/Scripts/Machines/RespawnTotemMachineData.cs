@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     [CreateAssetMenu(fileName = "RespawnTotem", menuName = "Machines/Respawn Totem")]
     public class RespawnTotemMachineData : QuickSlotItem

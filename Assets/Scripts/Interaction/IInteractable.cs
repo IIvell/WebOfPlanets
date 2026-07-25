@@ -1,4 +1,4 @@
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     public interface IInteractable
     {

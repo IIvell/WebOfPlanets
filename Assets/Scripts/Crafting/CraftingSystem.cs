@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Crafting kao ne-UI servis: otkrivanje recepata, mapiranje rezultata i
     // transakcija craftanja. Ranije je sve troje živjelo u CraftingUI, pa

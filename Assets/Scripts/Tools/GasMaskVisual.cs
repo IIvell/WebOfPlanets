@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Prikazuje model gas maske na licu robota dok igrač nosi masku (dok je u
     // hotbaru). Samoinicijalizira se pri pokretanju umjesto scene objekta —

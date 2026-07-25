@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Respawn točka: E na totemu ga aktivira, smrt vraća igrača na zadnji aktivirani
     // totem (GameManager.Respawn). Glavni totem na Hubu spawna GameManager na startu

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Otrovna atmosfera plinskih planeta (pandan VolcanicHazardZone, ali za cijeli
     // planet): dok igrač stoji na Gaseous planetu bez gas maske u hotbaru, prima

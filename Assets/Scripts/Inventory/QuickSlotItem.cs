@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Zajednička baza za sve stvari koje mogu sjediti u hotbar slotu (alati, strojevi).
     public abstract class QuickSlotItem : ScriptableObject

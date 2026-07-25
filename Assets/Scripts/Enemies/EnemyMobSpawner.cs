@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Spawna EnemyMob-ove na svakom otkrivenom planetu (osim Huba — sigurna baza).
     // Isti obrazac kao VolcanicHazardSpawner: OnPlanetDiscovered + prolaz kroz već

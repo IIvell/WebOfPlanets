@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Snimanje stanja igre u SaveData (Save + Gather* + linkovi po indeksima).
     public static partial class SaveSystem

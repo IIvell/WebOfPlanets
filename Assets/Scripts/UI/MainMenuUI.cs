@@ -5,7 +5,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Glavni izbornik + pauza. Samopokretajući: Bootstrap stvara vlastiti canvas
     // runtime, bez izmjena scene (scena se u editoru drži u memoriji pa se disk

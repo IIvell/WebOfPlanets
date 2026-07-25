@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using TMPro;
 
-namespace xyz.germanfica.unity.planet.gravity
+namespace WebOfPlanets
 {
     // Zajednička baza tri list-panela (InventoryUI / HubStorageUI /
     // StorageInventoryUI) — prije baze su bila tri ~95% identična filea s već
