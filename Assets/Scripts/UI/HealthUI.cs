@@ -75,7 +75,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void OnDied(PlayerDiedEvent e)
         {
-            _deathPanel.SetActive(true);
+            // Isti null-guard kao u OnHealthChanged — event može stići prije BuildUI.
+            if (_deathPanel != null) _deathPanel.SetActive(true);
         }
 
         private void BuildUI()
@@ -171,7 +172,7 @@ namespace xyz.germanfica.unity.planet.gravity
             text.fontSize = 36;
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.white;
-            text.text = "You died\n<size=20>Press <b>R</b> to return to the respawn totem</size>";
+            text.text = $"You died\n<size=20>Press <b>{GameKeys.RespawnName}</b> to return to the respawn totem</size>";
 
             _deathPanel.SetActive(false);
         }

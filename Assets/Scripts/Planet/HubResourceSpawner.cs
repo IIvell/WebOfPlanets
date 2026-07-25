@@ -75,33 +75,8 @@ namespace xyz.germanfica.unity.planet.gravity
             if (!found) return;
 
             Quaternion spawnRot = Quaternion.FromToRotation(entry.item.surfaceUpAxis, hitNormal);
-
             bool isPickup = Random.value < entry.pickupChance;
-            GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
-            if (prefab == null) return;
-
-            GameObject go = Instantiate(prefab, hitPoint, spawnRot);
-
-            go.name = entry.item.displayName;
-            go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
-
-            // Bezuvjetno prizemljenje po stvarnoj geometriji: prije se korigiralo samo
-            // uz pivotAtMeshCenter flag, pa su modeli s drugačijim pivotom lebdjeli
-            // ili upadali u planet.
-            SurfacePlacement.GroundToSurface(go, hub, hitPoint, hitNormal, surfaceGap);
-
-            if (go.TryGetComponent<Rigidbody>(out var rb))
-                Destroy(rb);
-
-            // Prefab bez collidera na rootu: box po stvarnoj geometriji umjesto
-            // default 1x1x1 kocke na pivotu (isti fix kao ResourceSpawnManager).
-            if (!go.TryGetComponent<Collider>(out _))
-                SurfacePlacement.FitBoxColliderToGeometry(go);
-
-            if (!go.TryGetComponent<ItemInteractable>(out var interactable))
-                interactable = go.AddComponent<ItemInteractable>();
-
-            interactable.Init(entry.item, isPickup);
+            ResourcePlacement.Spawn(entry.item, isPickup, hub, hitPoint, hitNormal, spawnRot, surfaceGap);
         }
     }
 }

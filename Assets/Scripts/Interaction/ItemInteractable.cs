@@ -22,8 +22,8 @@ namespace xyz.germanfica.unity.planet.gravity
                 if (_regenerating) return false;
                 if (isPickup) return true;
                 if (referenceItem == null || referenceItem.requiredTool == null) return true;
-                if (PlayerToolSystem.current == null) return false;
-                var equipped = PlayerToolSystem.current.EquippedTool;
+                if (PlayerToolSystem.Instance == null) return false;
+                var equipped = PlayerToolSystem.Instance.EquippedTool;
                 if (equipped == null) return false;
                 // Isti alat ili alat iste klase dovoljnog ranga
                 return equipped == referenceItem.requiredTool ||
@@ -49,12 +49,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
             int yieldCount = isPickup ? 1 : Random.Range(referenceItem.minMiningYield, referenceItem.maxMiningYield + 1);
             for (int i = 0; i < yieldCount; i++)
-                InventorySystem.current.Add(referenceItem);
+                InventorySystem.Instance.Add(referenceItem);
 
             if (!isPickup && referenceItem.bonusMiningItem != null && Random.value < referenceItem.bonusMiningChance)
-                InventorySystem.current.Add(referenceItem.bonusMiningItem);
+                InventorySystem.Instance.Add(referenceItem.bonusMiningItem);
 
-            PlayerToolSystem.current?.OnResourceMined();
+            PlayerToolSystem.Instance?.OnResourceMined();
             Debug.Log($"Picked up: {referenceItem.displayName} x{yieldCount}");
 
             if (referenceItem.regenerationTime > 0f)

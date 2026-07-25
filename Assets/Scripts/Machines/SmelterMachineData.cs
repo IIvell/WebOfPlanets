@@ -18,6 +18,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [Tooltip("Prefab vizuala stroja. Prazno = kocka.")]
         public GameObject prefab;
 
+        [Tooltip("Uniformni world scale vizuala pri postavljanju.")]
+        [Min(0.01f)] public float worldScale = MachineFactory.SmelterScale;
+
         [Header("Prerada")]
         [Tooltip("Recepti koje ovaj stroj zna pretopiti. Svaki ciklus se pokušaju svi redom.")]
         public SmeltRecipe[] recipes;

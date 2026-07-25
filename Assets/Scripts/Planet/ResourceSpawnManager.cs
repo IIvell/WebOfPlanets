@@ -64,34 +64,8 @@ namespace xyz.germanfica.unity.planet.gravity
             }
 
             Quaternion spawnRot = Quaternion.FromToRotation(entry.item.surfaceUpAxis, hitNormal);
-
             bool isPickup = Random.value < entry.pickupChance;
-            GameObject prefab = isPickup ? entry.item.pickupPrefab : entry.item.miningPrefab;
-            if (prefab == null) return;
-
-            GameObject go = Instantiate(prefab, hitPoint, spawnRot);
-
-            go.name = entry.item.displayName;
-            go.transform.localScale = isPickup ? entry.item.pickupWorldScale : entry.item.miningWorldScale;
-
-            // Bezuvjetno prizemljenje po stvarnoj geometriji: prije se korigiralo samo
-            // uz pivotAtMeshCenter flag, pa su modeli s drugačijim pivotom lebdjeli
-            // ili upadali u planet.
-            SurfacePlacement.GroundToSurface(go, planet, hitPoint, hitNormal, surfaceGap);
-
-            if (go.TryGetComponent<Rigidbody>(out var rb))
-                Destroy(rb);
-
-            // Prefab bez collidera na rootu: box po stvarnoj geometriji umjesto
-            // default 1x1x1 kocke na pivotu — 'Ice' (skinned fridge bez collidera)
-            // je s default kockom imao collider pomaknut od vizuala.
-            if (!go.TryGetComponent<Collider>(out _))
-                SurfacePlacement.FitBoxColliderToGeometry(go);
-
-            if (!go.TryGetComponent<ItemInteractable>(out var interactable))
-                interactable = go.AddComponent<ItemInteractable>();
-
-            interactable.Init(entry.item, isPickup);
+            ResourcePlacement.Spawn(entry.item, isPickup, planet, hitPoint, hitNormal, spawnRot, surfaceGap);
         }
 
         // ── Save/load ─────────────────────────────────────────────────────────
@@ -108,31 +82,13 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (item == null || planet == null) return null;
 
-            GameObject prefab = isPickup ? item.pickupPrefab : item.miningPrefab;
-            if (prefab == null) return null;
-
             Vector3 dir = (position - planet.position).normalized;
             SurfacePlacement.GetSurfacePoint(planet, dir, out Vector3 surfacePos, out Vector3 surfaceNormal);
 
-            GameObject go = Instantiate(prefab, surfacePos, rotation);
-            go.name = item.displayName;
-            go.transform.localScale = isPickup ? item.pickupWorldScale : item.miningWorldScale;
-
-            SurfacePlacement.GroundToSurface(go, planet, surfacePos, surfaceNormal, surfaceGap);
-
-            if (go.TryGetComponent<Rigidbody>(out var rb))
-                Destroy(rb);
-            if (!go.TryGetComponent<Collider>(out _))
-                SurfacePlacement.FitBoxColliderToGeometry(go);
-
-            if (!go.TryGetComponent<ItemInteractable>(out var interactable))
-                interactable = go.AddComponent<ItemInteractable>();
-            interactable.Init(item, isPickup);
-
-            return go;
+            return ResourcePlacement.Spawn(item, isPickup, planet, surfacePos, surfaceNormal, rotation, surfaceGap);
         }
 
-        // Isti radijus kao MachinePlacer.IsSpotClear; cilja se samo na totem
+        // Isti radijus kao MachineFactory.IsSpotClear; cilja se samo na totem
         // markere veza (collider i interactable su im na root objektu —
         // FitColliderToRenderer briše child collidere).
         private static bool IsNearConnectionMarker(Vector3 pos)

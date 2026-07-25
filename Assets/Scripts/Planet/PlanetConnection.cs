@@ -60,13 +60,42 @@ namespace xyz.germanfica.unity.planet.gravity
             UpdateVisual();
         }
 
+        // Degradacija i boja se primjenjuju na fiksnom taktu umjesto svaki frame:
+        // dva upisa u materijal + bus event po frameu PO VEZI su rasli s brojem
+        // veza (a srž igre je graditi veze) — potrošači su se već branili
+        // throttleom (NetworkMapUI). Šteta se akumulira pa je ukupni tempo
+        // degradacije identičan; flicker grana ispod praga ostaje per-frame.
+        private const float TickInterval = 0.25f;
+        private float _tickTimer;
+        private float _pendingDamage;
+
         void Update()
         {
-            UpdateHealthColor();
+            if (Health < FlickerThreshold)
+                UpdateHealthColor();
 
-            if (_lifespan <= 0f) return;
-            float damagePerSecond = 100f / _lifespan;
-            ApplyDamage(damagePerSecond * Time.deltaTime);
+            if (_lifespan > 0f)
+                _pendingDamage += (100f / _lifespan) * Time.deltaTime;
+
+            _tickTimer += Time.deltaTime;
+            if (_tickTimer < TickInterval) return;
+            _tickTimer = 0f;
+
+            if (_pendingDamage > 0f)
+            {
+                float damage = _pendingDamage;
+                _pendingDamage = 0f;
+                ApplyDamage(damage); // na 0 zdravlja ruši objekt (odgođeni Destroy)
+            }
+
+            UpdateHealthColor();
+        }
+
+        void OnDestroy()
+        {
+            // Renderer.material je po-objektna instanca — bez ovoga svaka
+            // istrunula veza trajno ostavi jedan Material u memoriji.
+            if (_material != null) Destroy(_material);
         }
 
         private void UpdateHealthColor()
@@ -146,7 +175,7 @@ namespace xyz.germanfica.unity.planet.gravity
             // totem mora fizički blokirati igrača. Interakciji trigger ne treba —
             // Interactor cilja OverlapSphere-om po colliderima, a dolazak teleporta
             // već slijeće uz rub solid collidera (PlanetCreator.TeleportToPlanet).
-            MachinePlacer.FitColliderToRenderer(marker);
+            SurfacePlacement.FitBoxColliderToGeometry(marker);
 
             ConnectionInteractable interactable = marker.AddComponent<ConnectionInteractable>();
             interactable.Init(planetCreator, sourcePlanet: from, targetPlanet: toward);
@@ -192,7 +221,7 @@ namespace xyz.germanfica.unity.planet.gravity
             return pos;
         }
 
-        // MachinePlacer.IsSpotClear + iznimka za igrača: marker aktivne veze se
+        // MachineFactory.IsSpotClear + iznimka za igrača: marker aktivne veze se
         // spawna dok igrač stoji uz potencijalni totem, pa bi ga vlastiti capsule
         // inače svaki put otjerao s idealnog mjesta. Igrač se prepoznaje preko
         // PlayerHealth na rigu (isti uzorak kao VolcanicHazardZone) — čisto

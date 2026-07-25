@@ -25,14 +25,12 @@ namespace xyz.germanfica.unity.planet.gravity
             if (Keyboard.current == null) return;
             if (!GameManager.IsPlaying) return;
 
-            var eKey = Keyboard.current.eKey;
-
-            if (eKey.wasPressedThisFrame)
+            if (GameKeys.WasPressed(GameKeys.Interact))
             {
                 _currentTarget = FindClosest();
                 _holdTimer = 0f;
 
-                if (_currentTarget is BaseInteractable bi && !bi.CanInteract)
+                if (_currentTarget != null && !_currentTarget.CanInteract)
                 {
                     Debug.Log("Potreban je specifičan alat za minanje ovog resursa.");
                     _currentTarget = null;
@@ -49,7 +47,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (_currentTarget == null) return;
 
-            if (!eKey.isPressed)
+            if (!GameKeys.IsPressed(GameKeys.Interact))
             {
                 CancelMining();
                 return;

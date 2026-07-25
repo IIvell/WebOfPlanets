@@ -5,11 +5,11 @@ namespace xyz.germanfica.unity.planet.gravity
 {
     public class HubStorage : MonoBehaviour
     {
-        public static HubStorage current;
+        public static HubStorage Instance { get; private set; }
 
         [SerializeField] private int maxCapacity = 100;
 
-        private Dictionary<Item, InventoryItem> m_itemDictionary;
+        private Dictionary<Item, InventoryItem> _itemDictionary;
         [SerializeField] private List<InventoryItem> inventory = new List<InventoryItem>();
 
         // Bazni kapacitet + bonus otključanih hub pragova.
@@ -17,8 +17,14 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
-            current = this;
-            m_itemDictionary = new Dictionary<Item, InventoryItem>();
+            if (Instance != null && Instance != this) { Destroy(this); return; }
+            Instance = this;
+            _itemDictionary = new Dictionary<Item, InventoryItem>();
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         public List<InventoryItem> GetInventory() => inventory;
@@ -35,7 +41,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public InventoryItem Get(Item referenceData)
         {
-            m_itemDictionary.TryGetValue(referenceData, out InventoryItem value);
+            _itemDictionary.TryGetValue(referenceData, out InventoryItem value);
             return value;
         }
 
@@ -48,7 +54,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 return false;
             }
 
-            if (m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            if (_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
             {
                 value.AddToStack();
             }
@@ -56,17 +62,27 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 InventoryItem newItem = new InventoryItem(referenceData);
                 inventory.Add(newItem);
-                m_itemDictionary.Add(referenceData, newItem);
+                _itemDictionary.Add(referenceData, newItem);
             }
 
             return true;
         }
 
-        // Item nema polje tipa resursa, pa ResourceType izvodimo iz naming konvencije
-        // asseta ("Kategorija_naziv", npr. Mining_ore, Organic_wood). Fallback je Ore.
+        // Eksplicitna vrsta s asseta (Item.resourceKind) ima prednost; Auto
+        // zadržava naslijeđeno izvođenje iz naming konvencije asseta
+        // ("Kategorija_naziv", npr. Mining_ore, Organic_wood). Fallback je Ore.
         private static ResourceType GetResourceType(Item item)
         {
             if (item == null) return ResourceType.Ore;
+
+            switch (item.resourceKind)
+            {
+                case ResourceKind.Ore:            return ResourceType.Ore;
+                case ResourceKind.Biomass:        return ResourceType.Biomass;
+                case ResourceKind.Ice:            return ResourceType.Ice;
+                case ResourceKind.Gas:            return ResourceType.Gas;
+                case ResourceKind.VolcanicMatter: return ResourceType.VolcanicMatter;
+            }
 
             string assetName = item.name;
             if (assetName.StartsWith("Organic"))  return ResourceType.Biomass;
@@ -78,14 +94,14 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public void Remove(Item referenceData)
         {
-            if (m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            if (_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
             {
                 value.RemoveFromStack();
 
                 if (value.GetStackSize() == 0)
                 {
                     inventory.Remove(value);
-                    m_itemDictionary.Remove(referenceData);
+                    _itemDictionary.Remove(referenceData);
                 }
             }
         }
@@ -95,7 +111,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public void ClearForLoad()
         {
             inventory.Clear();
-            m_itemDictionary.Clear();
+            _itemDictionary.Clear();
         }
 
         // Kao Add, ali cijeli stack odjednom i bez StorageFull eventa — save je
@@ -104,11 +120,11 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (referenceData == null || count <= 0) return;
 
-            if (!m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            if (!_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
             {
                 value = new InventoryItem(referenceData); // konstruktor već broji 1
                 inventory.Add(value);
-                m_itemDictionary.Add(referenceData, value);
+                _itemDictionary.Add(referenceData, value);
                 count--;
             }
             for (int i = 0; i < count; i++)

@@ -3,6 +3,15 @@ using UnityEngine;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
+    // Središnja statična sabirnica događaja. NAPOMENA O REZERVIRANIM EVENTIMA
+    // (odluka iz audita 14.7.2026. — ne brisati): eventi za buduće featuree T5/T6
+    // trenutno nemaju publishera i/ili subscribera, ali su namjerno ostavljeni kao
+    // dogovoreno sučelje: ancient veze (OnAncientConnectionDiscovered/Activated),
+    // sekundarni hub (OnSecondaryHubCreated), transportne rute (OnTransportRoute
+    // Created/Removed), slijetanje (OnPlayerLandedOnPlanet/OnPlayerLeftPlanet),
+    // resursi (OnResourceCollected/OnResourceTransported), hub nadogradnje
+    // (OnHubUpgraded), story lanac (OnMilestoneReached/OnStoryFragmentUnlocked)
+    // te OnToolEquipped. OnMachineRepaired se diže, subscriber je rezerviran.
     public static class GameEventBus
     {
         // ── Player ────────────────────────────────────────────────────────────
@@ -49,8 +58,11 @@ namespace xyz.germanfica.unity.planet.gravity
         public static event Action<ToolEquippedEvent>    OnToolEquipped;
         public static event Action<ToolDurabilityEvent>  OnToolDurabilityChanged;
 
-        // ── Quick Slots ───────────────────────────────────────────────────────
+        // ── Quick Slots / Inventar ────────────────────────────────────────────
         public static event Action OnQuickSlotsChanged;
+        // Resurs ušao u inventar igrača (kopanje, preuzimanje iz strojeva) — bez
+        // payloada: jedini potrošač (AudioManager) treba samo činjenicu ulaska.
+        public static event Action OnInventoryItemAdded;
 
         // ── Player Health ─────────────────────────────────────────────────────
         public static event Action<PlayerHealthChangedEvent> OnPlayerHealthChanged;
@@ -97,6 +109,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public static void RaiseToolDurabilityChanged(ToolDurabilityEvent e) => OnToolDurabilityChanged?.Invoke(e);
 
         public static void RaiseQuickSlotsChanged() => OnQuickSlotsChanged?.Invoke();
+        public static void RaiseInventoryItemAdded() => OnInventoryItemAdded?.Invoke();
 
         public static void Raise(PlayerHealthChangedEvent e) => OnPlayerHealthChanged?.Invoke(e);
         public static void Raise(PlayerDamagedEvent e)       => OnPlayerDamaged?.Invoke(e);

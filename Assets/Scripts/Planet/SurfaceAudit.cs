@@ -1,3 +1,7 @@
+// Editor-only dijagnostika, ali NE smije u Assets/Editor: koristi internal
+// članove SurfacePlacementa (isti izračun kao prizemljenje), a oni su u runtime
+// assemblyju. #if omotač je zato drži izvan builda na mjestu.
+#if UNITY_EDITOR
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -114,3 +118,4 @@ namespace xyz.germanfica.unity.planet.gravity
 
     }
 }
+#endif

@@ -2,11 +2,17 @@ using UnityEngine;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
+    // Vrsta resursa na assetu. Auto = izvedi iz prefiksa imena asseta
+    // ("Kategorija_naziv", npr. Mining_ore) — naslijeđeni fallback dok se
+    // asseti ručno ne popune kroz Inspector (vidi HubStorage.GetResourceType).
+    public enum ResourceKind { Auto = 0, Ore, Biomass, Ice, Gas, VolcanicMatter }
+
     [CreateAssetMenu(menuName = "Inventory/Item")]
     public class Item : ScriptableObject
     {
-        public string id;
         public string displayName;
+        [Tooltip("Vrsta resursa (StorageFull event i budući sustavi). Auto = izvedi iz prefiksa imena asseta.")]
+        public ResourceKind resourceKind = ResourceKind.Auto;
         public Sprite icon;
         [Tooltip("Prefab za pickup verziju resursa (instant, bez mining timera).")]
         public GameObject pickupPrefab;

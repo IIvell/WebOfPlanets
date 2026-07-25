@@ -56,7 +56,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (!_isOpen) return;
 
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (GameKeys.WasPressed(GameKeys.Cancel))
             {
                 Close();
                 return;
@@ -82,11 +82,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _pan  = Vector2.zero;
             _isOpen = true;
             _panel.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible   = true;
-            playerController?.SetInputEnabled(false);
-            playerCamera?.SetInputEnabled(false);
-            if (interactor != null) interactor.enabled = false;
+            UiFocus.Acquire(playerController, playerCamera, interactor);
             Subscribe();
             Canvas.ForceUpdateCanvases();
             Refresh();
@@ -100,11 +96,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _refreshQueued = false;
             _dragging = false;
             _panel.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible   = false;
-            playerController?.SetInputEnabled(true);
-            playerCamera?.SetInputEnabled(true);
-            if (interactor != null) interactor.enabled = true;
+            UiFocus.Release(playerController, playerCamera, interactor);
         }
 
         public bool IsOpen => _isOpen;
@@ -179,12 +171,19 @@ namespace xyz.germanfica.unity.planet.gravity
             }
         }
 
+        // Tekst legende se gradi samo kad se zoom stvarno promijeni — string
+        // interpolacija svaki frame je bila nepotrebna alokacija.
+        private float _labelZoom = -1f;
+
         private void ApplyView()
         {
             _mapContent.localScale      = new Vector3(_zoom, _zoom, 1f);
             _mapContent.anchoredPosition = _pan;
-            if (_zoomLabel != null)
-                _zoomLabel.text = $"Zoom: {_zoom * 100f:F0}%  |  Scroll = zoom  |  Drag = pan  |  ESC = close";
+            if (_zoomLabel != null && !Mathf.Approximately(_labelZoom, _zoom))
+            {
+                _labelZoom = _zoom;
+                _zoomLabel.text = $"Zoom: {_zoom * 100f:F0}%  |  Scroll = zoom  |  Drag = pan  |  {GameKeys.CancelName} = close";
+            }
         }
 
         // ── Build UI hierarchy once ───────────────────────────────────────────
@@ -276,7 +275,7 @@ namespace xyz.germanfica.unity.planet.gravity
             rt.anchoredPosition = new Vector2(0f, 4f);
             rt.sizeDelta        = new Vector2(0f, 20f);
             _zoomLabel          = legend.AddComponent<TextMeshProUGUI>();
-            _zoomLabel.text     = "Scroll = zoom  |  Drag = pan  |  ESC = close";
+            _zoomLabel.text     = $"Scroll = zoom  |  Drag = pan  |  {GameKeys.CancelName} = close";
             _zoomLabel.fontSize  = 12;
             _zoomLabel.alignment = TextAlignmentOptions.Center;
             _zoomLabel.color     = new Color(0.7f, 0.7f, 0.7f);

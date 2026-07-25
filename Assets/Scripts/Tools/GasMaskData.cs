@@ -40,7 +40,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (_worn == null) return null;
 
             // Maska koja je izašla iz hotbara više se ne nosi.
-            var inv = QuickSlotInventory.current;
+            var inv = QuickSlotInventory.Instance;
             if (inv == null) return null;
             for (int i = 0; i < QuickSlotInventory.SlotCount; i++)
                 if (inv.GetSlot(i) == _worn)

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
-    public enum ResourceType { Ore, Crystal, Biomass, Ice, Gas, VolcanicMatter }
+    public enum ResourceType { Ore, Biomass, Ice, Gas, VolcanicMatter }
     public enum PlanetType { Mining, Organic, Ice, Gaseous, Volcanic }
     public enum ConnectionType { Ancient, Weak, Mid, Strong }
     public enum MachineState { Active, Idle, Broken }
@@ -64,8 +64,6 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         public Transform FromPlanet;
         public Transform ToPlanet;
-        public bool UsedConnection;
-        public int ResourceCost;
     }
 
     public struct HubUpgradedEvent

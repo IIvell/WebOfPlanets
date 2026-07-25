@@ -45,7 +45,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 Vector3 dir = TangentDir(normal, i * 45f);
                 Vector3 candidate = SnapToSurface(hub, center + dir * radius * 0.5f);
                 if (i == 0) fallback = candidate;
-                if (MachinePlacer.IsSpotClear(candidate, hub)) return candidate;
+                if (MachineFactory.IsSpotClear(candidate, hub)) return candidate;
             }
 
             return fallback;

@@ -31,7 +31,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (_panel.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_panel.activeSelf && GameKeys.WasPressed(GameKeys.Cancel))
                 Cancel();
         }
 
@@ -47,20 +47,15 @@ namespace xyz.germanfica.unity.planet.gravity
 
             foreach (var planet in planets)
             {
-                Transform captured = planet;
                 CreateButton(planet.name, () =>
                 {
                     Hide();
-                    _onPlanetPicked?.Invoke(captured);
+                    _onPlanetPicked?.Invoke(planet);
                 });
             }
 
             _panel.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible   = true;
-            playerController?.SetInputEnabled(false);
-            playerCamera?.SetInputEnabled(false);
-            if (interactor != null) interactor.enabled = false;
+            UiFocus.Acquire(playerController, playerCamera, interactor);
         }
 
         private void Cancel()
@@ -72,11 +67,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private void Hide()
         {
             _panel.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible   = false;
-            playerController?.SetInputEnabled(true);
-            playerCamera?.SetInputEnabled(true);
-            if (interactor != null) interactor.enabled = true;
+            UiFocus.Release(playerController, playerCamera, interactor);
         }
 
         private void CreateButton(string label, Action onClick)
@@ -174,7 +165,7 @@ namespace xyz.germanfica.unity.planet.gravity
             hintRT.sizeDelta        = new Vector2(0f, 28f);
 
             var hint           = hintGO.AddComponent<TextMeshProUGUI>();
-            hint.text          = "ESC — cancel (machine will not be built)";
+            hint.text          = $"{GameKeys.CancelName} — cancel (machine will not be built)";
             hint.fontSize      = 11;
             hint.alignment     = TextAlignmentOptions.Center;
             hint.color         = new Color(0.6f, 0.6f, 0.6f);

@@ -11,7 +11,7 @@ namespace xyz.germanfica.unity.planet.gravity
     // runtime, bez izmjena scene (scena se u editoru drži u memoriji pa se disk
     // izmjene gube — isti razlog kao Resources.Load fallbackovi drugdje).
     // Prikazuje se pri pokretanju (Igraj / Kontrole / Izlaz); tijekom igre Esc
-    // ga otvara kao pauzu (Nastavi). Gate za Esc: kursor zaključan = nijedan
+    // ga otvara kao pauzu (Nastavi). Gate za Esc: UiFocus kaže da nijedan
     // drugi panel nije otvoren (isti obrazac kao MachinePlacer).
     public class MainMenuUI : MonoBehaviour
     {
@@ -83,15 +83,15 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (_isOpen)
             {
-                if (!keyboard.escapeKey.wasPressedThisFrame) return;
+                if (!GameKeys.WasPressed(GameKeys.Cancel)) return;
                 if (_controlsPanel.activeSelf) ShowControls(false);
                 else Play();
                 return;
             }
 
             if (GameManager.IsPlaying
-                && Cursor.lockState == CursorLockMode.Locked
-                && keyboard.escapeKey.wasPressedThisFrame)
+                && !UiFocus.IsAnyPanelOpen
+                && GameKeys.WasPressed(GameKeys.Cancel))
                 Open();
         }
 
@@ -109,12 +109,8 @@ namespace xyz.germanfica.unity.planet.gravity
             if (GameManager.Instance != null) GameManager.Instance.Pause();
             else Time.timeScale = 0f;
 
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
             ResolveReferences();
-            _playerController?.SetInputEnabled(false);
-            _playerCamera?.SetInputEnabled(false);
-            if (_interactor != null) _interactor.enabled = false;
+            UiFocus.Acquire(_playerController, _playerCamera, _interactor);
         }
 
         private void Play()
@@ -126,12 +122,8 @@ namespace xyz.germanfica.unity.planet.gravity
             if (GameManager.Instance != null) GameManager.Instance.Resume();
             else Time.timeScale = 1f;
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
             ResolveReferences();
-            _playerController?.SetInputEnabled(true);
-            _playerCamera?.SetInputEnabled(true);
-            if (_interactor != null) _interactor.enabled = true;
+            UiFocus.Release(_playerController, _playerCamera, _interactor);
         }
 
         private void Quit()
@@ -267,19 +259,21 @@ namespace xyz.germanfica.unity.planet.gravity
             text.alignment = TextAlignmentOptions.TopLeft;
             text.color = Color.white;
             text.raycastTarget = false;
+            // Imena tipki dolaze iz GameKeys — jedini izvor istine (prije je ovaj
+            // tekst bio treća ručno sinkronizirana kopija rasporeda tipki).
             text.text =
                 "<b>CONTROLS</b>\n\n" +
                 "<b>W A S D</b> — move\n" +
                 "<b>Mouse</b> — camera\n" +
                 "<b>Space</b> — jump\n" +
-                "<b>E</b> — interact (mining, pickup, machines, computer)\n" +
-                "<b>I</b> — inventory\n" +
-                "<b>Q</b> — description of selected item\n" +
+                $"<b>{GameKeys.InteractName}</b> — interact (mining, pickup, machines, computer)\n" +
+                $"<b>{GameKeys.InventoryName}</b> — inventory\n" +
+                $"<b>{GameKeys.ItemInfoName}</b> — description of selected item\n" +
                 "<b>1–9</b> — select hotbar slot\n" +
-                "<b>P</b> — place machine from selected slot\n" +
-                "<b>X</b> — cancel two-way teleporter\n" +
-                "<b>R</b> — respawn after death\n" +
-                "<b>Esc</b> — pause / close window";
+                $"<b>{GameKeys.PlaceMachineName}</b> — place machine from selected slot\n" +
+                $"<b>{GameKeys.PickupMachineName}</b> — cancel two-way teleporter\n" +
+                $"<b>{GameKeys.RespawnName}</b> — respawn after death\n" +
+                $"<b>{GameKeys.CancelName}</b> — pause / close window";
 
             MakeButton(_controlsPanel.transform, "Back",
                 -rt.sizeDelta.y * 0.5f + ButtonHeight * 0.5f + 16f, () => ShowControls(false));

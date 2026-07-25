@@ -19,13 +19,13 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public void DepositAll()
         {
-            if (HubStorage.current == null)
+            if (HubStorage.Instance == null)
             {
                 Debug.LogWarning("HubStorageInteractable: nema HubStorage instance u sceni.");
                 return;
             }
 
-            var playerInventory = InventorySystem.current;
+            var playerInventory = InventorySystem.Instance;
             if (playerInventory == null) return;
 
             // Copy list because we modify it during iteration.
@@ -37,9 +37,9 @@ namespace xyz.germanfica.unity.planet.gravity
                 int stack = inventoryItem.GetStackSize();
                 for (int i = 0; i < stack; i++)
                 {
-                    if (!HubStorage.current.Add(inventoryItem.data))
+                    if (!HubStorage.Instance.Add(inventoryItem.data))
                     {
-                        Debug.Log($"Hub storage pun ({HubStorage.current.MaxCapacity} mjesta). Preneseno {deposited} predmeta.");
+                        Debug.Log($"Hub storage pun ({HubStorage.Instance.MaxCapacity} mjesta). Preneseno {deposited} predmeta.");
                         return;
                     }
                     playerInventory.Remove(inventoryItem.data);
@@ -47,7 +47,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 }
             }
 
-            Debug.Log($"Deposited {deposited} item(s) into hub storage. ({HubStorage.current.TotalCount()}/{HubStorage.current.MaxCapacity})");
+            Debug.Log($"Deposited {deposited} item(s) into hub storage. ({HubStorage.Instance.TotalCount()}/{HubStorage.Instance.MaxCapacity})");
         }
     }
 }

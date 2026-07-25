@@ -53,6 +53,12 @@ namespace xyz.germanfica.unity.planet.gravity
             // odbacuje strogim ">" na točnoj granici. Par sidren na hub mora
             // imati i čistu hub stranu: par totema se uopće ne spawna ako hub
             // točka padne u exclusion zonu (oba-ili-nijedan pravilo).
+            // Smjer ovisnosti u ciklusu PlanetCreator↔ConnectionManager: PC ovdje
+            // (prije CM-ovog Starta) smije čitati SAMO serijalizirana polja CM-a
+            // (MaxConnectionRange, exclusion provjere) — nikakvo runtime stanje.
+            // CM-ova serijalizirana polja drže scene overridove (npr.
+            // maxConnectionRange 2000 vs default 5000), pa se ovo NE smije
+            // preseliti u "config objekt" bez editiranja scene.
             ConnectionManager connectionManager = FindFirstObjectByType<ConnectionManager>();
             if (connectionManager == null)
                 Debug.LogWarning("PlanetCreator: ConnectionManager nije pronađen, planeti bez garancije veze.");
@@ -79,9 +85,14 @@ namespace xyz.germanfica.unity.planet.gravity
         void Update()
         {
             if (!GameManager.IsPlaying) return;
-            if (Keyboard.current == null || !Keyboard.current.tKey.wasPressedThisFrame) return;
+            if (!GameKeys.WasPressed(GameKeys.DebugSpawnPlanet)) return;
             CreatePlanetAndTeleport();
         }
+
+        // Debug/stress spawnovi (T) moraju imati JEDINSTVENA imena: save
+        // referencira planete po imenu, pa bi dva "GeneratedPlanet" na loadu
+        // tiho zakačila veze/strojeve/igrača na krivi planet.
+        private int _debugSpawnCount;
 
         private Transform SpawnPlanet(Vector3 origin, int index = -1, float maxDist = -1f, System.Predicate<Vector3> positionValid = null)
         {
@@ -92,7 +103,7 @@ namespace xyz.germanfica.unity.planet.gravity
             float minSep  = minPlanetSeparation + scale;
 
             Vector3 planetPos = FindOpenPosition(origin, minSep, maxDist, positionValid);
-            string  name      = index >= 0 ? $"Planet_{index:D2}" : "GeneratedPlanet";
+            string  name      = index >= 0 ? $"Planet_{index:D2}" : $"GeneratedPlanet_{++_debugSpawnCount:D2}";
             PlanetType type   = AllTypes[Random.Range(0, AllTypes.Length)];
 
             return CreatePlanetObject(name, planetPos, scale, gravity, type);
@@ -242,104 +253,11 @@ namespace xyz.germanfica.unity.planet.gravity
             if (playerCamera != null) playerCamera.SetPlanet(_currentPlanet);
         }
 
+        // Delegacijski shim: izvedba teleporta živi u PlanetTeleporteru, a ova
+        // metoda ostaje javna ulazna točka jer scena drži serijalizirane
+        // planetCreator reference (ConnectionManager, GameManager, MachinePlacer).
         public void TeleportToPlanet(Transform targetPlanet, Transform fromPlanet = null, Transform destinationMarker = null)
-        {
-            if (_currentPlanet != null)
-            {
-                if (_currentPlanet.TryGetComponent(out Attractor oldAttractor))
-                    oldAttractor.enabled = false;
-            }
-
-            if (targetPlanet.TryGetComponent(out Attractor newAttractor))
-                newAttractor.enabled = true;
-
-            Vector3 playerPos;
-            Vector3 playerUp;
-
-            if (destinationMarker != null)
-            {
-                // Sletimo blizu stvarne pozicije markera/totema (umjesto da ponovno
-                // računamo površinu iz centra planeta, što na nesferičnim meshovima
-                // zna promašiti stvarnu točku markera).
-                Vector3 markerUp = destinationMarker.up;
-                Vector3 tangent = Vector3.Cross(markerUp, Vector3.up);
-                if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(markerUp, Vector3.right);
-                tangent.Normalize();
-
-                // Marker sa solid colliderom (teleporter gate, totemi veza): sleti duž
-                // forward osi tik uz rub collidera — izvan njega (inače fizika izbaci
-                // igrača), ali ne dalje nego što je nužno. Za eventualni trigger marker
-                // bez solid collidera ostaje paušalnih 2 m.
-                float lateral = 2f;
-                if (destinationMarker.TryGetComponent(out Collider markerCollider) && !markerCollider.isTrigger)
-                {
-                    tangent = destinationMarker.forward;
-
-                    float probe = markerCollider.bounds.extents.magnitude + 2f;
-                    Ray edgeRay = new Ray(destinationMarker.position + markerUp * 1f + tangent * probe, -tangent);
-                    lateral = markerCollider.Raycast(edgeRay, out RaycastHit edgeHit, probe)
-                        ? (probe - edgeHit.distance) + 1.5f
-                        : markerCollider.bounds.extents.magnitude + 1.5f;
-                }
-
-                Vector3 rayOrigin = destinationMarker.position + markerUp * 2f + tangent * lateral;
-                if (Physics.Raycast(rayOrigin, -markerUp, out RaycastHit hit, 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                {
-                    playerPos = hit.point + hit.normal * 1f;
-                    playerUp = hit.normal;
-                }
-                else
-                {
-                    playerPos = destinationMarker.position + tangent * lateral;
-                    playerUp = markerUp;
-                }
-            }
-            else
-            {
-                // localScale laže za mesh planete (Hub: localScale 1000, stvarni radijus
-                // ~19) — fallback bi igrača ostavio stotine jedinica iznad površine.
-                float radius = SurfacePlacement.GetPlanetRadius(targetPlanet);
-
-                Vector3 surfaceNormal = fromPlanet != null
-                    ? (fromPlanet.position - targetPlanet.position).normalized
-                    : Random.onUnitSphere;
-
-                Vector3 tangent = Vector3.Cross(surfaceNormal, Vector3.up);
-                if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(surfaceNormal, Vector3.right);
-                tangent.Normalize();
-
-                float lateralOffset = Mathf.Min(6f, radius * 0.5f);
-                Vector3 aimDirection = (surfaceNormal * radius + tangent * lateralOffset).normalized;
-
-                Vector3 rayOrigin = targetPlanet.position + aimDirection * (radius * 1.5f);
-                if (Physics.Raycast(rayOrigin, -aimDirection, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                {
-                    playerPos = hit.point + hit.normal * 1f;
-                    playerUp = hit.normal;
-                }
-                else
-                {
-                    playerPos = targetPlanet.position + aimDirection * (radius + 1f);
-                    playerUp = aimDirection;
-                }
-            }
-
-            Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, playerUp);
-
-            Rigidbody playerRb = player.rig;
-            playerRb.linearVelocity = Vector3.zero;
-            playerRb.angularVelocity = Vector3.zero;
-            playerRb.position = playerPos;
-            playerRb.rotation = playerRot;
-
-            _currentPlanet = targetPlanet;
-            player.SetPlanet(_currentPlanet);
-            if (playerCamera != null) playerCamera.SetPlanet(_currentPlanet);
-
-            // Centralna točka svih teleporta (veze, strojevi, respawn) — ovdje se
-            // UsedConnection/ResourceCost ne znaju pa ostaju default; trenutni
-            // subscriber (AudioManager) treba samo činjenicu teleporta.
-            GameEventBus.Raise(new PlayerTeleportEvent { FromPlanet = fromPlanet, ToPlanet = targetPlanet });
-        }
+            => _currentPlanet = PlanetTeleporter.Teleport(player, playerCamera, _currentPlanet,
+                targetPlanet, fromPlanet, destinationMarker);
     }
 }

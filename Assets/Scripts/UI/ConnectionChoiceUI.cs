@@ -44,7 +44,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (_panel.activeSelf && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_panel.activeSelf && GameKeys.WasPressed(GameKeys.Cancel))
                 Hide();
         }
 
@@ -55,21 +55,13 @@ namespace xyz.germanfica.unity.planet.gravity
             _target = target;
             RefreshButtons();
             _panel.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-            playerController?.SetInputEnabled(false);
-            playerCamera?.SetInputEnabled(false);
-            if (interactor != null) interactor.enabled = false;
+            UiFocus.Acquire(playerController, playerCamera, interactor);
         }
 
         private void Hide()
         {
             _panel.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-            playerController?.SetInputEnabled(true);
-            playerCamera?.SetInputEnabled(true);
-            if (interactor != null) interactor.enabled = true;
+            UiFocus.Release(playerController, playerCamera, interactor);
         }
 
         private void Choose(ConnectionType quality)
@@ -218,7 +210,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _teleportButton.onClick.AddListener(ChooseTeleport);
 
             // Hint
-            var hint = MakeText(_panel.transform, "ESC — cancel", 11,
+            var hint = MakeText(_panel.transform, $"{GameKeys.CancelName} — cancel", 11,
                 new Vector2(0f, -148f), new Vector2(500f, 24f));
             hint.alignment = TextAlignmentOptions.Center;
             hint.color = new Color(0.6f, 0.6f, 0.6f);

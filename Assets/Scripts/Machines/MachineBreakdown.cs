@@ -68,6 +68,8 @@ namespace xyz.germanfica.unity.planet.gravity
 
             SetBrokenVisual(false);
             VfxManager.PlayMachinePlaced(transform.position, SurfaceUp());
+            // Rezervirano: event trenutno nema pretplatnika (AlertsUI sluša samo
+            // OnMachineBroken) — ostaje kao točka za budući toast/zvuk popravka.
             GameEventBus.RaiseMachineRepaired(new MachineEvent
             {
                 State = MachineState.Active,
@@ -85,12 +87,12 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (GameManager.TestingMode) return true;
             if (_repairCost == null || _repairCost.Length == 0) return true;
-            if (InventorySystem.current == null) return false;
+            if (InventorySystem.Instance == null) return false;
 
             foreach (var req in _repairCost)
             {
                 if (req.item == null) continue;
-                var inv = InventorySystem.current.Get(req.item);
+                var inv = InventorySystem.Instance.Get(req.item);
                 if (inv == null || inv.GetStackSize() < req.amount) return false;
             }
 
@@ -98,7 +100,7 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 if (req.item == null) continue;
                 for (int i = 0; i < req.amount; i++)
-                    InventorySystem.current.Remove(req.item);
+                    InventorySystem.Instance.Remove(req.item);
             }
 
             return true;

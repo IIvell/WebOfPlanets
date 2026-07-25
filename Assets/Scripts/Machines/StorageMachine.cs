@@ -63,7 +63,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public void TakeAll()
         {
-            if (InventorySystem.current == null) return;
+            if (InventorySystem.Instance == null) return;
 
             if (_inventory.Count == 0)
             {
@@ -73,7 +73,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             foreach (var inv in _inventory)
                 for (int i = 0; i < inv.GetStackSize(); i++)
-                    InventorySystem.current.Add(inv.data);
+                    InventorySystem.Instance.Add(inv.data);
 
             Debug.Log($"[{MachineName}] Preuzeto {_inventory.Count} vrsta resursa iz storage stroja.");
             _dict.Clear();

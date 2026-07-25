@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using xyz.germanfica.unity.planet.gravity;
 
 public class PlayerCamera : MonoBehaviour
 {
@@ -45,7 +46,7 @@ public class PlayerCamera : MonoBehaviour
             if (Mathf.Abs(scroll) > 0.01f)
                 height = Mathf.Clamp(height - Mathf.Sign(scroll) * scrollSpeed, minHeight, maxHeight);
 
-            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
+            if (GameKeys.WasPressed(GameKeys.CameraReset))
                 ResetDirection();
         }
 

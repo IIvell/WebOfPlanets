@@ -4,8 +4,6 @@ using UnityEngine.InputSystem;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
-    public enum GameState { Playing, Paused, GameOver, Victory }
-
     // Game over tok: PlayerDiedEvent -> zamrzni simulaciju i ugasi player input;
     // R oživljava igrača na aktivnom respawn totemu (default: glavni totem na Hubu).
     // Respawn umjesto reload-a scene — proceduralno generirane planete i izgrađena
@@ -92,7 +90,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 {
                     Vector3 dir = attempt == 0 ? hub.up : Random.onUnitSphere;
                     SurfacePlacement.GetSurfacePoint(hub, dir, out pos, out _);
-                    if (MachinePlacer.IsSpotClear(pos, hub)) break;
+                    if (MachineFactory.IsSpotClear(pos, hub)) break;
                 }
             }
 
@@ -109,7 +107,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (keyboard == null) return;
 
             // Testing: K ubija igrača na mjestu — za brzo testiranje smrti/respawna.
-            if (State == GameState.Playing && TestingMode && keyboard.kKey.wasPressedThisFrame)
+            if (State == GameState.Playing && TestingMode && GameKeys.WasPressed(GameKeys.TestKill))
             {
                 ResolveReferences();
                 if (playerHealth != null) playerHealth.Kill();
@@ -118,7 +116,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (State != GameState.GameOver) return;
 
-            if (keyboard.rKey.wasPressedThisFrame)
+            if (GameKeys.WasPressed(GameKeys.Respawn))
                 Respawn();
         }
 

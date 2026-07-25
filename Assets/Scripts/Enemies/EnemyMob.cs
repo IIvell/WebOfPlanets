@@ -27,10 +27,17 @@ namespace xyz.germanfica.unity.planet.gravity
         private PlayerHealth _playerHealth;
         private bool _chasing;
 
-        public void Init(Transform planet)
+        // Spawner prosljeđuje igrača da svaki mob ne radi vlastiti
+        // FindFirstObjectByType u Startu (N6); Start ostaje fallback.
+        public void Init(Transform planet, PlayerController player = null)
         {
             _planet = planet;
             _planetComponent = planet != null ? planet.GetComponent<Planet>() : null;
+            if (player != null)
+            {
+                _player = player;
+                _playerHealth = player.GetComponent<PlayerHealth>();
+            }
         }
 
         void Awake()
@@ -45,8 +52,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Start()
         {
-            _player = FindFirstObjectByType<PlayerController>();
-            if (_player != null)
+            if (_player == null)
+                _player = FindFirstObjectByType<PlayerController>();
+            if (_player != null && _playerHealth == null)
                 _playerHealth = _player.GetComponent<PlayerHealth>();
         }
 

@@ -40,11 +40,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public bool CanAfford()
         {
-            if (InventorySystem.current == null) return true;
+            if (InventorySystem.Instance == null) return true;
             foreach (var ing in ingredients)
             {
                 if (ing.item == null) continue;
-                var inv = InventorySystem.current.Get(ing.item);
+                var inv = InventorySystem.Instance.Get(ing.item);
                 if (inv == null || inv.GetStackSize() < ing.amount) return false;
             }
             return true;
@@ -52,12 +52,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public void ConsumeIngredients()
         {
-            if (InventorySystem.current == null) return;
+            if (InventorySystem.Instance == null) return;
             foreach (var ing in ingredients)
             {
                 if (ing.item == null) continue;
                 for (int i = 0; i < ing.amount; i++)
-                    InventorySystem.current.Remove(ing.item);
+                    InventorySystem.Instance.Remove(ing.item);
             }
         }
     }

@@ -237,7 +237,7 @@ namespace xyz.germanfica.unity.planet.gravity
             // Solid collider po stvarnim granicama vizuala (isto kao strojevi):
             // totem mora fizički blokirati igrača. Interakciji trigger ne treba —
             // Interactor cilja OverlapSphere-om po colliderima.
-            MachinePlacer.FitColliderToRenderer(marker);
+            SurfacePlacement.FitBoxColliderToGeometry(marker);
 
             var interactable = marker.AddComponent<PotentialConnectionInteractable>();
             interactable.Init(this, from, toward);
@@ -337,17 +337,6 @@ namespace xyz.germanfica.unity.planet.gravity
             return true;
         }
 
-        private void RemovePotentialGroup(Transform a, Transform b)
-        {
-            var key = PairKey(a, b);
-            if (!_potentialMarkers.TryGetValue(key, out var markers)) return;
-
-            foreach (var m in markers)
-                if (m != null) Destroy(m);
-
-            _potentialMarkers.Remove(key);
-        }
-
         private static Dictionary<Item, int> AggregateCost(ConnectionRequirement[] cost)
         {
             var totals = new Dictionary<Item, int>();
@@ -365,10 +354,10 @@ namespace xyz.germanfica.unity.planet.gravity
         private bool HasResources(ConnectionRequirement[] cost)
         {
             if (GameManager.TestingMode) return true;
-            if (cost == null || InventorySystem.current == null) return true;
+            if (cost == null || InventorySystem.Instance == null) return true;
             foreach (var kvp in AggregateCost(cost))
             {
-                var item = InventorySystem.current.Get(kvp.Key);
+                var item = InventorySystem.Instance.Get(kvp.Key);
                 if (item == null || item.GetStackSize() < kvp.Value) return false;
             }
             return true;
@@ -377,13 +366,13 @@ namespace xyz.germanfica.unity.planet.gravity
         private void ConsumeResources(ConnectionRequirement[] cost)
         {
             if (GameManager.TestingMode) return;
-            if (cost == null || InventorySystem.current == null) return;
+            if (cost == null || InventorySystem.Instance == null) return;
             foreach (var kvp in AggregateCost(cost))
                 for (int i = 0; i < kvp.Value; i++)
-                    InventorySystem.current.Remove(kvp.Key);
+                    InventorySystem.Instance.Remove(kvp.Key);
         }
 
-        private void CreateConnection(Transform a, Transform b, ConnectionType type, float lifespan)
+        private PlanetConnection CreateConnection(Transform a, Transform b, ConnectionType type, float lifespan)
         {
             GameObject go = new GameObject($"Connection_{a.name}_{b.name}");
             go.transform.SetParent(transform);
@@ -405,6 +394,8 @@ namespace xyz.germanfica.unity.planet.gravity
                 PlanetB = b,
                 ConnectionType = type
             });
+
+            return conn;
         }
 
         // ── Save/load ─────────────────────────────────────────────────────────
@@ -435,9 +426,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (a == null || b == null || AlreadyConnected(a, b)) return;
 
             SetPotentialMarkersActive(a, b, false);
-            CreateConnection(a, b, type, GetLifespan(type, a, b));
-
-            PlanetConnection conn = _connections[_connections.Count - 1];
+            PlanetConnection conn = CreateConnection(a, b, type, GetLifespan(type, a, b));
             if (health < 100f) conn.ApplyDamage(100f - health);
         }
 

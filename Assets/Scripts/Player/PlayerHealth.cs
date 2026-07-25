@@ -39,6 +39,8 @@ namespace xyz.germanfica.unity.planet.gravity
                 Die();
         }
 
+        // Namjerno bez pozivatelja (odluka 15.7.2026.): igra trenutno nema izvor
+        // liječenja. Metoda ostaje kao javni API zdravlja za buduće featuree.
         public void Heal(float amount)
         {
             if (IsDead || amount <= 0f) return;

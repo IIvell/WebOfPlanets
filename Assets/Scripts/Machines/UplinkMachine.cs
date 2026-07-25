@@ -1,28 +1,27 @@
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace xyz.germanfica.unity.planet.gravity
 {
     // Igrač pritisne E da ubaci sve materijale iz inventara; stroj ih zatim postupno
     // šalje u Hub storage — odakle strojevi plaćaju održavanje, a veze svoje zahtjeve.
-    public class UplinkMachine : BaseInteractable
+    public class UplinkMachine : ProductionMachine
     {
         [SerializeField] private UplinkMachineData data;
 
         private Transform _planet;
-        private MachineState _state = MachineState.Idle;
-        private MachineBreakdown _breakdown;
-        private float _timer;
 
-        private readonly Dictionary<Item, InventoryItem> _bufferDict = new();
-        private readonly List<InventoryItem> _buffer = new();
+        private readonly ItemStackList _buffer = new();
 
-        public MachineState State => _state;
         public UplinkMachineData Data => data;
-        public Transform Planet => _planet;
-        public IReadOnlyList<InventoryItem> Buffer => _buffer;
+        public override Transform Planet => _planet;
+        public IReadOnlyList<InventoryItem> Buffer => _buffer.Items;
 
-        public override float HoldTime => 0f;
+        protected override bool HasData => data != null;
+        protected override string DisplayName => data.displayName;
+        protected override float CycleInterval => data.transmitInterval;
+        protected override float BreakdownChancePerCycle => data.breakdownChancePerCycle;
+        protected override ConnectionRequirement[] RepairCost => data.repairCost;
 
         public void Init(UplinkMachineData machineData, Transform planet)
         {
@@ -31,23 +30,9 @@ namespace xyz.germanfica.unity.planet.gravity
             _state = MachineState.Active;
         }
 
-        void Update()
+        protected override void TryCycle()
         {
-            if (data == null || _state == MachineState.Broken) return;
-
-            EnsureBreakdown();
-
-            _timer += Time.deltaTime;
-            if (_timer >= data.transmitInterval)
-            {
-                _timer = 0f;
-                TryTransmit();
-            }
-        }
-
-        private void TryTransmit()
-        {
-            if (_buffer.Count == 0 || HubStorage.current == null)
+            if (_buffer.Count == 0 || HubStorage.Instance == null)
             {
                 _state = MachineState.Idle;
                 return;
@@ -63,20 +48,15 @@ namespace xyz.germanfica.unity.planet.gravity
             int sent = 0;
             while (sent < data.itemsPerCycle && _buffer.Count > 0)
             {
-                var inv = _buffer[0];
-                if (!HubStorage.current.Add(inv.data))
+                var inv = _buffer.First;
+                if (!HubStorage.Instance.Add(inv.data))
                 {
                     // Hub je pun — zadrži ostatak i pokušaj ponovo sljedeći ciklus.
                     _state = MachineState.Idle;
                     return;
                 }
 
-                inv.RemoveFromStack();
-                if (inv.GetStackSize() == 0)
-                {
-                    _bufferDict.Remove(inv.data);
-                    _buffer.RemoveAt(0);
-                }
+                _buffer.RemoveOneFromFirst();
                 sent++;
             }
 
@@ -89,40 +69,15 @@ namespace xyz.germanfica.unity.planet.gravity
         // Na polomljenom stroju E umjesto toga pokušava popravak.
         public override void Interact()
         {
-            if (_state == MachineState.Broken)
-            {
-                if (_breakdown != null && _breakdown.TryRepair())
-                    _state = MachineState.Active;
-                return;
-            }
+            if (TryRepairInteract()) return;
 
-            var playerInventory = InventorySystem.current;
-            if (playerInventory == null) return;
+            if (InventorySystem.Instance == null) return;
 
-            int deposited = 0;
-            var items = new List<InventoryItem>(playerInventory.GetInventory());
-            foreach (var inventoryItem in items)
-            {
-                int stack = inventoryItem.GetStackSize();
-                for (int i = 0; i < stack; i++)
-                {
-                    AddToBuffer(inventoryItem.data);
-                    playerInventory.Remove(inventoryItem.data);
-                    deposited++;
-                }
-            }
+            int deposited = DepositAllFromPlayer(_buffer);
 
             Debug.Log(deposited > 0
                 ? $"[{data?.displayName}] Ubačeno {deposited} resursa za slanje u Hub."
                 : $"[{data?.displayName}] Inventar je prazan — nema šta poslati.");
-        }
-
-        // Lazy umjesto u Init-u da pokrije i eventualne scene-serijalizirane strojeve.
-        private void EnsureBreakdown()
-        {
-            if (_breakdown == null)
-                _breakdown = MachineBreakdown.Attach(gameObject, data.displayName, _planet,
-                    data.breakdownChancePerCycle, data.repairCost);
         }
 
         // ── Save/load ─────────────────────────────────────────────────────────
@@ -131,28 +86,7 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (item == null) return;
             for (int i = 0; i < count; i++)
-                AddToBuffer(item);
-        }
-
-        // Vraća Broken stanje bez eventa/toasta.
-        public void LoadBroken()
-        {
-            if (data == null) return;
-            EnsureBreakdown();
-            _breakdown.LoadBroken();
-            _state = MachineState.Broken;
-        }
-
-        private void AddToBuffer(Item item)
-        {
-            if (_bufferDict.TryGetValue(item, out var existing))
-                existing.AddToStack();
-            else
-            {
-                var inv = new InventoryItem(item);
-                _buffer.Add(inv);
-                _bufferDict[item] = inv;
-            }
+                _buffer.Add(item);
         }
     }
 }

@@ -47,11 +47,11 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private void Refresh()
         {
-            if (QuickSlotInventory.current == null) return;
+            if (QuickSlotInventory.Instance == null) return;
 
             for (int i = 0; i < SlotCount; i++)
             {
-                QuickSlotItem item = QuickSlotInventory.current.GetSlot(i);
+                QuickSlotItem item = QuickSlotInventory.Instance.GetSlot(i);
                 bool hasItem = item != null;
                 bool hasIcon = hasItem && item.icon != null;
 
@@ -59,7 +59,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 _icons[i].sprite = hasIcon ? item.icon : null;
                 _nameLabels[i].text = hasItem && !hasIcon ? item.displayName : "";
 
-                _backgrounds[i].color = i == QuickSlotInventory.current.SelectedIndex
+                _backgrounds[i].color = i == QuickSlotInventory.Instance.SelectedIndex
                     ? SelectedColor
                     : NormalColor;
 
@@ -76,7 +76,7 @@ namespace xyz.germanfica.unity.planet.gravity
             if (!show) return;
 
             var t = (Tool)item;
-            float ratio = Mathf.Clamp01(QuickSlotInventory.current.GetDurability(index) / (float)t.maxDurability);
+            float ratio = Mathf.Clamp01(QuickSlotInventory.Instance.GetDurability(index) / (float)t.maxDurability);
 
             // Širina kroz anchorMax.x umjesto Image.Type.Filled — filled bez sprite-a
             // ne poštuje fillAmount (renderira puni quad).

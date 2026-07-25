@@ -16,10 +16,9 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Interactor interactor;
 
         private GameObject _panel;
+        private HubProgressUI _hubProgressUI;
 
         public bool IsOpen => _panel.activeSelf;
-
-        private HubProgressUI hubProgressUI;
 
         void Awake()
         {
@@ -27,36 +26,28 @@ namespace xyz.germanfica.unity.planet.gravity
             BuildUI();
             _panel.SetActive(false);
 
-            hubProgressUI = GetComponent<HubProgressUI>();
-            if (hubProgressUI == null)
-                hubProgressUI = gameObject.AddComponent<HubProgressUI>();
-            hubProgressUI.Init(playerController, playerCamera, interactor);
+            _hubProgressUI = GetComponent<HubProgressUI>();
+            if (_hubProgressUI == null)
+                _hubProgressUI = gameObject.AddComponent<HubProgressUI>();
+            _hubProgressUI.Init(playerController, playerCamera, interactor);
         }
 
         void Update()
         {
-            if (_panel.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_panel.activeSelf && GameKeys.WasPressed(GameKeys.Cancel))
                 Hide();
         }
 
         public void Show()
         {
             _panel.SetActive(true);
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible   = true;
-            playerController?.SetInputEnabled(false);
-            playerCamera?.SetInputEnabled(false);
-            if (interactor != null) interactor.enabled = false;
+            UiFocus.Acquire(playerController, playerCamera, interactor);
         }
 
         public void Hide()
         {
             _panel.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible   = false;
-            playerController?.SetInputEnabled(true);
-            playerCamera?.SetInputEnabled(true);
-            if (interactor != null) interactor.enabled = true;
+            UiFocus.Release(playerController, playerCamera, interactor);
         }
 
         private void OpenNetworkMap()
@@ -74,7 +65,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private void OpenHubProgress()
         {
             Hide();
-            hubProgressUI?.Show();
+            _hubProgressUI?.Show();
         }
 
         // ── UI construction ───────────────────────────────────────────────────
@@ -99,7 +90,7 @@ namespace xyz.germanfica.unity.planet.gravity
             MakeButton(_panel.transform, "Crafting",       new Vector2(0f, -2f),  OpenCrafting);
             MakeButton(_panel.transform, "Hub Progress",   new Vector2(0f, -62f), OpenHubProgress);
 
-            var hint = MakeLabel(_panel.transform, "ESC — cancel", 11, new Vector2(0f, -118f), new Vector2(260f, 24f));
+            var hint = MakeLabel(_panel.transform, $"{GameKeys.CancelName} — cancel", 11, new Vector2(0f, -118f), new Vector2(260f, 24f));
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
             hint.alignment = TextAlignmentOptions.Center;
         }

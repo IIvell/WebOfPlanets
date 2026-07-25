@@ -20,10 +20,9 @@ namespace xyz.germanfica.unity.planet.gravity
 
         public static ComputerMachine Spawn(ComputerMachineData data, Transform planet, Vector3 pos, Quaternion rot)
         {
-            // 0.52 = world skala hub Računala u sceni (ista Computer.fbx instanca).
-            GameObject go = MachinePlacer.SpawnObject(data != null ? data.prefab : null, pos, rot,
-                data != null ? data.displayName : "Network Computer", ComputerColor, scale: 0.52f,
-                rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
+            GameObject go = MachineFactory.SpawnMachine(data != null ? data.prefab : null, pos, rot,
+                data != null ? data.displayName : "Network Computer", ComputerColor,
+                MachineFactory.ComputerScale, planet);
 
             var computer = go.AddComponent<ComputerMachine>();
             computer.Init(data, planet);

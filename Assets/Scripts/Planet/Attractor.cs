@@ -11,34 +11,37 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private bool orientToGravity = true;
         public bool OrientToGravity { get => orientToGravity; set => orientToGravity = value; }
 
-        private Rigidbody m_Rigidbody;
-        public void Attract(Transform body)
+        private Rigidbody _rigidbody;
+
+        public void Attract(Transform body) => Attract(body, body.GetComponent<Rigidbody>());
+
+        public void Attract(Transform body, Rigidbody rb)
         {
             Vector3 gravityUp = (body.position - transform.position).normalized;
             Vector3 bodyUp = body.up;
-            Rigidbody rb = body.GetComponent<Rigidbody>();
             Quaternion targetRotation = Quaternion.FromToRotation(bodyUp, gravityUp) * body.rotation;
             rb.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 50f * Time.fixedDeltaTime));
         }
 
         void Start()
         {
-            m_Rigidbody = GetComponent<Rigidbody>();
-            m_Rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
-            m_Rigidbody.useGravity = false;
+            _rigidbody = GetComponent<Rigidbody>();
+            _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+            _rigidbody.useGravity = false;
         }
 
+        // Invarijanta: attractori planeta su ugašeni osim onog na kojem igrač
+        // trenutno jest (PlanetCreator/teleport gase stari i pale novi), pa
+        // registar tipično sadrži samo igrača + aktivni planet.
         void FixedUpdate()
         {
             if (!orientToGravity) return;
+            if (_rigidbody == null) return;
 
-            if (m_Rigidbody != null && transform != null)
+            foreach (Attractor attractor in Attractors)
             {
-                foreach (Attractor attractor in Attractors)
-                {
-                    if (attractor != this)
-                        attractor.Attract(transform);
-                }
+                if (attractor != this)
+                    attractor.Attract(transform, _rigidbody);
             }
         }
 

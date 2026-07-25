@@ -14,6 +14,7 @@ namespace xyz.germanfica.unity.planet.gravity
             public readonly string itemName;
             public readonly int amount;
             private Item _item;
+            private bool _missingLogged;
 
             public Requirement(string itemName, int amount)
             {
@@ -21,49 +22,88 @@ namespace xyz.germanfica.unity.planet.gravity
                 this.amount   = amount;
             }
 
-            public Item Item => _item != null ? _item : _item = Resources.Load<Item>(itemName);
+            public Item Item
+            {
+                get
+                {
+                    if (_item == null)
+                    {
+                        _item = Resources.Load<Item>(itemName);
+                        // Glasno umjesto tihog nulla: typo/preimenovani asset bi
+                        // inače značio prag koji se bez ikakve poruke više nikad
+                        // ne može otključati.
+                        if (_item == null && !_missingLogged)
+                        {
+                            _missingLogged = true;
+                            Debug.LogError($"[HubProgress] Item asset '{itemName}' nije pronađen u Resources — prag koji ga traži NE MOŽE se otključati (typo ili preimenovani asset?).");
+                        }
+                    }
+                    return _item;
+                }
+            }
+
             public string DisplayName => Item != null ? Item.displayName : itemName;
+        }
+
+        // Sve o jednom pragu na jednom mjestu (prije su zahtjevi, bonus skladišta
+        // i prikazni tekst bili tri ručno sinkronizirana polja). NAPOMENA: popis
+        // otključanih recepata u Unlocks mora pratiti CraftingRecipe.unlockTier
+        // na assetima, a "+N" u tekstu vrijednost StorageBonus — provjereno
+        // usklađeno 24.7.2026. (audit).
+        public sealed class TierInfo
+        {
+            public readonly Requirement[] Requirements;
+            public readonly int StorageBonus;
+            public readonly string Unlocks;
+
+            public TierInfo(Requirement[] requirements, int storageBonus, string unlocks)
+            {
+                Requirements = requirements;
+                StorageBonus = storageBonus;
+                Unlocks      = unlocks;
+            }
         }
 
         // Zahtjevi po pragu — svaki prag troši resurse dohvatljive alatima/strojevima
         // prethodnog praga i tjera igrača na sljedeći tip planeta:
         // 1 rudarski → 2 organski+topionica → 3 ledeni+plinoviti → 4 vulkanski (Rune Drill iz praga 3) → 5 sve grane.
-        public static readonly Requirement[][] TierRequirements =
+        // Kumulativno: na max pragu skladište je baznih 100 + 250.
+        public static readonly TierInfo[] Tiers =
         {
-            new[]
+            new TierInfo(new[]
             {
                 new Requirement("Mining_stone", 10),
                 new Requirement("Mining_ore",    6),
-            },
-            new[]
+            }, 25, "Collector Machine, Ore Collector, Network Scanner, Hub Storage +25"),
+
+            new TierInfo(new[]
             {
                 new Requirement("Metal_ingot",   6),
                 new Requirement("Organic_wood",  5),
                 new Requirement("Organic_plant", 4),
-            },
-            new[]
+            }, 25, "Drill, Hub Uplink, Teleporter, Gas Mask, Hub Storage +25"),
+
+            new TierInfo(new[]
             {
                 new Requirement("Metal_ingot",   8),
                 new Requirement("Water_ice",     6),
                 new Requirement("Gaseous_plin",  4),
-            },
-            new[]
+            }, 50, "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem, Hub Storage +50"),
+
+            new TierInfo(new[]
             {
                 new Requirement("Metal_ingot",  10),
                 new Requirement("Volcanic_rune", 4),
-            },
-            new[]
+            }, 50, "Blast Furnace, Eternal Pickaxe, Network Computer, Hub Storage +50"),
+
+            new TierInfo(new[]
             {
                 new Requirement("Metal_ingot",  12),
                 new Requirement("Volcanic_rune", 6),
                 new Requirement("Gaseous_plin",  6),
                 new Requirement("Water_ice",     6),
-            },
+            }, 100, "Two-Way Teleporter, Hub Storage +100"),
         };
-
-        // Bonus kapaciteta Hub skladišta koji donosi otključavanje praga (indeks = prag-1).
-        // Kumulativno: na max pragu skladište je baznih 100 + 250.
-        public static readonly int[] TierStorageBonus = { 25, 25, 50, 50, 100 };
 
         // Zbroj bonusa svih dosad otključanih pragova; HubStorage.MaxCapacity ga pribraja.
         public static int StorageBonus
@@ -71,24 +111,14 @@ namespace xyz.germanfica.unity.planet.gravity
             get
             {
                 int bonus = 0;
-                for (int i = 0; i < Tier && i < TierStorageBonus.Length; i++)
-                    bonus += TierStorageBonus[i];
+                for (int i = 0; i < Tier && i < Tiers.Length; i++)
+                    bonus += Tiers[i].StorageBonus;
                 return bonus;
             }
         }
 
-        // Kratki opis što koji prag otključava (prikaz na Hub računalu).
-        public static readonly string[] TierUnlocks =
-        {
-            "Collector Machine, Ore Collector, Network Scanner, Hub Storage +25",
-            "Drill, Hub Uplink, Teleporter, Gas Mask, Hub Storage +25",
-            "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem, Hub Storage +50",
-            "Blast Furnace, Eternal Pickaxe, Network Computer, Hub Storage +50",
-            "Two-Way Teleporter, Hub Storage +100",
-        };
-
         public static int Tier { get; private set; }
-        public static int MaxTier => TierRequirements.Length;
+        public static int MaxTier => Tiers.Length;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => Tier = 0;
@@ -99,11 +129,11 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (Tier >= MaxTier) return false;
             if (GameManager.TestingMode) return true;
-            if (HubStorage.current == null) return false;
+            if (HubStorage.Instance == null) return false;
 
-            foreach (var req in TierRequirements[Tier])
+            foreach (var req in Tiers[Tier].Requirements)
             {
-                var inv = req.Item != null ? HubStorage.current.Get(req.Item) : null;
+                var inv = req.Item != null ? HubStorage.Instance.Get(req.Item) : null;
                 if (inv == null || inv.GetStackSize() < req.amount) return false;
             }
             return true;
@@ -120,9 +150,9 @@ namespace xyz.germanfica.unity.planet.gravity
             if (!CanUnlockNext()) return false;
 
             if (!GameManager.TestingMode)
-                foreach (var req in TierRequirements[Tier])
+                foreach (var req in Tiers[Tier].Requirements)
                     for (int i = 0; i < req.amount; i++)
-                        HubStorage.current.Remove(req.Item);
+                        HubStorage.Instance.Remove(req.Item);
 
             Tier++;
             Debug.Log($"[HubProgress] Prag {Tier} otključan — novi recepti dostupni.");

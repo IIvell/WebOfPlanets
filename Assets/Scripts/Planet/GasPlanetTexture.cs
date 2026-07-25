@@ -9,7 +9,6 @@ namespace xyz.germanfica.unity.planet.gravity
     // izmjena scene ili asseta — isti obrazac kao SpaceSkybox.
     public static class GasPlanetTexture
     {
-        const int Width = 512, Height = 256;
         const float Bands = 5f;
 
         // Paleta oko _BaseColor (0.56, 0.44, 0.83) Planet_Gaseous materijala.
@@ -18,49 +17,15 @@ namespace xyz.germanfica.unity.planet.gravity
         static readonly Color Light  = new(0.76f, 0.68f, 0.94f);
         static readonly Color Storm  = new(0.38f, 0.18f, 0.42f);
 
-        static Material _material;
+        static readonly System.Collections.Generic.Dictionary<Material, Material> _materials = new();
+        static Texture2D _texture;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() => _material = null;
+        static void ResetStatics() { _materials.Clear(); _texture = null; }
 
         // Klon baznog materijala s generiranom teksturom; bazni asset se ne dira.
         public static Material GetMaterial(Material baseMaterial)
-        {
-            if (_material != null) return _material;
-
-            _material = new Material(baseMaterial)
-            {
-                mainTexture = Generate(),
-                // Boje traka su već u teksturi — bazni tint bi ih dodatno zatamnio.
-                color = Color.white
-            };
-            return _material;
-        }
-
-        static Texture2D Generate()
-        {
-            var tex = new Texture2D(Width, Height, TextureFormat.RGBA32, true)
-            {
-                wrapModeU = TextureWrapMode.Repeat,
-                wrapModeV = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Trilinear
-            };
-
-            var pixels = new Color[Width * Height];
-            for (int y = 0; y < Height; y++)
-            {
-                float v = (y + 0.5f) / Height;
-                for (int x = 0; x < Width; x++)
-                {
-                    float u = (x + 0.5f) / Width;
-                    pixels[y * Width + x] = Sample(u, v);
-                }
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply(true, true);
-            return tex;
-        }
+            => PlanetTextureUtil.GetMaterial(_materials, ref _texture, baseMaterial, Sample);
 
         static Color Sample(float u, float v)
         {

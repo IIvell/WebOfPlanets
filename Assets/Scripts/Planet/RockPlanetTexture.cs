@@ -9,15 +9,11 @@ namespace xyz.germanfica.unity.planet.gravity
     // GasPlanetTexture: jedna dijeljena tekstura, bez izmjena scene i asseta.
     public static class RockPlanetTexture
     {
-        const int Width = 512, Height = 256;
-
         static readonly Color DarkRock  = new(0.25f, 0.16f, 0.11f);
         static readonly Color Rock      = new(0.50f, 0.34f, 0.22f);
         static readonly Color LightRock = new(0.74f, 0.58f, 0.42f);
         static readonly Color Vein      = new(0.15f, 0.11f, 0.09f);
 
-        // Tekstura se generira jednom; klon materijala po baznom materijalu
-        // (PlanetCreator i hub Planet.Awake mogu proslijediti različite bazne).
         static readonly System.Collections.Generic.Dictionary<Material, Material> _materials = new();
         static Texture2D _texture;
 
@@ -26,45 +22,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         // Klon baznog materijala s generiranom teksturom; bazni asset se ne dira.
         public static Material GetMaterial(Material baseMaterial)
-        {
-            if (_materials.TryGetValue(baseMaterial, out Material cached) && cached != null)
-                return cached;
-
-            if (_texture == null) _texture = Generate();
-
-            var material = new Material(baseMaterial)
-            {
-                mainTexture = _texture,
-                color = Color.white
-            };
-            _materials[baseMaterial] = material;
-            return material;
-        }
-
-        static Texture2D Generate()
-        {
-            var tex = new Texture2D(Width, Height, TextureFormat.RGBA32, true)
-            {
-                wrapModeU = TextureWrapMode.Repeat,
-                wrapModeV = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Trilinear
-            };
-
-            var pixels = new Color[Width * Height];
-            for (int y = 0; y < Height; y++)
-            {
-                float v = (y + 0.5f) / Height;
-                for (int x = 0; x < Width; x++)
-                {
-                    float u = (x + 0.5f) / Width;
-                    pixels[y * Width + x] = Sample(u, v);
-                }
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply(true, true);
-            return tex;
-        }
+            => PlanetTextureUtil.GetMaterial(_materials, ref _texture, baseMaterial, Sample);
 
         static Color Sample(float u, float v)
         {

@@ -72,7 +72,8 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             // Zadnji prag se otključava na Hub računalu — njegovi paneli su tada
             // otvoreni ispod pobjedničkog ekrana; zatvori ih da "Keep Playing" ne
-            // vrati igrača u napola otvoren UI s krivim stanjem kursora/inputa.
+            // vrati igrača u napola otvoren UI. (Stanje kursora/inputa sada čuva
+            // UiFocus brojač, ali paneli bi bez ovoga ostali vizualno otvoreni.)
             var progress = FindFirstObjectByType<HubProgressUI>();
             if (progress != null && progress.IsOpen) progress.Hide();
             var computer = FindFirstObjectByType<ComputerMenuUI>();
@@ -84,12 +85,8 @@ namespace xyz.germanfica.unity.planet.gravity
             if (GameManager.Instance != null) GameManager.Instance.Win();
             else Time.timeScale = 0f;
 
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
             ResolveReferences();
-            _playerController?.SetInputEnabled(false);
-            _playerCamera?.SetInputEnabled(false);
-            if (_interactor != null) _interactor.enabled = false;
+            UiFocus.Acquire(_playerController, _playerCamera, _interactor);
         }
 
         private void KeepPlaying()
@@ -99,12 +96,8 @@ namespace xyz.germanfica.unity.planet.gravity
             if (GameManager.Instance != null) GameManager.Instance.Resume();
             else Time.timeScale = 1f;
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
             ResolveReferences();
-            _playerController?.SetInputEnabled(true);
-            _playerCamera?.SetInputEnabled(true);
-            if (_interactor != null) _interactor.enabled = true;
+            UiFocus.Release(_playerController, _playerCamera, _interactor);
         }
 
         private void Quit()

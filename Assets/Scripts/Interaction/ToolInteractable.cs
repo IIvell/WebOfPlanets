@@ -18,7 +18,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 return;
             }
 
-            if (QuickSlotInventory.current == null || !QuickSlotInventory.current.TryAdd(tool, out _))
+            if (QuickSlotInventory.Instance == null || !QuickSlotInventory.Instance.TryAdd(tool, out _))
             {
                 Debug.Log("Quick slot inventar je pun — alat se ne može pokupiti.");
                 return;

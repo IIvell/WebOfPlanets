@@ -8,8 +8,6 @@ namespace xyz.germanfica.unity.planet.gravity
     // šava), jedna dijeljena tekstura, klon materijala — bez izmjena scene i asseta.
     public static class OrganicPlanetTexture
     {
-        const int Width = 512, Height = 256;
-
         // Razina "mora": ispod ovog praga regionalnog šuma je voda.
         const float WaterLevel = 0.38f;
         const float ShoreWidth = 0.045f;
@@ -29,45 +27,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         // Klon baznog materijala s generiranom teksturom; bazni asset se ne dira.
         public static Material GetMaterial(Material baseMaterial)
-        {
-            if (_materials.TryGetValue(baseMaterial, out Material cached) && cached != null)
-                return cached;
-
-            if (_texture == null) _texture = Generate();
-
-            var material = new Material(baseMaterial)
-            {
-                mainTexture = _texture,
-                color = Color.white
-            };
-            _materials[baseMaterial] = material;
-            return material;
-        }
-
-        static Texture2D Generate()
-        {
-            var tex = new Texture2D(Width, Height, TextureFormat.RGBA32, true)
-            {
-                wrapModeU = TextureWrapMode.Repeat,
-                wrapModeV = TextureWrapMode.Clamp,
-                filterMode = FilterMode.Trilinear
-            };
-
-            var pixels = new Color[Width * Height];
-            for (int y = 0; y < Height; y++)
-            {
-                float v = (y + 0.5f) / Height;
-                for (int x = 0; x < Width; x++)
-                {
-                    float u = (x + 0.5f) / Width;
-                    pixels[y * Width + x] = Sample(u, v);
-                }
-            }
-
-            tex.SetPixels(pixels);
-            tex.Apply(true, true);
-            return tex;
-        }
+            => PlanetTextureUtil.GetMaterial(_materials, ref _texture, baseMaterial, Sample);
 
         static Color Sample(float u, float v)
         {

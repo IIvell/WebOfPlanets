@@ -35,30 +35,12 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
-            MergeRecipesFromResources();
+            recipes = CraftingSystem.MergeWithResources(recipes);
             BuildUI();
             _panel.SetActive(false);
 
             if (GetComponent<ItemInfoUI>() == null)
                 gameObject.AddComponent<ItemInfoUI>();
-        }
-
-        // Recepti se auto-otkrivaju iz Resources/Recipes — novi recept asset ne treba
-        // ručno dodavati u scene listu (scene lista ostaje podržana zbog redoslijeda).
-        private void MergeRecipesFromResources()
-        {
-            CraftingRecipe[] loaded = Resources.LoadAll<CraftingRecipe>("Recipes");
-            if (loaded == null || loaded.Length == 0) return;
-
-            var merged = new List<CraftingRecipe>();
-            if (recipes != null)
-                foreach (var r in recipes)
-                    if (r != null && !merged.Contains(r))
-                        merged.Add(r);
-            foreach (var r in loaded)
-                if (!merged.Contains(r))
-                    merged.Add(r);
-            recipes = merged.ToArray();
         }
 
         void OnEnable()  => GameEventBus.OnRecipeTierUnlocked += HandleTierUnlocked;
@@ -72,7 +54,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Update()
         {
-            if (_panel.activeSelf && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (_panel.activeSelf && GameKeys.WasPressed(GameKeys.Cancel))
                 Hide();
         }
 
@@ -81,22 +63,14 @@ namespace xyz.germanfica.unity.planet.gravity
             _panel.SetActive(true);
             Refresh();
             _scrollRect.verticalNormalizedPosition = 1f;
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible   = true;
-            playerController?.SetInputEnabled(false);
-            playerCamera?.SetInputEnabled(false);
-            if (interactor != null) interactor.enabled = false;
+            UiFocus.Acquire(playerController, playerCamera, interactor);
         }
 
         public void Hide()
         {
             _panel.SetActive(false);
-            ItemInfoUI.current?.Hide();
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible   = false;
-            playerController?.SetInputEnabled(true);
-            playerCamera?.SetInputEnabled(true);
-            if (interactor != null) interactor.enabled = true;
+            ItemInfoUI.Instance?.Hide();
+            UiFocus.Release(playerController, playerCamera, interactor);
         }
 
         private enum Category { Tools, Machines, Devices }
@@ -207,7 +181,7 @@ namespace xyz.germanfica.unity.planet.gravity
             // Klik na red (izvan CRAFT gumba) otvara opis rezultata recepta.
             var rowBtn = row.AddComponent<Button>();
             rowBtn.transition = Selectable.Transition.None;
-            rowBtn.onClick.AddListener(() => ItemInfoUI.current?.Toggle(GetResultItem(recipe)));
+            rowBtn.onClick.AddListener(() => ItemInfoUI.Instance?.Toggle(CraftingSystem.GetResultItem(recipe)));
 
             bool locked = !GameManager.TestingMode && !recipe.IsUnlocked;
 
@@ -264,7 +238,7 @@ namespace xyz.germanfica.unity.planet.gravity
             lbl.alignment = TextAlignmentOptions.Center;
             lbl.color     = Color.white;
 
-            bool hotbarFull = QuickSlotInventory.current != null && QuickSlotInventory.current.IsFull;
+            bool hotbarFull = QuickSlotInventory.Instance != null && QuickSlotInventory.Instance.IsFull;
             bool canCraft   = !locked && (GameManager.TestingMode || recipe.CanAfford()) && !hotbarFull;
             if (locked)          lbl.text = $"TIER {recipe.unlockTier}";
             else if (hotbarFull) lbl.text = "HOTBAR\nFULL";
@@ -284,50 +258,22 @@ namespace xyz.germanfica.unity.planet.gravity
             btn.onClick.AddListener(() => OnCraft(captured));
         }
 
+        // Sama transakcija (rezultat u hotbar pa potrošnja) živi u CraftingSystemu;
+        // UI dodaje samo zvuk, refresh i poruku.
         private void OnCraft(int index)
         {
             if (recipes == null || index >= recipes.Length) return;
             var recipe = recipes[index];
             if (recipe == null || (!GameManager.TestingMode && (!recipe.IsUnlocked || !recipe.CanAfford()))) return;
 
-            // Prvo rezultat u hotbar, pa tek onda potrošnja sastojaka —
-            // da se sastojci ne izgube kad je hotbar pun.
-            if (!ProduceResult(recipe))
+            if (!CraftingSystem.TryCraft(recipe))
             {
                 Debug.Log($"[CraftingUI] Hotbar je pun — '{recipe.displayName}' nije craftan.");
                 return;
             }
 
-            if (!GameManager.TestingMode)
-                recipe.ConsumeIngredients();
             AudioManager.PlayCraft();
             Refresh();
-        }
-
-        private static QuickSlotItem GetResultItem(CraftingRecipe recipe) => recipe.resultType switch
-        {
-            CraftingRecipe.ResultType.Tool             => recipe.resultTool,
-            CraftingRecipe.ResultType.CollectorMachine => recipe.resultMachine,
-            CraftingRecipe.ResultType.StorageMachine   => recipe.resultStorageMachine,
-            CraftingRecipe.ResultType.SmelterMachine   => recipe.resultSmelterMachine,
-            CraftingRecipe.ResultType.ExtractorMachine => recipe.resultExtractorMachine,
-            CraftingRecipe.ResultType.UplinkMachine    => recipe.resultUplinkMachine,
-            CraftingRecipe.ResultType.TeleporterMachine => recipe.resultTeleporterMachine,
-            CraftingRecipe.ResultType.TwoWayTeleporterMachine => recipe.resultTwoWayTeleporterMachine,
-            CraftingRecipe.ResultType.NetworkMapDevice => recipe.resultNetworkMapDevice,
-            CraftingRecipe.ResultType.RespawnTotem     => recipe.resultRespawnTotem,
-            CraftingRecipe.ResultType.GasMask          => recipe.resultGasMask,
-            CraftingRecipe.ResultType.Computer         => recipe.resultComputer,
-            _                                          => null
-        };
-
-        // Sve vrste rezultata završavaju u hotbaru — strojevi se postavljaju u svijet
-        // preko MachinePlacer-a. Vraća false ako rezultat nije stao u hotbar.
-        private bool ProduceResult(CraftingRecipe recipe)
-        {
-            QuickSlotItem result = GetResultItem(recipe);
-            if (result == null) return false;
-            return QuickSlotInventory.current != null && QuickSlotInventory.current.TryAdd(result, out _);
         }
 
         private string BuildLockedText(CraftingRecipe recipe)
@@ -353,7 +299,7 @@ namespace xyz.germanfica.unity.planet.gravity
             foreach (var ing in recipe.ingredients)
             {
                 if (ing.item == null) continue;
-                var    inv  = InventorySystem.current?.Get(ing.item);
+                var    inv  = InventorySystem.Instance?.Get(ing.item);
                 int    have = inv?.GetStackSize() ?? 0;
                 string col  = have >= ing.amount ? "#88ff88" : "#ff6666";
                 sb.AppendLine($"<color={col}>{ing.amount}x {ing.item.displayName} ({have})</color>");
@@ -436,7 +382,7 @@ namespace xyz.germanfica.unity.planet.gravity
 
             BuildScrollbar(scrollGO.transform, scrollRect);
 
-            MakeLabel(_panel.transform, "ESC — close", 11, new Vector2(0f, -200f), new Vector2(500f, 24f))
+            MakeLabel(_panel.transform, $"{GameKeys.CancelName} — close", 11, new Vector2(0f, -200f), new Vector2(500f, 24f))
                 .color = new Color(0.6f, 0.6f, 0.6f);
         }
 

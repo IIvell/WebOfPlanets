@@ -11,7 +11,7 @@ namespace xyz.germanfica.unity.planet.gravity
     // ili tipkom Q za item u trenutno odabranom hotbar slotu.
     public class ItemInfoUI : MonoBehaviour
     {
-        public static ItemInfoUI current;
+        public static ItemInfoUI Instance { get; private set; }
 
         private GameObject _panel;
         private TextMeshProUGUI _text;
@@ -19,25 +19,28 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
-            current = this;
+            if (Instance != null && Instance != this) { Destroy(this); return; }
+            Instance = this;
             BuildUI();
             _panel.SetActive(false);
         }
 
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
+        }
+
         void Update()
         {
-            var keyboard = Keyboard.current;
-            if (keyboard == null) return;
-
-            if (GameManager.IsPlaying && keyboard.qKey.wasPressedThisFrame)
+            if (GameManager.IsPlaying && GameKeys.WasPressed(GameKeys.ItemInfo))
             {
-                var slots = QuickSlotInventory.current;
+                var slots = QuickSlotInventory.Instance;
                 var item = slots != null ? slots.GetSlot(slots.SelectedIndex) : null;
                 if (item != null) Toggle(item, slots.GetDurability(slots.SelectedIndex));
                 else Hide();
             }
 
-            if (_panel.activeSelf && keyboard.escapeKey.wasPressedThisFrame)
+            if (_panel.activeSelf && GameKeys.WasPressed(GameKeys.Cancel))
                 Hide();
         }
 

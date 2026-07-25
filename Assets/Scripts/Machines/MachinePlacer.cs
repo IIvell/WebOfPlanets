@@ -5,7 +5,8 @@ using UnityEngine.InputSystem;
 namespace xyz.germanfica.unity.planet.gravity
 {
     // Kad je u hotbaru selektan stroj (CollectorMachine/StorageMachine), tipka P ga postavlja
-    // na trenutnu planetu ispred igrača i troši ga iz hotbar slota.
+    // na trenutnu planetu ispred igrača i troši ga iz hotbar slota. X podiže stroj natrag.
+    // Sam spawn svjetskih objekata živi u MachineFactory — ovdje je samo input i tok postavljanja.
     public class MachinePlacer : MonoBehaviour
     {
         [SerializeField] private PlayerController playerController;
@@ -24,9 +25,9 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (!GameManager.IsPlaying) return;
             if (Keyboard.current == null) return;
-            if (Cursor.lockState != CursorLockMode.Locked) return;
+            if (UiFocus.IsAnyPanelOpen) return;
 
-            if (Keyboard.current.xKey.wasPressedThisFrame)
+            if (GameKeys.WasPressed(GameKeys.PickupMachine))
             {
                 if (_pendingTwoWayEntry != null)
                     CancelPendingTwoWay();
@@ -34,11 +35,11 @@ namespace xyz.germanfica.unity.planet.gravity
                     TryPickupMachine();
             }
 
-            if (!Keyboard.current.pKey.wasPressedThisFrame) return;
-            if (QuickSlotInventory.current == null) return;
+            if (!GameKeys.WasPressed(GameKeys.PlaceMachine)) return;
+            if (QuickSlotInventory.Instance == null) return;
 
-            int index = QuickSlotInventory.current.SelectedIndex;
-            QuickSlotItem item = QuickSlotInventory.current.GetSlot(index);
+            int index = QuickSlotInventory.Instance.SelectedIndex;
+            QuickSlotItem item = QuickSlotInventory.Instance.GetSlot(index);
 
             switch (item)
             {
@@ -49,43 +50,43 @@ namespace xyz.germanfica.unity.planet.gravity
 
                 case StorageMachineData storage:
                     if (TryPlaceStorage(storage))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 case SmelterMachineData smelter:
                     if (TryPlaceSmelter(smelter))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 case ExtractorMachineData extractor:
                     if (TryPlaceExtractor(extractor))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 case UplinkMachineData uplink:
                     if (TryPlaceUplink(uplink))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 // Podklasa mora ići prije TeleporterMachineData case-a.
                 case TwoWayTeleporterMachineData twoWay:
                     if (TryPlaceTwoWayTeleporter(twoWay))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 case TeleporterMachineData teleporter:
                     if (TryPlaceTeleporter(teleporter))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 case RespawnTotemMachineData totem:
                     if (TryPlaceRespawnTotem(totem))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 case ComputerMachineData computer:
                     if (TryPlaceComputer(computer))
-                        QuickSlotInventory.current.RemoveSlot(index);
+                        QuickSlotInventory.Instance.RemoveSlot(index);
                     break;
 
                 // Ručni uređaj — ne postavlja se i ne troši, samo otvara mapu mreže.
@@ -113,18 +114,37 @@ namespace xyz.germanfica.unity.planet.gravity
             networkMapUI.Open();
         }
 
-        private void TryPlaceCollector(MachineData data, int slotIndex)
+        // ── Zajednički koraci svih postavljanja ───────────────────────────────
+
+        // Planeta na kojoj igrač stoji, uz poruku kad je nema (svako postavljanje
+        // počinje ovom provjerom).
+        private Transform RequirePlanet(string what)
         {
             Transform planet = playerController?.currentPlanet;
             if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return;
-            }
+                Debug.Log($"[MachinePlacer] Igrač nije na planeti — {what} se ne može postaviti.");
+            return planet;
+        }
+
+        // Točka na površini ispred igrača + rotacija uspravno na radijalu.
+        private (Vector3 pos, Quaternion rot) PlacementPose(Transform planet)
+        {
+            Vector3 pos = FindSurfacePoint(planet);
+            return (pos, Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized));
+        }
+
+        private void RaisePlaced(Transform planet, MachineState state = MachineState.Active)
+            => GameEventBus.RaiseMachinePlaced(new MachineEvent { State = state, Planet = planet });
+
+        // ── Postavljanje po tipu stroja ───────────────────────────────────────
+
+        private void TryPlaceCollector(MachineData data, int slotIndex)
+        {
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return;
 
             // Pozicija se računa prije otvaranja UI-a da stroj završi tamo gdje je igrač gledao.
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
 
             List<Transform> reachable = GetReachablePlanets();
             if (reachable.Count == 0 || MachineTeleporterUI.Instance == null)
@@ -152,22 +172,21 @@ namespace xyz.germanfica.unity.planet.gravity
         private void SpawnCollector(MachineData data, Transform planet, Vector3 pos, Quaternion rot,
             Transform linkedPlanet)
         {
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.6f, 1f),
-                scale: data.worldScale, rotationOffset: Quaternion.identity, fitColliderToRenderer: true,
-                planet: planet);
+            GameObject go = MachineFactory.SpawnMachine(data.prefab, pos, rot, data.displayName,
+                MachineFactory.CollectorColor, data.worldScale, planet);
             CollectorMachine collector = go.AddComponent<CollectorMachine>();
             collector.Init(data, planet);
             if (linkedPlanet != null) collector.SetLinkedPlanet(linkedPlanet);
             _lastCollector = collector;
 
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
         }
 
         // UI je asinkron — slot se u međuvremenu mogao promijeniti, troši ga samo ako još drži isti item.
         private static void ConsumeSlot(int slotIndex, QuickSlotItem expected)
         {
-            if (QuickSlotInventory.current != null && QuickSlotInventory.current.GetSlot(slotIndex) == expected)
-                QuickSlotInventory.current.RemoveSlot(slotIndex);
+            if (QuickSlotInventory.Instance != null && QuickSlotInventory.Instance.GetSlot(slotIndex) == expected)
+                QuickSlotInventory.Instance.RemoveSlot(slotIndex);
         }
 
         // Planete dostupne kroz ConnectionInteractable u dosegu interakcije — na njih
@@ -202,18 +221,18 @@ namespace xyz.germanfica.unity.planet.gravity
 
         private bool TryPlaceStorage(StorageMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return false;
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
 
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.8f, 0.4f, 0f),
-                scale: 150f, planet: planet);
+            // Poznata (naslijeđena) razlika prema loadu: postavljeni storage ide
+            // kroz SpawnObject s default -90° offsetom i BEZ fitanja collidera,
+            // dok ga SaveSystem loada kao standardni stroj (identity + fit).
+            // Namjerno se ne ujednačava u refaktoru — promjena bi dirala collider
+            // postavljenog storagea (vidi PLAN-KOD §1).
+            GameObject go = MachineFactory.SpawnObject(data.prefab, pos, rot, data.displayName,
+                MachineFactory.StorageColor, scale: data.worldScale, planet: planet);
             StorageMachine storage = go.AddComponent<StorageMachine>();
             storage.Init(data);
             if (_lastCollector != null)
@@ -222,67 +241,49 @@ namespace xyz.germanfica.unity.planet.gravity
                 Debug.Log($"[MachinePlacer] Storage povezan s '{_lastCollector.Data?.displayName}'.");
             }
 
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
             return true;
         }
 
         private bool TryPlaceSmelter(SmelterMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return false;
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
+            MachineFactory.SpawnMachine(data.prefab, pos, rot, data.displayName,
+                    MachineFactory.SmelterColor, data.worldScale, planet)
+                .AddComponent<SmelterMachine>().Init(data, planet);
 
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.9f, 0.2f, 0.1f),
-                scale: 3f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
-            go.AddComponent<SmelterMachine>().Init(data, planet);
-
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
             return true;
         }
 
         private bool TryPlaceExtractor(ExtractorMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return false;
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
+            MachineFactory.SpawnMachine(data.prefab, pos, rot, data.displayName,
+                    MachineFactory.ExtractorColor, data.worldScale, planet)
+                .AddComponent<ExtractorMachine>().Init(data, planet);
 
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.1f, 0.8f, 0.5f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
-            go.AddComponent<ExtractorMachine>().Init(data, planet);
-
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
             return true;
         }
 
         private bool TryPlaceUplink(UplinkMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return false;
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
+            MachineFactory.SpawnMachine(data.prefab, pos, rot, data.displayName,
+                    MachineFactory.UplinkColor, data.worldScale, planet)
+                .AddComponent<UplinkMachine>().Init(data, planet);
 
-            GameObject go = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.2f, 0.8f, 0.9f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
-            go.AddComponent<UplinkMachine>().Init(data, planet);
-
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
             return true;
         }
 
@@ -290,12 +291,8 @@ namespace xyz.germanfica.unity.planet.gravity
         // respawn točku (vidi RespawnTotem). Hub već ima glavni totem od starta.
         private bool TryPlaceRespawnTotem(RespawnTotemMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — totem se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("totem");
+            if (planet == null) return false;
 
             if (planet.TryGetComponent(out Planet planetInfo) && planetInfo.IsHub)
             {
@@ -303,12 +300,10 @@ namespace xyz.germanfica.unity.planet.gravity
                 return false;
             }
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
-
+            var (pos, rot) = PlacementPose(planet);
             RespawnTotem.Spawn(data, planet, pos, rot);
 
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
             Debug.Log($"[MachinePlacer] {data.displayName} postavljen — pritisni E na njemu da postane respawn točka.");
             return true;
         }
@@ -318,12 +313,15 @@ namespace xyz.germanfica.unity.planet.gravity
         // nestaje zajedno (item je potrošen jednom za oba kraja).
         private void TryPickupMachine()
         {
-            if (QuickSlotInventory.current == null) return;
+            if (QuickSlotInventory.Instance == null) return;
 
             if (interactor == null)
                 interactor = FindFirstObjectByType<Interactor>();
             if (interactor == null) return;
 
+            // Bez pozicije izvora nema podizanja (fallback na playerController
+            // je ranije mogao NRE-ati kad referenca nije postavljena).
+            if (interactor.InteractorSource == null && playerController == null) return;
             Vector3 source = interactor.InteractorSource != null
                 ? interactor.InteractorSource.position
                 : playerController.rig.position;
@@ -387,17 +385,17 @@ namespace xyz.germanfica.unity.planet.gravity
 
             if (item == null) return;
 
-            if (!QuickSlotInventory.current.TryAdd(item, out _))
+            if (!QuickSlotInventory.Instance.TryAdd(item, out _))
             {
                 Debug.Log("[MachinePlacer] Hotbar je pun — stroj se ne može vratiti.");
                 return;
             }
 
-            if (InventorySystem.current != null)
+            if (InventorySystem.Instance != null)
                 foreach (var s in stored)
                     if (s != null && s.data != null)
                         for (int i = 0; i < s.GetStackSize(); i++)
-                            InventorySystem.current.Add(s.data);
+                            InventorySystem.Instance.Add(s.data);
 
             foreach (var go in destroy)
             {
@@ -419,12 +417,8 @@ namespace xyz.germanfica.unity.planet.gravity
         // hub pragovi) — s Respawn Totemom čini udaljenu bazu umjesto sekundarnog huba.
         private bool TryPlaceComputer(ComputerMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — računalo se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("računalo");
+            if (planet == null) return false;
 
             if (planet.TryGetComponent(out Planet planetInfo) && planetInfo.IsHub)
             {
@@ -432,12 +426,10 @@ namespace xyz.germanfica.unity.planet.gravity
                 return false;
             }
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
-
+            var (pos, rot) = PlacementPose(planet);
             ComputerMachine.Spawn(data, planet, pos, rot);
 
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(planet);
             Debug.Log($"[MachinePlacer] {data.displayName} postavljen — pritisni E na njemu za izbornik Računala.");
             return true;
         }
@@ -446,12 +438,8 @@ namespace xyz.germanfica.unity.planet.gravity
         // Huba okrenutoj prema ovoj planeti, uz bočni pomak da se izlazi ne preklapaju.
         private bool TryPlaceTeleporter(TeleporterMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return false;
 
             if (planet.TryGetComponent(out Planet planetInfo) && planetInfo.IsHub)
             {
@@ -474,14 +462,13 @@ namespace xyz.germanfica.unity.planet.gravity
                 return false;
             }
 
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
 
             // Izlaz ide na stranu Huba okrenutu prema ovoj planeti; nekoliko pokušaja
             // s nasumičnim bočnim pomakom da ne završi na bazi, resursu ili drugom gateu.
             float hubRadius = SurfacePlacement.GetPlanetRadius(hub);
             Vector3 towardPlanet = (planet.position - hub.position).normalized;
-            Vector3 exitPos = FindHubSurfacePoint(hub, hubRadius, towardPlanet);
+            Vector3 exitPos = FindSurfacePoint(hub, towardPlanet);
             for (int attempt = 0; attempt < 8; attempt++)
             {
                 Vector3 tangent = Vector3.Cross(towardPlanet, Random.onUnitSphere);
@@ -489,27 +476,27 @@ namespace xyz.germanfica.unity.planet.gravity
                 tangent.Normalize();
 
                 Vector3 exitDir = (towardPlanet * hubRadius + tangent * 15f).normalized;
-                exitPos = FindHubSurfacePoint(hub, hubRadius, exitDir);
-                if (IsSpotClear(exitPos, hub)) break;
+                exitPos = FindSurfacePoint(hub, exitDir);
+                if (MachineFactory.IsSpotClear(exitPos, hub)) break;
             }
 
             Quaternion exitRot = Quaternion.FromToRotation(Vector3.up, (exitPos - hub.position).normalized);
 
-            GameObject entryGo = SpawnObject(data.prefab, pos, rot, data.displayName, new Color(0.6f, 0.3f, 0.9f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
+            GameObject entryGo = MachineFactory.SpawnMachine(data.prefab, pos, rot, data.displayName,
+                MachineFactory.TeleporterColor, data.worldScale, planet);
             TeleporterMachine entry = entryGo.AddComponent<TeleporterMachine>();
             entry.Init(data, planet, planetCreator);
 
-            GameObject exitGo = SpawnObject(data.prefab, exitPos, exitRot, data.displayName + " (Hub)", new Color(0.6f, 0.3f, 0.9f),
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: hub);
+            GameObject exitGo = MachineFactory.SpawnMachine(data.prefab, exitPos, exitRot, data.displayName + " (Hub)",
+                MachineFactory.TeleporterColor, data.worldScale, hub);
             TeleporterMachine exit = exitGo.AddComponent<TeleporterMachine>();
             exit.Init(data, hub, planetCreator);
 
             entry.SetLinkedTeleporter(exit);
             exit.SetLinkedTeleporter(entry);
 
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = hub });
+            RaisePlaced(planet);
+            RaisePlaced(hub);
             return true;
         }
 
@@ -518,12 +505,8 @@ namespace xyz.germanfica.unity.planet.gravity
         // Item se troši iz hotbara tek kad su oba kraja postavljena.
         private bool TryPlaceTwoWayTeleporter(TwoWayTeleporterMachineData data)
         {
-            Transform planet = playerController?.currentPlanet;
-            if (planet == null)
-            {
-                Debug.Log("[MachinePlacer] Igrač nije na planeti — stroj se ne može postaviti.");
-                return false;
-            }
+            Transform planet = RequirePlanet("stroj");
+            if (planet == null) return false;
 
             if (planetCreator == null)
                 planetCreator = FindFirstObjectByType<PlanetCreator>();
@@ -533,19 +516,17 @@ namespace xyz.germanfica.unity.planet.gravity
                 return false;
             }
 
-            Color gateColor = new Color(1f, 0.6f, 0.1f);
-            Vector3 pos = FindSurfacePoint(planet);
-            Quaternion rot = Quaternion.FromToRotation(Vector3.up, (pos - planet.position).normalized);
+            var (pos, rot) = PlacementPose(planet);
 
             if (_pendingTwoWayEntry == null)
             {
-                GameObject entryGo = SpawnObject(data.prefab, pos, rot, data.displayName + " (ulaz)", gateColor,
-                    scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
+                GameObject entryGo = MachineFactory.SpawnMachine(data.prefab, pos, rot,
+                    data.displayName + " (ulaz)", MachineFactory.TwoWayGateColor, data.worldScale, planet);
                 _pendingTwoWayEntry = entryGo.AddComponent<TeleporterMachine>();
                 _pendingTwoWayEntry.Init(data, planet, planetCreator);
 
                 // Idle dok par nije kompletan — ulaz bez izlaza još ne teleportira.
-                GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Idle, Planet = planet });
+                RaisePlaced(planet, MachineState.Idle);
                 Debug.Log("[MachinePlacer] Ulaz postavljen — otiđi na drugu planetu i pritisni P za izlaz (X za odustajanje).");
                 return false;
             }
@@ -556,16 +537,16 @@ namespace xyz.germanfica.unity.planet.gravity
                 return false;
             }
 
-            GameObject exitGo = SpawnObject(data.prefab, pos, rot, data.displayName + " (izlaz)", gateColor,
-                scale: 7f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true, planet: planet);
+            GameObject exitGo = MachineFactory.SpawnMachine(data.prefab, pos, rot,
+                data.displayName + " (izlaz)", MachineFactory.TwoWayGateColor, data.worldScale, planet);
             TeleporterMachine exit = exitGo.AddComponent<TeleporterMachine>();
             exit.Init(data, planet, planetCreator);
 
             _pendingTwoWayEntry.SetLinkedTeleporter(exit);
             exit.SetLinkedTeleporter(_pendingTwoWayEntry);
 
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = _pendingTwoWayEntry.Planet });
-            GameEventBus.RaiseMachinePlaced(new MachineEvent { State = MachineState.Active, Planet = planet });
+            RaisePlaced(_pendingTwoWayEntry.Planet);
+            RaisePlaced(planet);
             _pendingTwoWayEntry = null;
             return true;
         }
@@ -593,27 +574,6 @@ namespace xyz.germanfica.unity.planet.gravity
             return null;
         }
 
-        // Za izlazni gate raycast smije pogoditi samo planetu — običan raycast bi
-        // stao na kamenju, bazi ili već postavljenom gateu i gradio na njima.
-        private static Vector3 FindHubSurfacePoint(Transform hub, float hubRadius, Vector3 dir)
-        {
-            Vector3 origin = hub.position + dir * (hubRadius + 20f);
-
-            if (SurfacePlacement.TryRaycastSurface(hub, origin, -dir, hubRadius + 40f, out RaycastHit hit))
-                return hit.point;
-
-            return hub.position + dir * hubRadius;
-        }
-
-        // Čisto tlo: u radijusu objekta ne smije biti ničeg osim same planete.
-        // Javno jer i GameManager (spawn hub totema) traži čisto mjesto.
-        public static bool IsSpotClear(Vector3 pos, Transform planet)
-        {
-            foreach (var col in Physics.OverlapSphere(pos, 4f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
-                if (col.transform != planet) return false;
-            return true;
-        }
-
         private Vector3 FindSurfacePoint(Transform planet)
         {
             Vector3 playerPos = playerController.rig.position;
@@ -621,69 +581,14 @@ namespace xyz.germanfica.unity.planet.gravity
             return FindSurfacePoint(planet, (targetPos - planet.position).normalized);
         }
 
+        // Točka površine u smjeru snapDir. SurfacePlacement filtrira pogodak na
+        // samu planetu (običan raycast bi stao na kamenju ili stroju ispred igrača
+        // i gradio na njima) i ponavlja ray nakon Physics.SyncTransforms — fix
+        // koji su lokalne kopije ove metode bile propustile.
         private static Vector3 FindSurfacePoint(Transform planet, Vector3 snapDir)
         {
-            float   radius = SurfacePlacement.GetPlanetRadius(planet);
-            Vector3 origin = planet.position + snapDir * (radius + 20f);
-
-            // Filtrirano na planet — običan raycast bi stao na kamenju ili stroju
-            // ispred igrača i postavio novi stroj na njih (isti razlog kao
-            // FindHubSurfacePoint gore).
-            if (SurfacePlacement.TryRaycastSurface(planet, origin, -snapDir, radius + 40f, out RaycastHit hit))
-                return hit.point;
-
-            return planet.position + snapDir * radius;
+            SurfacePlacement.GetSurfacePoint(planet, snapDir, out Vector3 point, out _);
+            return point;
         }
-
-        // Javno jer i spawn izvan placera (RespawnTotem.Spawn) gradi istim putem.
-        // pos mora biti točka na površini planeta; uz zadan planet objekt se prizemlji
-        // tako da mu dno stvarne geometrije sjedne na pos, bez obzira gdje je pivot prefaba.
-        public static GameObject SpawnObject(GameObject prefab, Vector3 pos, Quaternion rot,
-            string fallbackName, Color fallbackColor, float scale = 300f, Quaternion? rotationOffset = null,
-            bool fitColliderToRenderer = false, Transform planet = null)
-        {
-            GameObject go;
-            if (prefab != null)
-            {
-                go = Instantiate(prefab, pos, rot);
-            }
-            else
-            {
-                go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                go.transform.SetPositionAndRotation(pos, rot);
-                go.GetComponent<Renderer>().material.color = fallbackColor;
-            }
-
-            go.transform.localScale = Vector3.one * scale;
-            go.transform.rotation   = rot * (rotationOffset ?? Quaternion.Euler(-90f, 0f, 0f));
-            go.name = fallbackName;
-
-            if (fitColliderToRenderer)
-                FitColliderToRenderer(go);
-            else if (!go.TryGetComponent<Collider>(out _))
-                go.AddComponent<BoxCollider>();
-
-            if (go.TryGetComponent<Rigidbody>(out var rb))
-                Destroy(rb);
-
-            // rot je FromToRotation(Vector3.up, normala), pa je rot * up normala površine
-            // i kad rotationOffset dodatno zakrene model.
-            if (planet != null)
-                SurfacePlacement.GroundToSurface(go, planet, pos, rot * Vector3.up);
-
-            // Zajednički put svih postavljanja (strojevi, totemi) — prašina oko baze.
-            VfxManager.PlayMachinePlaced(pos, rot * Vector3.up);
-
-            return go;
-        }
-
-        // Postavlja jedan BoxCollider koji prati stvarne granice geometrije, umjesto
-        // da se oslanja na default collider primitive kocke ili prefaba koji možda ne
-        // odgovara veličini/obliku modela nakon skaliranja i rotacije. Mjerenje živi u
-        // SurfacePlacementu (isti izvor točaka kao prizemljenje/audit) — stara verzija
-        // ovdje je mjerila renderer bounds, što za skinnane modele (bone-frame AABB)
-        // daje box pomaknut od vidljive geometrije.
-        public static void FitColliderToRenderer(GameObject go)
-            => SurfacePlacement.FitBoxColliderToGeometry(go);
     }
 }

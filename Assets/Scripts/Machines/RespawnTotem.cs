@@ -34,9 +34,8 @@ namespace xyz.germanfica.unity.planet.gravity
             Quaternion rot, bool isHubTotem = false)
         {
             string name = (data != null ? data.displayName : "Respawn Totem") + (isHubTotem ? " (Hub)" : "");
-            GameObject go = MachinePlacer.SpawnObject(data != null ? data.prefab : null, pos, rot,
-                name, TotemColor, scale: 5f, rotationOffset: Quaternion.identity, fitColliderToRenderer: true,
-                planet: planet);
+            GameObject go = MachineFactory.SpawnMachine(data != null ? data.prefab : null, pos, rot,
+                name, TotemColor, MachineFactory.TotemScale, planet);
 
             var totem = go.AddComponent<RespawnTotem>();
             totem.Init(data, planet, isHubTotem);
@@ -83,6 +82,11 @@ namespace xyz.germanfica.unity.planet.gravity
                 Active = HubTotem;
                 if (Active != null) Active.RefreshVisual();
             }
+
+            // RefreshVisual kroz rend.material instancira materijale — počisti ih,
+            // inače svaki podignuti/uništeni totem ostavi po Material u memoriji.
+            foreach (var rend in _originalColors.Keys)
+                if (rend != null) Destroy(rend.material);
         }
 
         private void RefreshVisual()

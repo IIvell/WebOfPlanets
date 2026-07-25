@@ -18,6 +18,7 @@ namespace xyz.germanfica.unity.planet.gravity
         [SerializeField] private Color bodyColor = new Color(0.65f, 0.12f, 0.12f);
 
         private readonly HashSet<Transform> _processed = new();
+        private PlayerController _player;
 
         // Runtime bootstrap umjesto dodavanja u scenu — editor drži scenu u
         // memoriji pa disk izmjene scene ne prežive (isti razlog kao Planet.Awake).
@@ -59,7 +60,7 @@ namespace xyz.germanfica.unity.planet.gravity
             // markerima. Nakon 8 pokušaja prihvati zadnju točku (mali planeti).
             Vector3 dir = Random.onUnitSphere;
             SurfacePlacement.GetSurfacePoint(planet, dir, out Vector3 hitPoint, out Vector3 hitNormal);
-            for (int attempt = 0; attempt < 8 && !MachinePlacer.IsSpotClear(hitPoint, planet); attempt++)
+            for (int attempt = 0; attempt < 8 && !MachineFactory.IsSpotClear(hitPoint, planet); attempt++)
             {
                 dir = Random.onUnitSphere;
                 SurfacePlacement.GetSurfacePoint(planet, dir, out hitPoint, out hitNormal);
@@ -94,7 +95,7 @@ namespace xyz.germanfica.unity.planet.gravity
             }
             mob.name = "EnemyMob";
 
-            // Isti put kao strojevi (MachinePlacer.SpawnObject): dno stvarne
+            // Isti put kao strojevi (MachineFactory.SpawnObject): dno stvarne
             // geometrije na površinu, pa jedan BoxCollider po granicama geometrije.
             SurfacePlacement.GroundToSurface(mob, planet, hitPoint, hitNormal);
             SurfacePlacement.FitBoxColliderToGeometry(mob);
@@ -102,7 +103,11 @@ namespace xyz.germanfica.unity.planet.gravity
             Rigidbody rig = mob.AddComponent<Rigidbody>();
             rig.mass = 1f;
 
-            mob.AddComponent<EnemyMob>().Init(planet);
+            // Jedan lookup igrača za sve mobove umjesto po-mob Finda u Startu.
+            if (_player == null)
+                _player = FindFirstObjectByType<PlayerController>();
+
+            mob.AddComponent<EnemyMob>().Init(planet, _player);
         }
 
         private static void AddEye(Transform body, Vector3 localPos)

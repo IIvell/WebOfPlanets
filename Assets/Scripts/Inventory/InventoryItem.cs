@@ -9,14 +9,10 @@ namespace xyz.germanfica.unity.planet.gravity
         public Item data { get; private set; }
 
         [SerializeField] private int stackSize;
-        [SerializeField] private string id;
-        [SerializeField] private string displayName;
 
         public InventoryItem(Item source)
         {
             data = source;
-            id = source.id;
-            displayName = source.displayName;
             AddToStack();
         }
 

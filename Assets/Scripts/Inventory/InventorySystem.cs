@@ -5,30 +5,36 @@ namespace xyz.germanfica.unity.planet.gravity
 {
     public class InventorySystem : MonoBehaviour
     {
-        public static InventorySystem current;
+        public static InventorySystem Instance { get; private set; }
 
-        private Dictionary<Item, InventoryItem> m_itemDictionary;
+        private Dictionary<Item, InventoryItem> _itemDictionary;
 
         [SerializeField]
         private List<InventoryItem> inventory = new List<InventoryItem>();
 
         void Awake()
         {
-            current = this;
-            m_itemDictionary = new Dictionary<Item, InventoryItem>();
+            if (Instance != null && Instance != this) { Destroy(this); return; }
+            Instance = this;
+            _itemDictionary = new Dictionary<Item, InventoryItem>();
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         public List<InventoryItem> GetInventory() => inventory;
 
         public InventoryItem Get(Item referenceData)
         {
-            m_itemDictionary.TryGetValue(referenceData, out InventoryItem value);
+            _itemDictionary.TryGetValue(referenceData, out InventoryItem value);
             return value;
         }
 
         public void Add(Item referenceData)
         {
-            if (m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            if (_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
             {
                 value.AddToStack();
             }
@@ -36,25 +42,25 @@ namespace xyz.germanfica.unity.planet.gravity
             {
                 InventoryItem newItem = new InventoryItem(referenceData);
                 inventory.Add(newItem);
-                m_itemDictionary.Add(referenceData, newItem);
+                _itemDictionary.Add(referenceData, newItem);
             }
 
             // Zajednička točka svih ulaza resursa u inventar (kopanje, preuzimanje
-            // iz strojeva/skladišta) — direktan poziv umjesto OnResourceCollected
-            // eventa jer Item nema ResourceType (mapping po imenu je poznati hack).
-            AudioManager.PlayResourcePickup();
+            // iz strojeva/skladišta). Bus event umjesto ranijeg direktnog poziva
+            // AudioManagera — domenska klasa ne smije compile-time ovisiti o audiju.
+            GameEventBus.RaiseInventoryItemAdded();
         }
 
         public void Remove(Item referenceData)
         {
-            if (m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            if (_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
             {
                 value.RemoveFromStack();
 
                 if (value.GetStackSize() == 0)
                 {
                     inventory.Remove(value);
-                    m_itemDictionary.Remove(referenceData);
+                    _itemDictionary.Remove(referenceData);
                 }
             }
         }
@@ -64,7 +70,7 @@ namespace xyz.germanfica.unity.planet.gravity
         public void ClearForLoad()
         {
             inventory.Clear();
-            m_itemDictionary.Clear();
+            _itemDictionary.Clear();
         }
 
         // Kao Add, ali cijeli stack odjednom i bez pickup zvuka po itemu.
@@ -72,11 +78,11 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (referenceData == null || count <= 0) return;
 
-            if (!m_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
+            if (!_itemDictionary.TryGetValue(referenceData, out InventoryItem value))
             {
                 value = new InventoryItem(referenceData); // konstruktor već broji 1
                 inventory.Add(value);
-                m_itemDictionary.Add(referenceData, value);
+                _itemDictionary.Add(referenceData, value);
                 count--;
             }
             for (int i = 0; i < count; i++)

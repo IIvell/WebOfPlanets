@@ -40,41 +40,59 @@ namespace xyz.germanfica.unity.planet.gravity
         {
             if (!_panel.activeSelf) return;
 
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (GameKeys.WasPressed(GameKeys.Cancel))
             {
                 Hide();
                 return;
             }
 
-            // Uplink može dostaviti resurse dok je panel otvoren — osvježi brojeve.
+            // Uplink može dostaviti resurse dok je panel otvoren — osvježi brojeve,
+            // ali samo ako se nešto vidljivo promijenilo (rebuild panela nije besplatan).
             _refreshTimer += Time.deltaTime;
-            if (_refreshTimer >= 1f) Refresh();
+            if (_refreshTimer >= 1f)
+            {
+                _refreshTimer = 0f;
+                if (BuildSignature() != _lastSignature) Refresh();
+            }
         }
 
         public void Show()
         {
             _panel.SetActive(true);
             Refresh();
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible   = true;
-            playerController?.SetInputEnabled(false);
-            playerCamera?.SetInputEnabled(false);
-            if (interactor != null) interactor.enabled = false;
+            UiFocus.Acquire(playerController, playerCamera, interactor);
         }
 
         public void Hide()
         {
             _panel.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible   = false;
-            playerController?.SetInputEnabled(true);
-            playerCamera?.SetInputEnabled(true);
-            if (interactor != null) interactor.enabled = true;
+            UiFocus.Release(playerController, playerCamera, interactor);
+        }
+
+        // Potpis vidljivog stanja (prag + stanje skladišta za tražene resurse):
+        // periodični refresh ruši i gradi cijeli panel, pa se preskače kad se
+        // ništa vidljivo nije promijenilo.
+        private string _lastSignature;
+
+        private string BuildSignature()
+        {
+            var sb = new StringBuilder();
+            sb.Append(HubProgress.Tier);
+            foreach (var tier in HubProgress.Tiers)
+                foreach (var req in tier.Requirements)
+                {
+                    int have = 0;
+                    if (HubStorage.Instance != null && req.Item != null)
+                        have = HubStorage.Instance.Get(req.Item)?.GetStackSize() ?? 0;
+                    sb.Append('|').Append(have);
+                }
+            return sb.ToString();
         }
 
         private void Refresh()
         {
             _refreshTimer = 0f;
+            _lastSignature = BuildSignature();
 
             foreach (var go in _sections)
             {
@@ -95,7 +113,7 @@ namespace xyz.germanfica.unity.planet.gravity
         // Gradi blok jednog praga; vraća y donjeg ruba bloka.
         private float BuildTierSection(int tierIndex, float yTop)
         {
-            var reqs = HubProgress.TierRequirements[tierIndex];
+            var reqs = HubProgress.Tiers[tierIndex].Requirements;
             float height = 30f + reqs.Length * 15f + 20f;
 
             var section = new GameObject("Tier_" + (tierIndex + 1));
@@ -127,7 +145,7 @@ namespace xyz.germanfica.unity.planet.gravity
             reqTxt.alignment = TextAlignmentOptions.TopLeft;
 
             var desc = MakeText(section.transform,
-                $"<color=#8899aa>Unlocks: {HubProgress.TierUnlocks[tierIndex]}</color>", 10,
+                $"<color=#8899aa>Unlocks: {HubProgress.Tiers[tierIndex].Unlocks}</color>", 10,
                 new Vector2(12f, -(height - 18f)), new Vector2(396f, 16f));
             desc.alignment = TextAlignmentOptions.TopLeft;
 
@@ -140,7 +158,7 @@ namespace xyz.germanfica.unity.planet.gravity
         private string BuildReqText(int tierIndex, bool unlocked)
         {
             var sb = new StringBuilder();
-            foreach (var req in HubProgress.TierRequirements[tierIndex])
+            foreach (var req in HubProgress.Tiers[tierIndex].Requirements)
             {
                 if (unlocked)
                 {
@@ -149,8 +167,8 @@ namespace xyz.germanfica.unity.planet.gravity
                 }
 
                 int have = 0;
-                if (HubStorage.current != null && req.Item != null)
-                    have = HubStorage.current.Get(req.Item)?.GetStackSize() ?? 0;
+                if (HubStorage.Instance != null && req.Item != null)
+                    have = HubStorage.Instance.Get(req.Item)?.GetStackSize() ?? 0;
 
                 string col = have >= req.amount ? "#88ff88" : "#ff6666";
                 sb.AppendLine($"<color={col}>{have}/{req.amount}x {req.DisplayName}</color>");
@@ -224,7 +242,7 @@ namespace xyz.germanfica.unity.planet.gravity
             _statusLbl.alignment = TextAlignmentOptions.Center;
             _statusLbl.color     = new Color(0.65f, 0.75f, 0.85f);
 
-            var hint = MakeText(_panel.transform, "ESC — close", 11, Vector2.zero, new Vector2(420f, 24f));
+            var hint = MakeText(_panel.transform, $"{GameKeys.CancelName} — close", 11, Vector2.zero, new Vector2(420f, 24f));
             CenterAnchor(hint.rectTransform, new Vector2(0f, -312f));
             hint.alignment = TextAlignmentOptions.Center;
             hint.color     = new Color(0.6f, 0.6f, 0.6f);

@@ -8,7 +8,7 @@ namespace xyz.germanfica.unity.planet.gravity
     {
         public const int SlotCount = 9;
 
-        public static QuickSlotInventory current;
+        public static QuickSlotInventory Instance { get; private set; }
 
         [SerializeField] private QuickSlotItem[] slots = new QuickSlotItem[SlotCount];
 
@@ -22,11 +22,17 @@ namespace xyz.germanfica.unity.planet.gravity
 
         void Awake()
         {
-            current = this;
+            if (Instance != null && Instance != this) { Destroy(this); return; }
+            Instance = this;
 
             for (int i = 0; i < SlotCount; i++)
                 if (slots[i] is Tool tool)
                     _durabilities[i] = tool.maxDurability;
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         void Update()
@@ -74,7 +80,7 @@ namespace xyz.germanfica.unity.planet.gravity
             slots[index] = null;
             _durabilities[index] = 0;
             if (index == _selectedIndex)
-                PlayerToolSystem.current?.UnequipTool();
+                PlayerToolSystem.Instance?.UnequipTool();
 
             GameEventBus.RaiseQuickSlotsChanged();
         }
@@ -87,9 +93,9 @@ namespace xyz.germanfica.unity.planet.gravity
             QuickSlotItem item = slots[index];
 
             if (item is Tool tool)
-                PlayerToolSystem.current?.EquipTool(tool, index, _durabilities[index]);
+                PlayerToolSystem.Instance?.EquipTool(tool, index, _durabilities[index]);
             else
-                PlayerToolSystem.current?.UnequipTool();
+                PlayerToolSystem.Instance?.UnequipTool();
 
             GameEventBus.RaiseQuickSlotsChanged();
         }
@@ -104,7 +110,7 @@ namespace xyz.germanfica.unity.planet.gravity
                 _durabilities[i] = 0;
             }
             _selectedIndex = -1;
-            PlayerToolSystem.current?.UnequipTool();
+            PlayerToolSystem.Instance?.UnequipTool();
             GameEventBus.RaiseQuickSlotsChanged();
         }
 

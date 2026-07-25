@@ -138,6 +138,8 @@ MonoBehaviour:
   damagePerSecond: 15
   surfaceOffset: -1
   hazardMaterial: {fileID: 2100000, guid: 7398f3cfa009a6e46aa8729cd33a4209, type: 2}
+  minMoveSpeed: 2
+  maxMoveSpeed: 5
 --- !u!1 &57085727
 GameObject:
   m_ObjectHideFlags: 0
@@ -812,7 +814,6 @@ MonoBehaviour:
   miningMaterial: {fileID: 2100000, guid: f56e5c526f834d83aee31d1da1345695, type: 2}
   volcanicMaterial: {fileID: 2100000, guid: 8ee7374d05cc916c9a5e9c45f8f1407d, type: 2}
   gaseousMaterial: {fileID: 2100000, guid: 19100703a7a2e28ee0f6e0084a08f280, type: 2}
-  abandonedMaterial: {fileID: 2100000, guid: 13da8d4b9c3843139df93fcc6e20c0b6, type: 2}
   organicMaterial: {fileID: 2100000, guid: 40847c34afb14a6b8f7656bf857c4953, type: 2}
 --- !u!4 &366273104
 Transform:
@@ -870,7 +871,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.ResourceSpawnManager
   settings: {fileID: 11400000, guid: 64138aa1eb63c8a40ad84b194b2809ff, type: 2}
-  surfaceOffset: 0.1
+  surfaceGap: 0
 --- !u!114 &366273108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -907,6 +908,7 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
     amount: 1
   teleportCostDistanceStep: 2000
+  maxPotentialPerPlanet: 3
   potentialConnectionMarkerPrefab: {fileID: 919132149155446097, guid: 4422aa8ff4be82b4fb14621a9a15396e, type: 3}
   markerScale: 5
   markerHeight: 5.5
@@ -923,6 +925,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.QuickSlotInventory
   slots:
+  - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
@@ -1263,7 +1266,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.HubResourceSpawner
   settings: {fileID: 11400000, guid: 8d71056109c4b834d8dfbe2d658366a2, type: 2}
-  surfaceOffset: 0.1
+  surfaceGap: 0
 --- !u!1001 &601186138
 PrefabInstance:
   m_ObjectHideFlags: 0
