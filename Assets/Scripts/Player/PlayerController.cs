@@ -31,8 +31,6 @@ namespace WebOfPlanets
         [SerializeField] private float surfaceSkin = 0.15f;
         [Tooltip("Najveći povrat visine po fizičkom koraku — omeđuje trzaj ako se stanje ikad zatekne daleko iznad tla.")]
         [SerializeField] private float maxSnapPerStep = 0.2f;
-        [Tooltip("Visina iznad koje se lock otpušta i igrač normalno pada (rub litice, krov nakon teleporta). Penjanjem nedostižno: lock višak reže već iznad skina.")]
-        [SerializeField] private float ungroundHeight = 0.5f;
 
         private Planet _planet;
         private float _defaultLinearDamping;
@@ -231,6 +229,17 @@ namespace WebOfPlanets
         // legitimno kretanje napravi u jednom koraku ruši _grounded pa se tlo
         // ponovno hvata iz zraka. Slijetanje na krov stroja (teleport raycasta sve
         // collidere) ostaje negrounded — igrač normalno siđe pa se lock uhvati.
+        //
+        // NEMA otpuštanja locka po visini (staro ungroundHeight otpuštanje uklonjeno,
+        // srpanj 2026): depenetracija na visokom collideru (stijena) znala je u
+        // JEDNOM koraku dignuti kapsulu iznad praga, lock bi se otpustio, a stojeći
+        // na resursu visina više nikad ne padne ispod surfaceSkin pa se lock nikad
+        // ne bi ponovno uhvatio — igrač trajno "clippan" iznad površine. Jedini
+        // legitimni izlaz iz _grounded ostaje skok pozicije > 1 m (teleport/load);
+        // depenetracija to ne može doseći (PhysX maxDepenetrationVelocity 10 m/s =
+        // 0.2 m po koraku). Silazak s ruba/litice sad rješava lock (spust do
+        // maxSnapPerStep po koraku) umjesto slobodnog pada — na kuglastim planetima
+        // to je neprimjetno.
         private void EnforceSurfaceLock()
         {
             if (_planet == null || _capsule == null) return;
@@ -260,12 +269,6 @@ namespace WebOfPlanets
             if (!_grounded)
             {
                 _grounded = altitude <= surfaceSkin;
-                return;
-            }
-
-            if (altitude > ungroundHeight)
-            {
-                _grounded = false;
                 return;
             }
 
