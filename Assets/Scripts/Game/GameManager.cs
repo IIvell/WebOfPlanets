@@ -4,6 +4,10 @@ using UnityEngine.InputSystem;
 
 namespace WebOfPlanets
 {
+    // Globalno stanje igre — enum koriste i UI i gameplay sustavi. Do čišćenja
+    // malih datoteka (srpanj 2026.) živio u vlastitoj GameState.cs.
+    public enum GameState { Playing, Paused, GameOver, Victory }
+
     // Game over tok: PlayerDiedEvent -> zamrzni simulaciju i ugasi player input;
     // R oživljava igrača na aktivnom respawn totemu (default: glavni totem na Hubu).
     // Respawn umjesto reload-a scene — proceduralno generirane planete i izgrađena

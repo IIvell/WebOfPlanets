@@ -21,17 +21,34 @@ namespace WebOfPlanets
             return rend != null ? rend.bounds.size.x * 0.5f : planet.localScale.x * 0.5f;
         }
 
+        // Zajednički buffer za TryRaycastSurface: otkad surface-lock igrača raycasta
+        // svaki FixedUpdate, alokacija po pozivu (RaycastAll) bi bila stalni GC
+        // pritisak. Unity physics upiti idu samo s glavne niti, pa je static siguran.
+        private static readonly RaycastHit[] RaycastBuffer = new RaycastHit[64];
+
         // Raycast can otherwise hit a previously spawned resource's collider instead of
         // the planet, so only accept hits against the planet's own collider.
         public static bool TryRaycastSurface(Transform planet, Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit)
         {
-            RaycastHit[] hits = Physics.RaycastAll(origin, direction, maxDistance);
+            int count = Physics.RaycastNonAlloc(origin, direction, RaycastBuffer, maxDistance);
+
+            // Pun buffer znači da je dio pogodaka možda odbačen — među njima i
+            // planetov. Jednokratna alokacija u tom (praktički nedostižnom) slučaju
+            // čuva korektnost; tiha degradacija bi surface-lock ostavila bez mete.
+            RaycastHit[] hits = RaycastBuffer;
+            if (count == RaycastBuffer.Length)
+            {
+                hits = Physics.RaycastAll(origin, direction, maxDistance);
+                count = hits.Length;
+            }
+
             float closestDistance = float.MaxValue;
             RaycastHit closestHit = default;
             bool found = false;
 
-            foreach (var h in hits)
+            for (int i = 0; i < count; i++)
             {
+                RaycastHit h = hits[i];
                 if (h.collider.transform != planet) continue;
                 if (h.distance >= closestDistance) continue;
                 closestDistance = h.distance;

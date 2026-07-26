@@ -4,6 +4,15 @@ using UnityEngine;
 
 namespace WebOfPlanets
 {
+    // Trošak (item + količina) za veze/teleport — serijalizira se inline u sceni,
+    // ne po GUID-u skripte. Konsolidirano iz ConnectionRequirement.cs (srpanj 2026.).
+    [System.Serializable]
+    public class ConnectionRequirement
+    {
+        public Item item;
+        [Min(1)] public int amount = 1;
+    }
+
     public class ConnectionManager : MonoBehaviour
     {
         [SerializeField] private PlanetCreator planetCreator;

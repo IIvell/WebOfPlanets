@@ -36,4 +36,31 @@ namespace WebOfPlanets
         [Tooltip("Lokalna os prefaba koja pri postavljanju na planet treba gledati suprotno od centra planeta (\"gore\" u mesh prostoru). Standardno Y, ali neki modeli imaju drugu os kao \"gore\".")]
         public Vector3 surfaceUpAxis = Vector3.up;
     }
+
+    // Zajednička baza za sve stvari koje mogu sjediti u hotbar slotu (alati, strojevi).
+    // Konsolidirano iz QuickSlotItem.cs (čišćenje malih datoteka, srpanj 2026.).
+    public abstract class QuickSlotItem : ScriptableObject
+    {
+        public string displayName;
+        public Sprite icon;
+    }
+
+    // Stack jednog Item-a u inventaru igrača. Konsolidirano iz InventoryItem.cs.
+    [System.Serializable]
+    public class InventoryItem
+    {
+        public Item data { get; private set; }
+
+        [SerializeField] private int stackSize;
+
+        public InventoryItem(Item source)
+        {
+            data = source;
+            AddToStack();
+        }
+
+        public void AddToStack() => stackSize++;
+        public void RemoveFromStack() => stackSize--;
+        public int GetStackSize() => stackSize;
+    }
 }

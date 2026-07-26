@@ -115,4 +115,123 @@ namespace WebOfPlanets
         public static void Raise(PlayerDamagedEvent e)       => OnPlayerDamaged?.Invoke(e);
         public static void Raise(PlayerDiedEvent e)          => OnPlayerDied?.Invoke(e);
     }
+
+    // ── Event payload tipovi ──────────────────────────────────────────────────
+    // Konsolidirano iz EventTypes.cs (čišćenje malih datoteka, srpanj 2026.):
+    // sabirnica i njezini payloadi su jedno sučelje. Ista napomena o rezerviranim
+    // tipovima kao gore — dio ih čeka buduće featuree, ne brisati.
+
+    public enum ResourceType { Ore, Biomass, Ice, Gas, VolcanicMatter }
+    public enum PlanetType { Mining, Organic, Ice, Gaseous, Volcanic }
+    public enum ConnectionType { Ancient, Weak, Mid, Strong }
+    public enum MachineState { Active, Idle, Broken }
+    public enum HubLevel { Basic, Upgraded, Advanced }
+    public enum MilestoneType { FirstResource, FirstConnection, HubUpgraded, NetworkComplete }
+
+    public struct ResourceCollectedEvent
+    {
+        public ResourceType Type;
+        public int Amount;
+        public Transform Planet;
+    }
+
+    public struct ResourceTransportedEvent
+    {
+        public ResourceType Type;
+        public int Amount;
+        public Transform FromPlanet;
+        public Transform ToPlanet;
+    }
+
+    public struct ConnectionHealthChangedEvent
+    {
+        public float Health; // 0–100
+        public Transform PlanetA;
+        public Transform PlanetB;
+        public ConnectionType ConnectionType;
+    }
+
+    public struct ConnectionEvent
+    {
+        public Transform PlanetA;
+        public Transform PlanetB;
+        public ConnectionType ConnectionType;
+    }
+
+    public struct MachineEvent
+    {
+        public MachineState State;
+        public Transform Planet;
+        public ResourceType ResourceType;
+        public string MachineName;
+    }
+
+    public struct TransportRouteEvent
+    {
+        public Transform FromPlanet;
+        public Transform ToPlanet;
+        public ResourceType ResourceType;
+    }
+
+    public struct PlayerPlanetEvent
+    {
+        public Transform Planet;
+        public Vector3 Position;
+    }
+
+    public struct PlayerTeleportEvent
+    {
+        public Transform FromPlanet;
+        public Transform ToPlanet;
+    }
+
+    public struct HubUpgradedEvent
+    {
+        public HubLevel NewLevel;
+        public string UpgradeType;
+    }
+
+    public struct MilestoneEvent
+    {
+        public MilestoneType Type;
+        public string StoryFragment;
+    }
+
+    public struct MiningProgressEvent
+    {
+        public float Progress; // 0–1
+        public bool IsMining;
+    }
+
+    public struct ToolEquippedEvent
+    {
+        public string ToolName;       // null ili prazan = odložen alat
+        public float SpeedMultiplier;
+        public int CurrentDurability;
+        public int MaxDurability;
+    }
+
+    public struct ToolDurabilityEvent
+    {
+        public int Current;
+        public int Max;
+    }
+
+    public struct PlayerHealthChangedEvent
+    {
+        public float Current;
+        public float Max;
+    }
+
+    public struct PlayerDamagedEvent
+    {
+        public float Amount;
+        public float Current;
+        public Vector3 Position;
+    }
+
+    public struct PlayerDiedEvent
+    {
+        public Vector3 Position;
+    }
 }

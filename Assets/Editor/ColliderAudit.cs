@@ -1,4 +1,5 @@
 using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace WebOfPlanets
@@ -202,5 +203,34 @@ namespace WebOfPlanets
         }
 
         private static string Fmt(Vector3 v) => $"({v.x:F2}, {v.y:F2}, {v.z:F2})";
+    }
+
+    // Meni stavke za oba audita. Konsolidirano iz SurfacePlacementAuditMenu.cs
+    // (čišćenje malih datoteka, srpanj 2026.).
+    public static class SurfacePlacementAuditMenu
+    {
+        [MenuItem("Tools/Web of Planets/Audit Surface Placement")]
+        private static void Run()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.Log("SurfaceAudit radi samo u Play modu.");
+                return;
+            }
+
+            SurfaceAudit.LogReport();
+        }
+
+        [MenuItem("Tools/Web of Planets/Audit Colliders")]
+        private static void RunColliders()
+        {
+            if (!Application.isPlaying)
+            {
+                Debug.Log("ColliderAudit radi samo u Play modu.");
+                return;
+            }
+
+            ColliderAudit.LogReport();
+        }
     }
 }

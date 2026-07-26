@@ -54,7 +54,14 @@ namespace WebOfPlanets
                 Vector3 rayOrigin = destinationMarker.position + markerUp * 2f + tangent * lateral;
                 if (Physics.Raycast(rayOrigin, -markerUp, out RaycastHit hit, 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 {
-                    playerPos = hit.point + hit.normal * 1f;
+                    // +2, ne +1: dno kapsule je 1.69 ISPOD pivota, pa bi +1 kapsulu
+                    // startno ukopao 0.69 u pogođenu površinu. Zraka pogađa SVE solid
+                    // collidere — na niskom objektu (npr. pickup kamen, krov ~0.6) bi
+                    // se surface-lock uhvatio u penetraciji i zaglavio u deadlocku sa
+                    // PhysX depenetracijom. S +2 stopala kreću ~0.3 iznad pogođenog:
+                    // meki pad na tlo, a niski objekt ostaje "krov" (negrounded) s
+                    // kojeg igrač normalno siđe. Isto radi i sibling T-spawn (+2).
+                    playerPos = hit.point + hit.normal * 2f;
                     playerUp = hit.normal;
                 }
                 else
@@ -83,12 +90,13 @@ namespace WebOfPlanets
                 Vector3 rayOrigin = targetPlanet.position + aimDirection * (radius * 1.5f);
                 if (Physics.Raycast(rayOrigin, -aimDirection, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 {
-                    playerPos = hit.point + hit.normal * 1f;
+                    // +2 iz istog razloga kao marker-grana gore (dno kapsule -1.69).
+                    playerPos = hit.point + hit.normal * 2f;
                     playerUp = hit.normal;
                 }
                 else
                 {
-                    playerPos = targetPlanet.position + aimDirection * (radius + 1f);
+                    playerPos = targetPlanet.position + aimDirection * (radius + 2f);
                     playerUp = aimDirection;
                 }
             }

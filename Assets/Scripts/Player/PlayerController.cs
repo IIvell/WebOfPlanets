@@ -17,14 +17,29 @@ namespace WebOfPlanets
         [Tooltip("Koliko brzo se model okreće prema smjeru kretanja.")]
         [SerializeField] private float turnSpeed = 10f;
 
-        [Tooltip("Koliko brzo brzina teži cilju na ledu (veće = manje sklisko).")]
-        [SerializeField] private float iceAcceleration = 10f;
-        [Tooltip("Koliko brzo brzina pada na nulu na ledu kad nema inputa (manje = duže klizanje).")]
-        [SerializeField] private float iceDeceleration = 1.5f;
+        // Namjerno NOVA imena polja (bez FormerlySerializedAs): scena je imala
+        // serijalizirane iceAcceleration=25 / iceDeceleration=0.3 koje bi pregazile
+        // code defaulte — s njima je ubrzanje bilo praktički trenutno, a zaustavljanje
+        // sa 7 m/s trajalo ~23 s ("beskonačno" klizanje). Ne vraćati stara imena.
+        [Tooltip("Sekunde do pune brzine na ledu (veće = tromije ubrzanje).")]
+        [SerializeField] private float iceAccelTime = 1f;
+        [Tooltip("Sekunde od pune brzine do zaustavljanja na ledu bez inputa (veće = duže klizanje).")]
+        [SerializeField] private float iceStopTime = 1.5f;
+
+        [Header("Surface lock")]
+        [Tooltip("Dopuštena visina dna kapsule iznad površine planeta. Mora pokriti nagibe i rubove faceta mesh planeta (~0.1), ali ostati ispod visine resursa.")]
+        [SerializeField] private float surfaceSkin = 0.15f;
+        [Tooltip("Najveći povrat visine po fizičkom koraku — omeđuje trzaj ako se stanje ikad zatekne daleko iznad tla.")]
+        [SerializeField] private float maxSnapPerStep = 0.2f;
+        [Tooltip("Visina iznad koje se lock otpušta i igrač normalno pada (rub litice, krov nakon teleporta). Penjanjem nedostižno: lock višak reže već iznad skina.")]
+        [SerializeField] private float ungroundHeight = 0.5f;
 
         private Planet _planet;
         private float _defaultLinearDamping;
         private Vector3 _faceDirection;
+        private CapsuleCollider _capsule;
+        private bool _grounded;
+        private Vector3 _lastStepPos;
 
         PlayerInputActions _input;
 
@@ -48,6 +63,11 @@ namespace WebOfPlanets
             AlignColliderWithVisual();
             if (currentPlanet != null)
                 _planet = currentPlanet.GetComponent<Planet>();
+
+            // Nakon AlignColliderWithVisual — surface lock mjeri dno kapsule iz
+            // stvarnog (runtime poravnatog) centra, ne iz pretpostavke o pivotu.
+            TryGetComponent(out _capsule);
+            _lastStepPos = rig.position;
         }
 
         // Vizualni robot rotira oko visualModel pivota (FaceDirection), a kapsula je
@@ -87,12 +107,15 @@ namespace WebOfPlanets
         {
             currentPlanet = planet;
             _planet = planet != null ? planet.GetComponent<Planet>() : null;
+            // Novi planet = nova površina; tlo se ponovno hvata iz zraka (meki pad).
+            _grounded = false;
         }
 
         void FixedUpdate()
         {
             ApplyGravity();
             Move();
+            EnforceSurfaceLock();
         }
 
         void Update()
@@ -179,22 +202,85 @@ namespace WebOfPlanets
             Vector3 verticalVelocity = Vector3.Project(rig.linearVelocity, up);
             Vector3 horizontalVelocity = rig.linearVelocity - verticalVelocity;
 
-            // Hodom po kugli tangentna ravnina se okreće, a naslijeđena brzina ostaje
-            // u world prostoru — dio bi svakim tickom "iscurio" u vertikalu gdje ga
-            // pojedu damping i kontakt s tlom. Re-projekcija na trenutnu tangentu uz
-            // očuvanje iznosa: brzinu smiju mijenjati samo rate-ovi ispod.
-            float speed = horizontalVelocity.magnitude;
-            horizontalVelocity = Vector3.ProjectOnPlane(horizontalVelocity, up);
-            if (horizontalVelocity.sqrMagnitude > 0.0001f)
-                horizontalVelocity = horizontalVelocity.normalized * speed;
-
             Vector3 targetVelocity = (transform.right * input.x + transform.forward * input.y) * moveSpeed;
-            float rate = input == Vector2.zero ? iceDeceleration : iceAcceleration;
+
+            // Rate izveden iz moveSpeed: promjena brzine hoda u inspectoru čuva isti
+            // osjećaj leda (isto vrijeme zaleta i zaustavljanja). Konstantna
+            // deceleracija = kinetičko trenje, pa MoveTowards garantira potpuni stop.
+            bool hasInput = input.sqrMagnitude > 0.0001f;
+            // Donji prag rate-a: i uz moveSpeed 0 (lock kretanja u inspectoru)
+            // naslijeđena brzina mora otkliziti u stop, ne ostati zamrznuta.
+            float rate = Mathf.Max(0.5f, moveSpeed / Mathf.Max(0.05f, hasInput ? iceAccelTime : iceStopTime));
 
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.fixedDeltaTime);
             rig.linearVelocity = horizontalVelocity + verticalVelocity;
 
             _faceDirection = horizontalVelocity;
+        }
+
+        // Igrač mora uvijek ostati pri površini planeta: guranjem u box collider
+        // resursa/stroja/totema PhysX depenetracija kapsulu vuče preko ruba prema
+        // gore, a Move čuva vertikalnu brzinu, pa se bez ovoga dalo popeti na
+        // objekte. Visina se mjeri raycastom koji prihvaća SAMO planetov collider
+        // (objekti na površini nisu tlo); dok je igrač prizemljen, dno kapsule
+        // iznad surfaceSkin gubi outward brzinu i višak visine.
+        //
+        // Gating po _grounded čuva legitimne letove: teleport/respawn/load spuštaju
+        // igrača ~1 m iznad tla uz namjerni meki pad (ApplyGravity), a load zna
+        // vratiti i pozu usred pada — svaki skok pozicije veći nego što ijedno
+        // legitimno kretanje napravi u jednom koraku ruši _grounded pa se tlo
+        // ponovno hvata iz zraka. Slijetanje na krov stroja (teleport raycasta sve
+        // collidere) ostaje negrounded — igrač normalno siđe pa se lock uhvati.
+        private void EnforceSurfaceLock()
+        {
+            if (_planet == null || _capsule == null) return;
+
+            Vector3 pos = rig.position;
+            if ((pos - _lastStepPos).sqrMagnitude > 1f) _grounded = false;
+            _lastStepPos = pos;
+
+            // Zraka uzorkuje tlo POD KAPSULOM, ne pod pivotom: capsule.center je
+            // nakon AlignColliderWithVisual ~0.8 bočno od rig.position, pa bi stup
+            // ispod pivota na nagibu ili rubu facete mjerio tuđu visinu (greška
+            // ±offset·tanθ — lažni prekršaji ili propušteno penjanje, ovisno o
+            // yawu tijela koji se s kretanjem ne rotira).
+            Vector3 rayOrigin = pos + transform.rotation * new Vector3(_capsule.center.x, 0f, _capsule.center.z);
+            Vector3 up = (rayOrigin - currentPlanet.position).normalized;
+
+            // Promašaj (stale PhysX poza planeta i sl.): bez mete nema ni clampa —
+            // analitički fallback je na mesh planetima do ~1.3% R kriv i lagao bi.
+            if (!SurfacePlacement.TryRaycastSurface(currentPlanet, rayOrigin, -up, 30f, out RaycastHit hit))
+                return;
+
+            // Dno kapsule iz rig poze + rotacije: transform.position uz interpolaciju
+            // i isključeni autoSyncTransforms ne mora odgovarati fizičkoj pozi.
+            Vector3 feet = pos + transform.rotation * (_capsule.center + Vector3.down * (_capsule.height * 0.5f));
+            float altitude = Vector3.Dot(feet - hit.point, up);
+
+            if (!_grounded)
+            {
+                _grounded = altitude <= surfaceSkin;
+                return;
+            }
+
+            if (altitude > ungroundHeight)
+            {
+                _grounded = false;
+                return;
+            }
+
+            if (altitude <= surfaceSkin) return;
+
+            // Aktivno penjanje: odrezati outward komponentu brzine (po stvarnoj
+            // radijali, ne transform.up koji kasni za Attractor slerpom) i vratiti
+            // višak visine. Direktno pisanje rig.position resetira interpolaciju,
+            // ali samo u koracima u kojima je prekršaj stvarno nastao — običan hod
+            // ostaje ispod skina i ne dira poziciju. Blagi pritisak u rub collidera
+            // koji time nastane PhysX razrješava bočno, pa igrač sklizne s objekta.
+            float outward = Vector3.Dot(rig.linearVelocity, up);
+            if (outward > 0f) rig.linearVelocity -= up * outward;
+
+            rig.position = pos - up * Mathf.Min(altitude - surfaceSkin, maxSnapPerStep);
         }
 
         private void FaceDirection(Vector3 direction)
