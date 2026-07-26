@@ -33,14 +33,15 @@ namespace WebOfPlanets
                 Renderer renderer = GetComponentInChildren<Renderer>();
                 if (renderer != null)
                 {
-                    // Kameni planeti (uklj. Hub) dobivaju seamless proceduralni kamen
-                    // umjesto venus fotke sa šavom — isto što PlanetCreator radi za
-                    // spawnane Mining planete. Autorski UV otoci FBX mesha bi uzorak
-                    // rezali na granicama, pa se UV-ovi prvo preračunaju sferno.
+                    // Kameni planeti (uklj. Hub) dobivaju jupiter fotku iz
+                    // Planet_Mining.mat (equirectangular, horizontalno seamless) —
+                    // isto što PlanetCreator radi za spawnane Mining planete.
+                    // Autorski UV otoci FBX mesha bi teksturu rezali na granicama,
+                    // pa se UV-ovi prvo preračunaju sferno.
                     if (Type == PlanetType.Mining)
                     {
                         SphericalUV.Apply(renderer);
-                        renderer.material = RockPlanetTexture.GetMaterial(surfaceMaterial);
+                        renderer.material = surfaceMaterial;
                     }
                     else
                     {

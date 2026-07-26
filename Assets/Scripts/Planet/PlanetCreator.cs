@@ -155,28 +155,30 @@ namespace WebOfPlanets
                 planetGO.GetComponent<Renderer>().material = iceMaterial;
             else if (planet.Type == PlanetType.Mining && miningMaterial != null)
             {
-                // Seamless proceduralni kamen umjesto venus fotke (imala je vidljiv
-                // šav na UV spoju); rotacija za varijaciju kao kod plinovitih.
-                planetGO.GetComponent<Renderer>().material = RockPlanetTexture.GetMaterial(miningMaterial);
+                // Jupiter fotka (equirectangular, horizontalno seamless — venus je
+                // imala šav) dolazi iz Planet_Mining.mat asseta umjesto proceduralnog
+                // kamena; rotacija za varijaciju kao kod plinovitih.
+                planetGO.GetComponent<Renderer>().material = miningMaterial;
                 planetGO.transform.rotation = Random.rotation;
             }
             else if (planet.Type == PlanetType.Volcanic && volcanicMaterial != null)
                 planetGO.GetComponent<Renderer>().material = volcanicMaterial;
             else if (planet.Type == PlanetType.Gaseous && gaseousMaterial != null)
             {
-                // Proceduralne trake plinovitog diva umjesto plošnog tinta; dijeljena
-                // tekstura, a nasumična rotacija sfere daje varijaciju među planetima
-                // (kugla je simetrična pa rotacija ne mijenja ništa osim izgleda).
-                planetGO.GetComponent<Renderer>().material = GasPlanetTexture.GetMaterial(gaseousMaterial);
+                // Planeta_Base_Color + Planeta_MetallicSmoothness (1 - roughness u
+                // alphi) iz Planet_Gaseous.mat asseta umjesto proceduralnih traka;
+                // nasumična rotacija sfere daje varijaciju među planetima.
+                planetGO.GetComponent<Renderer>().material = gaseousMaterial;
                 planetGO.transform.rotation = Random.rotation;
             }
             else if (planet.Type == PlanetType.Organic)
             {
                 if (organicMaterial != null)
                 {
-                    // Proceduralna "priroda" (šume, livade, jezera) umjesto plošnog
-                    // tinta; rotacija za varijaciju kao kod plinovitih/kamenih.
-                    planetGO.GetComponent<Renderer>().material = OrganicPlanetTexture.GetMaterial(organicMaterial);
+                    // QonoS teksture (green_textures: Diff/Normal/Smoothness/Emit) iz
+                    // Planet_Organic.mat asseta umjesto proceduralne "prirode";
+                    // rotacija za varijaciju kao kod plinovitih/kamenih.
+                    planetGO.GetComponent<Renderer>().material = organicMaterial;
                     planetGO.transform.rotation = Random.rotation;
                 }
                 else

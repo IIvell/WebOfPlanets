@@ -32,9 +32,11 @@ Assets/
     Inventory/        InventorySystem, QuickSlotInventory, HubStorage, Item/InventoryItem/QuickSlotItem
     Machines/         One MonoBehaviour per machine + a matching *MachineData ScriptableObject,
                       plus MachineFactory (spawning) and MachinePlacer (placement input)
-    Planet/           Procedural planets, textures, gravity (Attractor), surface placement,
-                      ConnectionManager / PlanetConnection, resource spawning, volcanic hazards
-    Player/           PlayerController, PlayerCamera, PlayerHealth, GrabBotSkin
+    Planet/           Procedural planets, gravity (Attractor), surface placement,
+                      ConnectionManager / PlanetConnection, resource spawning, volcanic hazards.
+                      Planet textures are ASSETS (Prefabs/Planets + Prefabs/Materials), not code —
+                      the procedural PlanetTextureUtil.cs was deleted in July 2026.
+    Player/           PlayerController, PlayerCamera, PlayerHealth
       Input/          PlayerInputActions.cs — GENERATED from the .inputactions asset. Do not hand-edit.
     Tools/            Tool + ToolData-style SOs (GasMaskData, NetworkMapDeviceData), PlayerToolSystem
     UI/               One *UI MonoBehaviour per screen/overlay (uGUI + TextMesh Pro), UiFocus
@@ -93,8 +95,9 @@ Consequences:
   the same code paths as world-gen. Assets are resolved by type + name from `Resources`.
 - **Runtime bootstrap instead of scene edits** — this is the project's dominant architectural
   pattern (~20 scripts). `AudioManager`, `VfxManager`, `MainMenuUI`, `VictoryUI`, `SpaceSun`,
-  `SpaceSkybox`, `EnemyMobSpawner`, `GasMaskVisual`, `GrabBotSkin`, the planet-texture generators
-  and more create/configure themselves via `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`.
+  `SpaceSkybox`, `EnemyMobSpawner`, `GasMaskVisual` and more create/configure themselves via
+  `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]`. (`GrabBotSkin` and the planet-texture
+  generators used this pattern too, before being replaced by asset textures in July 2026.)
   Comments state the reason explicitly: to avoid editing the scene YAML. Static state is likewise
   reset via `RuntimeInitializeLoadType.SubsystemRegistration`. **Prefer adding a new system this
   way over modifying `SampleScene.unity`.** It's also why save-load must not reload the scene.
@@ -176,8 +179,7 @@ Consequences:
 - **Not every class has its own file** (small-file consolidation, July 2026): `GameState` lives in
   `GameManager.cs`; `IInteractable`, `ConnectionInteractable`, `PotentialConnectionInteractable`,
   `ItemInteractable` in `BaseInteractable.cs`; `QuickSlotItem`, `InventoryItem` in `Item.cs`;
-  `ConnectionRequirement` in `ConnectionManager.cs`; the three planet-texture classes in
-  `PlanetTextureUtil.cs`; `VolcanicHazardOrbit`/`Zone` in `VolcanicHazardSpawner.cs`; event payload
+  `ConnectionRequirement` in `ConnectionManager.cs`; `VolcanicHazardOrbit`/`Zone` in `VolcanicHazardSpawner.cs`; event payload
   structs/enums in `GameEventBus.cs`; `CraftingSystem` in `CraftingRecipe.cs`; `EnemyMobSpawner` in
   `EnemyMob.cs`; audit menu items in `ColliderAudit.cs`. Only classes NOT referenced by GUID
   from scenes/prefabs/assets may be merged like this — anything serialized (all `*MachineData`,

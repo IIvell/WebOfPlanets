@@ -9,7 +9,12 @@ namespace WebOfPlanets
         public float Health { get; private set; } = 100f;
         public ConnectionType Type { get; private set; }
 
-        private GameObject _cylinder;
+        // Zraka u 3 segmenta: uspravni dio iznad svakog totema + kosi spoj u visini.
+        // Jedan kosi cilindar od šiljka do šiljka je na totemu izgledao ukošeno —
+        // zraka mora izlaziti ravno uz os totema (srpanj 2026.).
+        private GameObject _beamA;
+        private GameObject _beamB;
+        private GameObject _beamMid;
         private Material _material;
         private float _lifespan;
         private GameObject _markerPrefab;
@@ -36,15 +41,15 @@ namespace WebOfPlanets
             _markerHeight = markerHeight;
             _thickness = thickness;
 
-            _cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            _cylinder.transform.SetParent(transform);
-            // Destroy je odgođen do kraja framea, a SpawnMarker dolje odmah radi
-            // OverlapSphere (FindClearSurfacePoint) — collider zrake se zato gasi
-            // odmah da živi-mrtvi capsule ne otjera marker s idealne točke.
-            Collider beamCollider = _cylinder.GetComponent<Collider>();
-            beamCollider.enabled = false;
-            Destroy(beamCollider);
-            _material = _cylinder.GetComponent<Renderer>().material;
+            _beamA = CreateBeamSegment();
+            _beamB = CreateBeamSegment();
+            _beamMid = CreateBeamSegment();
+
+            // Jedna instanca materijala za sva tri segmenta: UpdateHealthColor piše
+            // u jedan materijal, a OnDestroy ga čisti točno jednom.
+            _material = _beamA.GetComponent<Renderer>().material;
+            _beamB.GetComponent<Renderer>().sharedMaterial = _material;
+            _beamMid.GetComponent<Renderer>().sharedMaterial = _material;
 
             _markerA = SpawnMarker(from: a, toward: b, planetCreator, markerPoseA);
             _markerB = SpawnMarker(from: b, toward: a, planetCreator, markerPoseB);
@@ -243,17 +248,55 @@ namespace WebOfPlanets
             return true;
         }
 
+        private GameObject CreateBeamSegment()
+        {
+            GameObject segment = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            segment.transform.SetParent(transform);
+            // Destroy je odgođen do kraja framea, a SpawnMarker odmah radi
+            // OverlapSphere (FindClearSurfacePoint) — collider zrake se zato gasi
+            // odmah da živi-mrtvi capsule ne otjera marker s idealne točke.
+            Collider beamCollider = segment.GetComponent<Collider>();
+            beamCollider.enabled = false;
+            Destroy(beamCollider);
+            return segment;
+        }
+
+        // Visina uspravnog segmenta iznad šiljka totema (množi _markerHeight).
+        private const float RiseFactor = 5f;
+
+        // Zraka se NE vuče direktno od šiljka do šiljka: takav kosi cilindar na
+        // totemu izgleda ukošeno. Umjesto toga uspravni segment uz os svakog
+        // totema, pa kosi spoj tek u visini — zraka na totemu stoji ravno.
         private void UpdateVisual()
         {
             Vector3 tipA = BeamAnchor(_markerA, PlanetA, PlanetB);
             Vector3 tipB = BeamAnchor(_markerB, PlanetB, PlanetA);
+            Vector3 upA = BeamUp(_markerA, PlanetA, tipA);
+            Vector3 upB = BeamUp(_markerB, PlanetB, tipB);
 
-            Vector3 midpoint = (tipA + tipB) * 0.5f;
-            float distance = Vector3.Distance(tipA, tipB);
+            float rise = _markerHeight * RiseFactor;
+            Vector3 topA = tipA + upA * rise;
+            Vector3 topB = tipB + upB * rise;
 
-            _cylinder.transform.position = midpoint;
-            _cylinder.transform.up = (tipB - tipA).normalized;
-            _cylinder.transform.localScale = new Vector3(_thickness, distance * 0.5f, _thickness);
+            // Mali preklop preko koljena da se na spoju segmenata ne vidi procjep.
+            float overlap = _thickness * 0.5f;
+            LayoutSegment(_beamA, tipA, topA + upA * overlap);
+            LayoutSegment(_beamB, tipB, topB + upB * overlap);
+            LayoutSegment(_beamMid, topA, topB);
+        }
+
+        // Os uspravnog segmenta: up totema (radijalno postavljen pri spawnu);
+        // bez totema fallback na radijalu od centra planeta.
+        private static Vector3 BeamUp(GameObject marker, Transform planet, Vector3 tip)
+            => marker != null ? marker.transform.up : (tip - planet.position).normalized;
+
+        private void LayoutSegment(GameObject segment, Vector3 from, Vector3 to)
+        {
+            Vector3 dir = to - from;
+            float length = dir.magnitude;
+            segment.transform.position = (from + to) * 0.5f;
+            if (length > 0.0001f) segment.transform.up = dir / length;
+            segment.transform.localScale = new Vector3(_thickness, length * 0.5f, _thickness);
         }
 
         // Kraj zrake: UVIJEK izmjereni šiljak totema, pa kapa fizički dodiruje

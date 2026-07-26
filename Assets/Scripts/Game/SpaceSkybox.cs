@@ -133,7 +133,9 @@ namespace WebOfPlanets
             return falloff * falloff * brightness * intensity;
         }
 
-        // Noise helperi su internal — dijeli ih GasPlanetTexture (isti value-noise obrazac).
+        // Noise helperi su internal — dijelile su ih proceduralne planet-teksture
+        // (PlanetTextureUtil.cs, obrisan u srpnju 2026. kad su planeti prešli na
+        // free asset teksture). Ostaju internal za eventualne buduće korisnike.
         internal static float Hash(Vector3Int cell, int seed)
         {
             unchecked
