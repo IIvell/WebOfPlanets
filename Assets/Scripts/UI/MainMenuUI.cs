@@ -89,8 +89,11 @@ namespace WebOfPlanets
                 return;
             }
 
+            // ReleasedThisFrame: Esc koji je upravo zatvorio panel (npr. kompjuter)
+            // ne smije u istom frameu otvoriti pause menu — vidi UiFocus.
             if (GameManager.IsPlaying
                 && !UiFocus.IsAnyPanelOpen
+                && !UiFocus.ReleasedThisFrame
                 && GameKeys.WasPressed(GameKeys.Cancel))
                 Open();
         }

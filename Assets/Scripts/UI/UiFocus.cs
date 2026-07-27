@@ -13,13 +13,25 @@ namespace WebOfPlanets
     public static class UiFocus
     {
         private static int _openPanels;
+        private static int _lastReleaseFrame = -1;
 
         // Zamjena za raniji idiom "Cursor.lockState != CursorLockMode.Locked"
         // u gameplay kodu (MachinePlacer, Interactor...).
         public static bool IsAnyPanelOpen => _openPanels > 0;
 
+        // Race unutar istog framea: panel se zatvori na Esc (Release), a MainMenuUI
+        // kasnije u ISTOM frameu vidi isti Esc pritisak i IsAnyPanelOpen == false,
+        // pa otvori pause menu (prijavljeno za ComputerMenuUI). MainMenuUI zato uz
+        // IsAnyPanelOpen provjerava i ovaj flag — Esc koji je zatvorio panel ne
+        // smije istovremeno otvoriti pause menu.
+        public static bool ReleasedThisFrame => _lastReleaseFrame == Time.frameCount;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() => _openPanels = 0;
+        static void ResetStatics()
+        {
+            _openPanels = 0;
+            _lastReleaseFrame = -1;
+        }
 
         // Panel se otvorio: oslobodi kursor i ugasi gameplay input. Panel
         // prosljeđuje vlastite (serijalizirane) reference — u sceni je jedan
@@ -34,6 +46,7 @@ namespace WebOfPlanets
         // otvoreni panel — inače kursor i dalje pripada preostalom panelu.
         public static void Release(PlayerController playerController, PlayerCamera playerCamera, Interactor interactor)
         {
+            _lastReleaseFrame = Time.frameCount;
             _openPanels = Mathf.Max(0, _openPanels - 1);
             if (_openPanels > 0) return;
 

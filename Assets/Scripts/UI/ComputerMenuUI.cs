@@ -79,18 +79,18 @@ namespace WebOfPlanets
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
             panelRT.anchorMax = new Vector2(0.5f, 0.5f);
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
-            panelRT.sizeDelta = new Vector2(300f, 280f);
+            panelRT.sizeDelta = new Vector2(380f, 360f);
 
             _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
 
-            var title = MakeLabel(_panel.transform, "COMPUTER", 18, new Vector2(0f, 110f), new Vector2(260f, 36f));
+            var title = MakeLabel(_panel.transform, "COMPUTER", 22, new Vector2(0f, 140f), new Vector2(330f, 44f));
             title.alignment = TextAlignmentOptions.Center;
 
-            MakeButton(_panel.transform, "Planet Network", new Vector2(0f, 58f),  OpenNetworkMap);
-            MakeButton(_panel.transform, "Crafting",       new Vector2(0f, -2f),  OpenCrafting);
-            MakeButton(_panel.transform, "Hub Progress",   new Vector2(0f, -62f), OpenHubProgress);
+            MakeButton(_panel.transform, "Planet Network", new Vector2(0f, 74f),  OpenNetworkMap);
+            MakeButton(_panel.transform, "Crafting",       new Vector2(0f, 0f),   OpenCrafting);
+            MakeButton(_panel.transform, "Hub Progress",   new Vector2(0f, -74f), OpenHubProgress);
 
-            var hint = MakeLabel(_panel.transform, $"{GameKeys.CancelName} — cancel", 11, new Vector2(0f, -118f), new Vector2(260f, 24f));
+            var hint = MakeLabel(_panel.transform, $"{GameKeys.CancelName} — cancel", 12, new Vector2(0f, -150f), new Vector2(330f, 28f));
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
             hint.alignment = TextAlignmentOptions.Center;
         }
@@ -102,7 +102,7 @@ namespace WebOfPlanets
 
             var rt = go.AddComponent<RectTransform>();
             rt.anchoredPosition = pos;
-            rt.sizeDelta        = new Vector2(220f, 48f);
+            rt.sizeDelta        = new Vector2(280f, 60f);
 
             var img = go.AddComponent<Image>();
             img.color = new Color(0.08f, 0.25f, 0.45f);
@@ -125,7 +125,7 @@ namespace WebOfPlanets
             lblRT.offsetMax = new Vector2(-8f, -4f);
             var tmp = lblGO.AddComponent<TextMeshProUGUI>();
             tmp.text      = label;
-            tmp.fontSize  = 14;
+            tmp.fontSize  = 16;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color     = Color.white;
         }
