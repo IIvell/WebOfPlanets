@@ -1,0 +1,28 @@
+<w:p><w:r><w:br w:type='page'/></w:r></w:p>
+<w:p><w:pPr><w:pStyle w:val='Heading1'/></w:pPr><w:r><w:t>Literatura</w:t></w:r></w:p>
+<w:p><w:r><w:rPr><w:b/><w:color w:val='C00000'/></w:rPr><w:t xml:space='preserve'>[1] [POPUNITI: odaberi izvjestaj o industriji videoigara (npr. Newzoo Global Games Market Report ili Statista) - tocan naslov, godina i URL]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[2] Unity Technologies, „Unity Manual“, [Mrežno]. Dostupno: https://docs.unity3d.com/Manual/ [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[3] Unity Technologies, „Universal Render Pipeline overview“, [Mrežno]. Dostupno: https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@17.3/manual/ [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[4] Microsoft, „C# language documentation“, [Mrežno]. Dostupno: https://learn.microsoft.com/en-us/dotnet/csharp/ [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[5] Unity Technologies, „Order of execution for event functions“, [Mrežno]. Dostupno: https://docs.unity3d.com/Manual/ExecutionOrder.html [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[6] Unity Technologies, „ScriptableObject“, [Mrežno]. Dostupno: https://docs.unity3d.com/Manual/class-ScriptableObject.html [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[7] Unity Technologies, „Input System Manual“, [Mrežno]. Dostupno: https://docs.unity3d.com/Packages/com.unity.inputsystem@1.18/manual/ [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[8] Unity Technologies, „Unity UI (uGUI)“, [Mrežno]. Dostupno: https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/ [Pristupljeno: __.__.2026.]</w:t></w:r></w:p>
+<w:p><w:r><w:rPr><w:b/><w:color w:val='C00000'/></w:rPr><w:t xml:space='preserve'>[9] [POPUNITI: odaberi tekst o zanru factory/automation igara; po zelji i referenca na Super Mario Galaxy (Nintendo, 2007.)]</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>[10] T. H. Cormen, C. E. Leiserson, R. L. Rivest i C. Stein, Introduction to Algorithms, 4. izd. Cambridge, MA: MIT Press, 2022.</w:t></w:r></w:p>
+<w:p><w:r><w:br w:type='page'/></w:r></w:p>
+<w:p><w:pPr><w:pStyle w:val='Heading1'/></w:pPr><w:r><w:t>Popis tablica</w:t></w:r></w:p>
+<w:p><w:fldSimple w:instr=' TOC \h \z \c &quot;Tablica&quot; '><w:r><w:t>Odaberite polje i pritisnite F9 za popis.</w:t></w:r></w:fldSimple></w:p>
+<w:p><w:r><w:rPr><w:b/><w:color w:val='C00000'/></w:rPr><w:t xml:space='preserve'>[Odaberi polje iznad i pritisni F9 (ili Ctrl+A pa F9 za cijeli dokument) da se popis generira.]</w:t></w:r></w:p>
+<w:p><w:r><w:br w:type='page'/></w:r></w:p>
+<w:p><w:pPr><w:pStyle w:val='Heading1'/></w:pPr><w:r><w:t>Popis slika</w:t></w:r></w:p>
+<w:p><w:fldSimple w:instr=' TOC \h \z \c &quot;Slika&quot; '><w:r><w:t>Odaberite polje i pritisnite F9 za popis.</w:t></w:r></w:fldSimple></w:p>
+<w:p><w:r><w:rPr><w:b/><w:color w:val='C00000'/></w:rPr><w:t xml:space='preserve'>[Nakon rucnog umetanja preostalih slika (sucelje Editora x3 i SVG dijagram petlje) dodati im nazive stilom Caption pa osvjeziti popis s F9.]</w:t></w:r></w:p>
+<w:p><w:r><w:br w:type='page'/></w:r></w:p>
+<w:p><w:pPr><w:pStyle w:val='Heading1'/></w:pPr><w:r><w:t>Popis priloga</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>Prilog 1: Igra Web of Planets (izvršna verzija za PC)</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>Prilog 2: Cjelovit Unity projekt s izvornim kodom</w:t></w:r></w:p>
+<w:p><w:r><w:br w:type='page'/></w:r></w:p>
+<w:p><w:pPr><w:pStyle w:val='Heading1'/></w:pPr><w:r><w:t>Prilozi</w:t></w:r></w:p>
+<w:p><w:r><w:t xml:space='preserve'>Uz rad se prilažu razvijena igra (izvršna verzija za PC) i cjelokupni Unity projekt sa svim komponentama korištenima u razvoju.</w:t></w:r></w:p>
+<w:p><w:r><w:rPr><w:b/><w:color w:val='C00000'/></w:rPr><w:t xml:space='preserve'>[POPUNITI: nacin prilaganja igre i projekta - repozitorij (GitHub URL), medij ili arhiva.]</w:t></w:r></w:p>

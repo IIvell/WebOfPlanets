@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72efb8e330dd4eb4494d828690dbf151, type: 3}
+  m_Name: NetworkComputer
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
+  displayName: Network Computer
+  resultType: 11
+  unlockTier: 4
+  resultComputer: {fileID: 11400000, guid: 0febcbbf03bd4592a301537c7a41ec0e, type: 2}
+  ingredients:
+  - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
+    amount: 8
+  - item: {fileID: 11400000, guid: 92a241cf2e4bc644e8e0b08f4b596d97, type: 2}
+    amount: 4
+  - item: {fileID: 11400000, guid: 66357368904403f2472dcbb6eefa05f4, type: 2}
+    amount: 4

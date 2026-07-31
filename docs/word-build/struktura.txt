@@ -1,0 +1,212 @@
+0|-| [IMG]
+1|-|
+2|-|
+3|-|
+4|-|Sveučilišni prijediplomski studij Informatika
+5|-|
+6|-|
+7|-|
+8|-|Ime i prezime
+9|-|Naslov završnog rada
+10|-|Završni rad
+11|-|
+12|-|
+13|-|
+14|-|Mentor: titula, ime i prezime
+15|-|
+16|-|
+17|-|
+18|-|
+19|-|
+20|-|
+21|-|Rijeka, datum
+22|-|(Iza naslovne stranice, na ovome mjestu,  prilikom uvez... [PAGEBREAK]
+23|-|
+24|-|
+25|-|
+26|-|
+27|-|
+28|-|
+29|-|
+30|-|
+31|-|
+32|-|
+33|-|
+34|-|
+35|-|
+36|-|
+37|-|
+38|-|
+39|-|
+40|-|
+41|-|
+42|-|
+43|-|
+44|-|
+45|-|
+46|-|
+47|-|
+48|-|
+49|-| [SECTPR]
+50|-|Sažetak
+51|-|Na ovu stranicu treba upisati sažetak završnog rada u o...
+52|-|Završni rad na engleskom jeziku mora obvezno sadržavati...
+53|-|Iza sažetka se piše od 5 do 10 ključnih riječi koji su ...
+54|-|Ključne riječi: završni rad; predložak; FIDIT
+55|-| [SECTPR]
+56|-|SADRŽAJ
+57|TOC1|1.Uvod1 [TOCFIELD?]
+58|TOC1|2.Tehničke upute2 [TOCFIELD?]
+59|TOC2|2.1.Upute za oblikovanje izgleda rada2 [TOCFIELD?]
+60|TOC2|2.2.Navođenje literature4 [TOCFIELD?]
+61|TOC1|3.Ostale upute5 [TOCFIELD?]
+62|TOC2|3.1.Primjer naslova druge razine5 [TOCFIELD?]
+63|TOC3|3.1.1.Primjer naslova treće razine5 [TOCFIELD?]
+64|TOC1|4.Zaključak6 [TOCFIELD?]
+65|TOC1|Literatura7 [TOCFIELD?]
+66|TOC1|Popis tablica8 [TOCFIELD?]
+67|TOC1|Popis slika9 [TOCFIELD?]
+68|TOC1|Popis priloga10 [TOCFIELD?]
+69|TOC1|Prilozi (1, 2, ...)11 [TOCFIELD?]
+70|-|
+71|-|
+72|-|
+73|-| [SECTPR]
+74|Heading1|
+75|-| [SECTPR]
+76|Heading1|Uvod
+77|-|Završni rad je samostalna stručna obrada utvrđene teme.
+78|-|Završnim radom student treba dokazati posjedovanje komp...
+79|-|Završni rad mora biti otisnut računalnim pisačem na pap...
+80|ListParagraph|korica (meki uvez)
+81|ListParagraph|naslovnice 
+82|ListParagraph|Zadatka za završni rad
+83|ListParagraph|sažetka i ključnih riječi
+84|ListParagraph|sadržaja
+85|ListParagraph|uvoda, razrade teme i zaključka
+86|ListParagraph|popisa literature
+87|ListParagraph|popisa priloga (računalne aplikacije, dokumentacija pro...
+88|-|Preporuka je da se u uvodu opiše tema završnog rada, na...
+89|-|Razrada teme je glavni dio rada u kojem se detaljnije r...
+90|Heading1|Tehničke upute [PAGEBREAK]
+91|-|Tehničke upute u nastavku opisuju tehnički način obliko...
+92|ListParagraph|
+93|ListParagraph|
+94|Heading2|Upute za oblikovanje izgleda rada
+95|-|Stranice se oblikuju na sljedeći način:
+96|-|Veličina i oblik papira je A4, okomitog usmjerenja, mar...
+97|-|Naslovna stranica nije numerirana.
+98|-|Od 1. poglavlja nadalje stranice se numeriraju arapskim...
+99|-|Broj stranice treba biti u podnožju stranice, desno por...
+100|-|Tekst rada je potrebno oblikovati sukladno ovom predloš...
+101|-|U pisanju teksta koristite pismo Times New Roman, velič...
+102|-|Poravnavanje odlomka treba biti po obje margine (engl. ...
+103|-|U naslovima prve razine (npr. 6. Zaključak) koristite p...
+104|-|U naslovima druge razine (npr. 3.2. Podnaslov) koristit...
+105|-|U naslovima treće razine (npr. 3.2.3. Podnaslov) korist...
+106|-|U naslovima četvrte razine (npr. 3.2.3.2. Podnaslov) ko...
+107|-|Za ostalo isticanje cjelina rada mogu se koristiti pode...
+108|-|Sadržaj je automatski generiran (koristiti stilove Head...
+109|-|Slike i tablice treba oblikovati na sljedeći način:
+110|-|Slike i tablice treba centrirati na stranici.
+111|-|Sve slike i tablice trebaju imati naziv (engl. caption)...
+112|-|Naziv slike postaviti ispod same slike, a naziv tablice...
+113|-|Nazivi slika i tablica su centrirani, pismo Times New R...
+114|-|Ispred tablice ostavite jedan prazan redak, osim ako je...
+115|-|Kod prijeloma stranice treba obratiti pozornost da nazi...
+116|-|Slike i tablice potrebno je numerirati redoslijedom poj...
+117|-|Sve slike trebaju biti spomenute u tekstu. Primjerice, ...
+118|-|Ako je slika ili tablica preuzeta iz drugog izvora, iza...
+119|Caption|Tablica 1. Primjer tablice u bazi podataka
+120|-|ID
+121|-|Ime
+122|-|Prezime
+123|-|Datum_rođenja
+124|-|1
+125|-|Ana
+126|-|Latić
+127|-|2.5.2000.
+128|-|2
+129|-|Ivo
+130|-|Mrak
+131|-|21.6.1989.
+132|-|3
+133|-|Ema
+134|-|Kovač
+135|-|17.8.1994.
+136|-|
+137|-|
+138|Caption|Slika 1. Modeli baze podataka. Izvor: [5]
+139|-|
+140|-|Za oblikovanje programskog koda koristiti sljedeće:
+141|-|Pismo Consolas ili Courier New, veličine 9 točaka, s je...
+142|Programskikod|    private void SayHello()
+143|Programskikod|    {
+144|Programskikod|        Console.WriteLine("Pozdrav iz završnog rada.");
+145|Programskikod|    }
+146|Programskikod|
+147|Programskikod|    private void SayConclusion()
+148|Programskikod|    {
+149|Programskikod|        Console.WriteLine("Ovo je bio završni rad.");
+150|Programskikod|    }
+151|-|Postavke su definirane stilom Programski kod u ovom pre...
+152|-|Preferirajte umetanje koda kao teksta, a ne kao slike (...
+153|-|Kratice i strano nazivlje
+154|-|Ako se u tekstu koriste kratice, potrebno je samo prili...
+155|-|Poželjno je u naslovima koristiti pune nazive umjesto k...
+156|-|Strano nazivlje se kod prvog pojavljivanja u tekstu nav...
+157|-|Ako je završni rad pisan na hrvatskom jeziku, dozvoljen...
+158|-|Formule
+159|-|Za unos formula koristite uređivač formula u alatu za o...
+160|-|
+161|-|gdje je:
+162|-|a duljina jedne katete,
+163|-|b duljina druge katete,
+164|-|c duljina hipotenuze.“
+165|Heading2|Navođenje literature
+166|-|Za navođenje literature u radu možete koristiti stilove...
+167|-|Uz svaku preuzetu tvrdnju ili citat u tekstu potrebno j...
+168|-|U sljedećem dijelu nalaze se primjeri korištenja refere...
+169|-| [PAGEBREAK]
+170|Heading1|Ostale upute
+171|ListParagraph|Rad treba pisati u neodređenom ili trećem licu. Primjer...
+172|ListParagraph|Nakon što mentor pošalje komentare, a prilikom uređivan...
+173|Heading2|Primjer naslova druge razine
+174|-|Sed ut perspiciatis unde omnis iste natus error sit vol...
+175|Heading3|Primjer naslova treće razine
+176|-|At vero eos et accusamus et iusto odio dignissimos duci...
+177|ListParagraph|
+178|-| [PAGEBREAK]
+179|Heading1|Zaključak
+180|-|Navedite sažeto o čemu se radilo u radu te najvažniji z...
+181|-|
+182|-| [SECTPR]
+183|-| [PAGEBREAK]
+184|Heading1|Literatura
+185|-|U popis literature postavite samo onu literaturu koju s...
+186|ListParagraph|Knjige navodite u obliku:  Prezime i ime autora, Naslov...
+187|ListParagraph|Članke navodite u obliku: Prezime i ime autora članka, ...
+188|ListParagraph|Izvore s weba navodite u obliku: Naslov rada ili kratki...
+189|-|Primjer navođenja popisa literature stilom IEEE:
+190|-|S. Tiwari, Professional NoSQL. Indianapolis: Wiley, 201...
+191|-|M. Gertz and S. Jajodia, Eds., Handbook of Database Sec...
+192|-|S. Jacobs and C. P. Bean, „Fine particles, thin films a...
+193|-|J. Smith and J. Doe. “Obama inaugurated as President.” ...
+194|-| [PAGEBREAK]
+195|Heading1|Popis tablica
+196|-|Navesti popis tablica koje se pojavljuju u radu, npr.:
+197|-|Tablica 1. Naziv Tablice 1 kako stoji u tijelu teksta
+198|-|Tablica 2. …
+199|-| [PAGEBREAK]
+200|Heading1|Popis slika
+201|-|Navesti popis slika koje se pojavljuju u radu, npr.:
+202|-|Slika 1. Naziv Slike 1 kako stoji u tijelu teksta.
+203|-|Slika 2. …
+204|Heading1| [PAGEBREAK]
+205|Heading1|Popis priloga
+206|-|Prilog 1: Cjelovit programski kôd
+207|-|Prilog 2: ...
+208|-| [PAGEBREAK]
+209|Heading1|Prilozi (1, 2, ...)
+210|-|Prilozi idu na kraj, ako ih ima. Prilog mogu biti npr. ...
+ukupno=211 tablica=1

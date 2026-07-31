@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f76b26f6c6754243ae439a3b161eae8, type: 3}
+  m_Name: Planets
+  m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.PlanetResourceSettings
+  configs:
+  - planetType: 0
+    resources:
+    - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+      minDensity: 0.2
+      maxDensity: 0.4
+      pickupChance: 0.5
+  - planetType: 1
+    resources:
+    - item: {fileID: 11400000, guid: 1c6371992280b7345bbf286eed7892a3, type: 2}
+      minDensity: 0.1
+      maxDensity: 0.2
+      pickupChance: 0.5
+    - item: {fileID: 11400000, guid: 122c620f358d2944fafe65b89da8879b, type: 2}
+      minDensity: 0.2
+      maxDensity: 0.4
+      pickupChance: 0.5
+  - planetType: 2
+    resources:
+    - item: {fileID: 11400000, guid: 86ab3e17a4b979748a271dd85a69ab48, type: 2}
+      minDensity: 0.2
+      maxDensity: 0.4
+      pickupChance: 0.5
+  - planetType: 3
+    resources:
+    - item: {fileID: 11400000, guid: 66357368904403f2472dcbb6eefa05f4, type: 2}
+      minDensity: 0.2
+      maxDensity: 0.4
+      pickupChance: 0.5
+  - planetType: 4
+    resources:
+    - item: {fileID: 11400000, guid: 92a241cf2e4bc644e8e0b08f4b596d97, type: 2}
+      minDensity: 0.05
+      maxDensity: 0.1
+      pickupChance: 0

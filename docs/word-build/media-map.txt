@@ -1,0 +1,13 @@
+slika-05a-organski.png|rIdT1
+slika-05b-rudarski.png|rIdT2
+slika-05c-ledeni.png|rIdT3
+slika-05d-plinoviti.png|rIdT4
+slika-05e-vulkanski.png|rIdT5
+slika-06-svemir.png|rIdT6
+slika-07a-veza.png|rIdT7
+slika-07b-veza-kriticna.png|rIdT8
+slika-08-rudarenje.png|rIdT9
+slika-09-strojevi.png|rIdT10
+slika-10-vulkanski.png|rIdT11
+slika-11a-karta-mreze.png|rIdT12
+slika-11b-glavni-izbornik.png|rIdT13
