@@ -23,6 +23,11 @@ namespace WebOfPlanets
 
         void Start()
         {
+            // Vizualna tema (itch.io pack) — null-safe, bez sprite-ova ostaje
+            // izgled iz scene. Jedini UI kojem su Image reference u sceni.
+            UiTheme.StyleBarFrame(panel.GetComponent<Image>());
+            UiTheme.StyleBarFill(fillImage);
+
             panel.SetActive(false);
             fillImage.fillAmount = 0f;
         }

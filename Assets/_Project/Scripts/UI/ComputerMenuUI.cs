@@ -83,7 +83,9 @@ namespace WebOfPlanets
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
             panelRT.sizeDelta = new Vector2(380f, 360f);
 
-            _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            var panelImg = _panel.AddComponent<Image>();
+            panelImg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StyleWindow(panelImg); // isti čisti okvir kao hub skladište
 
             var title = MakeLabel(_panel.transform, "COMPUTER", 22, new Vector2(0f, 140f), new Vector2(330f, 44f));
             title.alignment = TextAlignmentOptions.Center;
@@ -108,12 +110,15 @@ namespace WebOfPlanets
 
             var img = go.AddComponent<Image>();
             img.color = new Color(0.08f, 0.25f, 0.45f);
+            UiTheme.StyleButton(img);
 
             var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
             var colors = btn.colors;
-            colors.normalColor      = new Color(0.08f, 0.25f, 0.45f);
-            colors.highlightedColor = new Color(0.15f, 0.40f, 0.65f);
-            colors.pressedColor     = new Color(0.05f, 0.15f, 0.30f);
+            // S temom sprite nosi boju pa tranzicije idu svjetlinom; bez teme stare plave.
+            colors.normalColor      = UiTheme.Tint(new Color(0.85f, 0.85f, 0.85f), new Color(0.08f, 0.25f, 0.45f));
+            colors.highlightedColor = UiTheme.Tint(Color.white,                    new Color(0.15f, 0.40f, 0.65f));
+            colors.pressedColor     = UiTheme.Tint(new Color(0.6f, 0.6f, 0.6f),    new Color(0.05f, 0.15f, 0.30f));
             btn.colors = colors;
 
             btn.onClick.AddListener(onClick);
@@ -157,7 +162,15 @@ namespace WebOfPlanets
         private PlayerCamera     playerCamera;
         private Interactor       interactor;
 
+        // Visine redaka kartice praga — jedino mjesto s tim brojkama, da se
+        // izračun visine kartice i pozicije redaka ne mogu razići.
+        private const float HeaderHeight  = 22f;
+        private const float ReqLineHeight = 16f;
+        private const float DescHeight    = 20f;
+        private const float UnlockWidth   = 100f;
+
         private GameObject      _panel;
+        private RectTransform   _listContent;
         private TextMeshProUGUI _statusLbl;
         private readonly List<GameObject> _sections = new();
         private float _refreshTimer;
@@ -246,54 +259,64 @@ namespace WebOfPlanets
                 ? $"Current tier: {HubProgress.Tier}/{HubProgress.MaxTier} — everything unlocked"
                 : $"Current tier: {HubProgress.Tier}/{HubProgress.MaxTier}";
 
-            float yCursor = 248f;
             for (int t = 0; t < HubProgress.MaxTier; t++)
-                yCursor = BuildTierSection(t, yCursor) - 8f;
+                BuildTierSection(t);
         }
 
-        // Gradi blok jednog praga; vraća y donjeg ruba bloka.
-        private float BuildTierSection(int tierIndex, float yTop)
+        // Gradi karticu jednog praga kao redak vertikalnog layouta u scroll listi.
+        // Prije su kartice bile ručno pozicionirane od fiksnog y=248 naniže i šire
+        // od panela (420 vs tijelo sprite-a), pa su izlazile izvan okvira, a peti
+        // prag je ispadao ispod dna. Sada širinu daje layout, a visina se računa
+        // iz istih konstanti kojima se pozicioniraju redci.
+        private void BuildTierSection(int tierIndex)
         {
             var reqs = HubProgress.Tiers[tierIndex].Requirements;
-            float height = 30f + reqs.Length * 15f + 20f;
-
-            var section = new GameObject("Tier_" + (tierIndex + 1));
-            section.transform.SetParent(_panel.transform, false);
-            _sections.Add(section);
-
-            var rt = section.AddComponent<RectTransform>();
-            rt.anchorMin        = new Vector2(0.5f, 0.5f);
-            rt.anchorMax        = new Vector2(0.5f, 0.5f);
-            rt.pivot            = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0f, yTop);
-            rt.sizeDelta        = new Vector2(420f, height);
-
-            section.AddComponent<Image>().color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+            float inner  = UiTheme.HasTheme ? 14f : 8f; // uvlaka do ruba okvira kartice
+            float height = inner * 2f + HeaderHeight + reqs.Length * ReqLineHeight + DescHeight;
 
             bool unlocked = HubProgress.Tier > tierIndex;
             bool isNext   = HubProgress.Tier == tierIndex;
+            // Gumb UNLOCK zauzima desni rub kartice — tekst mu ne smije ići ispod.
+            float right = isNext ? inner + UnlockWidth + 10f : inner;
+
+            var section = new GameObject("Tier_" + (tierIndex + 1));
+            section.transform.SetParent(_listContent, false);
+            _sections.Add(section);
+
+            section.AddComponent<RectTransform>();
+
+            var sectionImg = section.AddComponent<Image>();
+            sectionImg.color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+            UiTheme.StyleButton(sectionImg); // blok praga kao uokvirena kartica
+
+            var layoutElement = section.AddComponent<LayoutElement>();
+            layoutElement.preferredHeight = height;
+            layoutElement.minHeight       = height;
 
             string status = unlocked ? "<color=#66ff66>UNLOCKED</color>"
                           : isNext   ? "<color=#ffaa44>NEXT TIER</color>"
                                      : "<color=#888888>LOCKED</color>";
 
             var header = MakeText(section.transform, $"<b>TIER {tierIndex + 1}</b>   {status}", 13,
-                new Vector2(12f, -6f), new Vector2(300f, 20f));
+                Vector2.zero, Vector2.zero);
+            StretchTop(header.rectTransform, inner, right, inner, HeaderHeight);
             header.alignment = TextAlignmentOptions.TopLeft;
 
             var reqTxt = MakeText(section.transform, BuildReqText(tierIndex, unlocked), 11,
-                new Vector2(12f, -28f), new Vector2(280f, reqs.Length * 15f + 4f));
+                Vector2.zero, Vector2.zero);
+            StretchTop(reqTxt.rectTransform, inner, right, inner + HeaderHeight,
+                reqs.Length * ReqLineHeight);
             reqTxt.alignment = TextAlignmentOptions.TopLeft;
 
             var desc = MakeText(section.transform,
-                $"<color=#8899aa>Unlocks: {HubProgress.Tiers[tierIndex].Unlocks}</color>", 10,
-                new Vector2(12f, -(height - 18f)), new Vector2(396f, 16f));
+                $"<color=#8899aa>Unlocks: {HubProgress.Tiers[tierIndex].Unlocks}</color>", 11,
+                Vector2.zero, Vector2.zero);
+            StretchTop(desc.rectTransform, inner, right,
+                inner + HeaderHeight + reqs.Length * ReqLineHeight, DescHeight);
             desc.alignment = TextAlignmentOptions.TopLeft;
 
             if (isNext)
-                BuildUnlockButton(section.transform, height);
-
-            return yTop - height;
+                BuildUnlockButton(section.transform, height, inner);
         }
 
         private string BuildReqText(int tierIndex, bool unlocked)
@@ -317,7 +340,7 @@ namespace WebOfPlanets
             return sb.ToString().TrimEnd();
         }
 
-        private void BuildUnlockButton(Transform section, float sectionHeight)
+        private void BuildUnlockButton(Transform section, float sectionHeight, float inner)
         {
             bool canUnlock = HubProgress.CanUnlockNext();
 
@@ -327,10 +350,11 @@ namespace WebOfPlanets
             btnRT.anchorMin        = new Vector2(1f, 1f);
             btnRT.anchorMax        = new Vector2(1f, 1f);
             btnRT.pivot            = new Vector2(1f, 1f);
-            btnRT.anchoredPosition = new Vector2(-10f, -8f);
-            btnRT.sizeDelta        = new Vector2(100f, sectionHeight - 30f);
+            btnRT.anchoredPosition = new Vector2(-inner, -inner);
+            btnRT.sizeDelta        = new Vector2(UnlockWidth, sectionHeight - inner * 2f);
 
             var btnImg = btnGO.AddComponent<Image>();
+            UiTheme.StyleButton(btnImg); // boju (zeleno/sivo) postavlja logika ispod
             var btn    = btnGO.AddComponent<Button>();
 
             Color btnColor = canUnlock ? new Color(0.1f, 0.55f, 0.2f) : new Color(0.22f, 0.22f, 0.22f);
@@ -366,35 +390,88 @@ namespace WebOfPlanets
             _panel = new GameObject("HubProgress_Panel");
             _panel.transform.SetParent(transform, false);
 
+            // Panel visok 600 (a ne 660): uz UiScale +20% to je 720px, pa stane i
+            // na najmanju podržanu visinu prozora (768). Pragovi se listaju.
             var panelRT = _panel.AddComponent<RectTransform>();
             panelRT.anchorMin = new Vector2(0.5f, 0.5f);
             panelRT.anchorMax = new Vector2(0.5f, 0.5f);
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
-            panelRT.sizeDelta = new Vector2(460f, 660f);
+            panelRT.sizeDelta = new Vector2(480f, 600f);
 
-            _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            var panelImg = _panel.AddComponent<Image>();
+            panelImg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StyleWindow(panelImg); // isti čisti okvir kao hub skladište
 
-            var title = MakeText(_panel.transform, "HUB PROGRESS", 20, Vector2.zero, new Vector2(420f, 32f));
-            CenterAnchor(title.rectTransform, new Vector2(0f, 300f));
+            float pad = UiTheme.WindowPadding;
+
+            var title = MakeText(_panel.transform, "HUB PROGRESS", 20, Vector2.zero, Vector2.zero);
+            StretchTop(title.rectTransform, pad, pad, pad * 0.6f, 32f);
             title.alignment = TextAlignmentOptions.Center;
 
-            _statusLbl = MakeText(_panel.transform, "", 12, Vector2.zero, new Vector2(420f, 20f));
-            CenterAnchor(_statusLbl.rectTransform, new Vector2(0f, 274f));
+            _statusLbl = MakeText(_panel.transform, "", 12, Vector2.zero, Vector2.zero);
+            StretchTop(_statusLbl.rectTransform, pad, pad, pad * 0.6f + 34f, 20f);
             _statusLbl.alignment = TextAlignmentOptions.Center;
             _statusLbl.color     = new Color(0.65f, 0.75f, 0.85f);
 
-            var hint = MakeText(_panel.transform, $"{GameKeys.CancelName} — close", 11, Vector2.zero, new Vector2(420f, 24f));
-            CenterAnchor(hint.rectTransform, new Vector2(0f, -312f));
+            BuildScrollArea(pad);
+
+            var hint = MakeText(_panel.transform, $"{GameKeys.CancelName} — close", 11, Vector2.zero, Vector2.zero);
+            var hintRT = hint.rectTransform;
+            hintRT.anchorMin        = new Vector2(0f, 0f);
+            hintRT.anchorMax        = new Vector2(1f, 0f);
+            hintRT.pivot            = new Vector2(0.5f, 0f);
+            hintRT.sizeDelta        = new Vector2(-2f * pad, 22f);
+            hintRT.anchoredPosition = new Vector2(0f, pad * 0.4f);
             hint.alignment = TextAlignmentOptions.Center;
             hint.color     = new Color(0.6f, 0.6f, 0.6f);
         }
 
-        private static void CenterAnchor(RectTransform rt, Vector2 pos)
+        private void BuildScrollArea(float pad)
         {
-            rt.anchorMin        = new Vector2(0.5f, 0.5f);
-            rt.anchorMax        = new Vector2(0.5f, 0.5f);
-            rt.pivot            = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = pos;
+            var scrollGO = new GameObject("ScrollArea");
+            scrollGO.transform.SetParent(_panel.transform, false);
+            var scrollRT = scrollGO.AddComponent<RectTransform>();
+            scrollRT.anchorMin = new Vector2(0f, 0f);
+            scrollRT.anchorMax = new Vector2(1f, 1f);
+            scrollRT.offsetMin = new Vector2(pad, pad + 26f);              // iznad hinta
+            scrollRT.offsetMax = new Vector2(-pad, -(pad * 0.6f + 58f));   // ispod naslova i statusa
+            scrollGO.AddComponent<RectMask2D>();
+            var scrollRect = scrollGO.AddComponent<ScrollRect>();
+            scrollRect.horizontal   = false;
+            scrollRect.vertical     = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+            scrollRect.viewport     = scrollRT;
+
+            var contentGO = new GameObject("Content");
+            contentGO.transform.SetParent(scrollGO.transform, false);
+            _listContent           = contentGO.AddComponent<RectTransform>();
+            _listContent.anchorMin = new Vector2(0f, 1f);
+            _listContent.anchorMax = new Vector2(1f, 1f);
+            _listContent.pivot     = new Vector2(0.5f, 1f);
+            _listContent.anchoredPosition = Vector2.zero;
+            _listContent.sizeDelta = Vector2.zero;
+
+            var layout = contentGO.AddComponent<VerticalLayoutGroup>();
+            layout.spacing                = 8f;
+            layout.childForceExpandWidth  = true;
+            layout.childForceExpandHeight = false;
+            layout.childControlWidth      = true;
+            layout.childControlHeight     = true;
+
+            var fitter = contentGO.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.content = _listContent;
+        }
+
+        // Vodoravno rastegnut redak sidren na vrh roditelja.
+        private static void StretchTop(RectTransform rt, float left, float right, float top, float height)
+        {
+            rt.anchorMin        = new Vector2(0f, 1f);
+            rt.anchorMax        = new Vector2(1f, 1f);
+            rt.pivot            = new Vector2(0.5f, 1f);
+            rt.sizeDelta        = new Vector2(-(left + right), height);
+            rt.anchoredPosition = new Vector2((left - right) * 0.5f, -top);
         }
 
         private TextMeshProUGUI MakeText(Transform parent, string text, float fontSize, Vector2 pos, Vector2 delta)

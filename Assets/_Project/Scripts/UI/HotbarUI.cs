@@ -4,7 +4,10 @@ using TMPro;
 
 namespace WebOfPlanets
 {
-    // Attach to a Canvas (Screen Space – Overlay). Uvijek vidljiv, vrh ekrana sredina.
+    // Attach to a Canvas (Screen Space – Overlay). Vrh ekrana sredina.
+    // Vidljiv tijekom igre, ali ga fullscreen paneli (npr. NetworkMapUI) sakriju
+    // preko SetVisible — traka se gradi kao dijete Canvasa, a ne ovog objekta,
+    // pa gašenje same komponente ne bi ništa sakrilo.
     [RequireComponent(typeof(RectTransform))]
     public class HotbarUI : MonoBehaviour
     {
@@ -14,6 +17,11 @@ namespace WebOfPlanets
 
         private static readonly Color NormalColor = new Color(0f, 0.05f, 0.1f, 0.75f);
         private static readonly Color SelectedColor = new Color(0.2f, 0.6f, 1f, 0.85f);
+
+        // Tinte preko sprite slota (UiTheme) — sprite nosi boju, pa je selekcija
+        // svjetlina: normalno prigušeno, odabrano puno bijelo.
+        private static readonly Color NormalTint = new Color(0.55f, 0.6f, 0.65f, 0.9f);
+        private static readonly Color SelectedTint = Color.white;
 
         private static readonly Color DurabilityHighColor = new Color(0.2f, 0.85f, 0.25f, 0.95f);
         private static readonly Color DurabilityMidColor = new Color(0.95f, 0.75f, 0.15f, 0.95f);
@@ -25,9 +33,29 @@ namespace WebOfPlanets
         private readonly Image[] _durabilityBackgrounds = new Image[SlotCount];
         private readonly Image[] _durabilityFills = new Image[SlotCount];
 
+        private GameObject _barRoot;
+
+        public static HotbarUI Instance { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => Instance = null;
+
+        // Null-safe: paneli smiju zvati i kad hotbara nema u sceni.
+        public static void SetVisible(bool visible)
+        {
+            if (Instance != null && Instance._barRoot != null)
+                Instance._barRoot.SetActive(visible);
+        }
+
         void Awake()
         {
+            Instance = this;
             BuildUI();
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         void OnEnable()
@@ -60,8 +88,8 @@ namespace WebOfPlanets
                 _nameLabels[i].text = hasItem && !hasIcon ? item.displayName : "";
 
                 _backgrounds[i].color = i == QuickSlotInventory.Instance.SelectedIndex
-                    ? SelectedColor
-                    : NormalColor;
+                    ? UiTheme.Tint(SelectedTint, SelectedColor)
+                    : UiTheme.Tint(NormalTint, NormalColor);
 
                 RefreshDurability(i, item);
             }
@@ -96,6 +124,7 @@ namespace WebOfPlanets
             Transform uiRoot = canvas != null ? canvas.transform : transform;
 
             var barGO = new GameObject("Hotbar_Bar");
+            _barRoot = barGO;
             barGO.transform.SetParent(uiRoot, false);
             var barRT = barGO.AddComponent<RectTransform>();
             barRT.anchorMin = new Vector2(0.5f, 1f);
@@ -120,7 +149,8 @@ namespace WebOfPlanets
             slotRT.sizeDelta = new Vector2(SlotSize, 0f);
 
             var bg = slotGO.AddComponent<Image>();
-            bg.color = NormalColor;
+            bg.color = UiTheme.Tint(NormalTint, NormalColor);
+            UiTheme.StyleSlot(bg); // itch.io pack; bez sprite-a stara jednobojna ploča
             _backgrounds[index] = bg;
 
             var iconGO = new GameObject("Icon");
@@ -170,6 +200,7 @@ namespace WebOfPlanets
             durFillRT.offsetMax = new Vector2(-1f, -1f);
             var durFill = durFillGO.AddComponent<Image>();
             durFill.enabled = false;
+            UiTheme.StyleBarFill(durFill); // segmentirani strip, tinta ga RefreshDurability
             _durabilityFills[index] = durFill;
 
             var numberGO = new GameObject("Number");

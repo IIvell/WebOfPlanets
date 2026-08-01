@@ -82,6 +82,7 @@ namespace WebOfPlanets
             _pan  = Vector2.zero;
             _isOpen = true;
             _panel.SetActive(true);
+            SetHudVisible(false);
             UiFocus.Acquire(playerController, playerCamera, interactor);
             Subscribe();
             Canvas.ForceUpdateCanvases();
@@ -96,10 +97,19 @@ namespace WebOfPlanets
             _refreshQueued = false;
             _dragging = false;
             _panel.SetActive(false);
+            SetHudVisible(true);
             UiFocus.Release(playerController, playerCamera, interactor);
         }
 
         public bool IsOpen => _isOpen;
+
+        // Mapa je fullscreen pregled — hotbar i traka zdravlja bi virili preko nje.
+        // Statičke metode su null-safe ako HUD komponenti nema u sceni.
+        private static void SetHudVisible(bool visible)
+        {
+            HotbarUI.SetVisible(visible);
+            HealthUI.SetBarVisible(visible);
+        }
 
         // ── Event-based osvježavanje dok je mapa otvorena ─────────────────────
 
@@ -136,7 +146,13 @@ namespace WebOfPlanets
         private void OnConnectionChangedEvent(ConnectionEvent _) => _refreshQueued = true;
         private void OnPlanetDiscoveredEvent(Transform _)        => _refreshQueued = true;
 
-        void OnDestroy() => Unsubscribe();
+        // Ako se mapa uništi dok je otvorena (npr. teardown pri učitavanju spremljene
+        // igre), HUD bi ostao trajno skriven — vrati ga.
+        void OnDestroy()
+        {
+            Unsubscribe();
+            if (_isOpen) SetHudVisible(true);
+        }
 
         // ── Zoom & Pan ────────────────────────────────────────────────────────
 
@@ -199,6 +215,7 @@ namespace WebOfPlanets
             panelRT.offsetMax = Vector2.zero;
             var panelImg = _panel.AddComponent<Image>();
             panelImg.color = bgColour;
+            UiTheme.StylePanel(panelImg); // itch.io pack; bez sprite-a stara ploča
 
             // Title
             var title = new GameObject("Title");
@@ -225,7 +242,9 @@ namespace WebOfPlanets
             closeBtnRT.anchoredPosition = new Vector2(-10f, -10f);
             closeBtnRT.sizeDelta        = new Vector2(110f, 40f);
             var closeBtnImg = closeBtn.AddComponent<Image>();
-            closeBtnImg.color = new Color(0.6f, 0.1f, 0.1f);
+            UiTheme.StyleButton(closeBtnImg);
+            // S temom: crvenkasti tint preko sprite okvira; bez teme stara puna crvena.
+            closeBtnImg.color = UiTheme.Tint(new Color(1f, 0.5f, 0.5f), new Color(0.6f, 0.1f, 0.1f));
             var btn = closeBtn.AddComponent<Button>();
             btn.onClick.AddListener(Close);
             var closeLabelGO = new GameObject("Label");
@@ -367,6 +386,7 @@ namespace WebOfPlanets
             rt.sizeDelta        = new Vector2(size, size);
             var img = nodeGO.AddComponent<Image>();
             img.color = planet.IsHub ? hubColour : planetColour;
+            UiTheme.StyleSlot(img); // oktagon čvor; boja (hub/planet) tinta sprite
 
             var labelGO = new GameObject("Label");
             labelGO.transform.SetParent(nodeGO.transform, false);

@@ -150,6 +150,11 @@ namespace WebOfPlanets
 
             var bg = toastGO.AddComponent<Image>();
             bg.color = background;
+            UiTheme.StyleWarning(bg); // žuti okvir iz itch.io packa
+            // S temom žuti okvir već nosi "upozorenje"; kritično dobiva crvenkasti
+            // tint. Bez teme ostaju stare pune boje (background).
+            if (UiTheme.HasTheme)
+                bg.color = background == CriticalColor ? new Color(1f, 0.45f, 0.45f) : Color.white;
             bg.raycastTarget = false;
 
             var group = toastGO.AddComponent<CanvasGroup>();

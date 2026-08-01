@@ -142,9 +142,11 @@ namespace WebOfPlanets
 
         private void BuildUI()
         {
+            // Uvlaka mora čistiti rub okvira teme; bez teme ostaje stara 16.
+            float pad = UiTheme.WindowPadding;
             // Donji gumb podiže listu i empty label iznad sebe.
-            float bottomOffset = BottomButtonLabel != null ? 60f : 16f;
-            float emptyBottom  = BottomButtonLabel != null ? 60f : 0f;
+            float bottomOffset = BottomButtonLabel != null ? pad + 44f : pad;
+            float emptyBottom  = BottomButtonLabel != null ? pad + 44f : 0f;
 
             _panel = new GameObject(PanelName);
             _panel.transform.SetParent(transform, false);
@@ -154,7 +156,9 @@ namespace WebOfPlanets
             panelRT.pivot            = new Vector2(0.5f, 0.5f);
             panelRT.anchoredPosition = Vector2.zero;
             panelRT.sizeDelta        = new Vector2(420f, 520f);
-            _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            var panelImg = _panel.AddComponent<Image>();
+            panelImg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StyleWindow(panelImg); // itch.io pack; bez sprite-a stara ploča
 
             // Naslov
             var titleGO = new GameObject("Title");
@@ -163,7 +167,7 @@ namespace WebOfPlanets
             titleRT.anchorMin        = new Vector2(0f, 1f);
             titleRT.anchorMax        = new Vector2(1f, 1f);
             titleRT.pivot            = new Vector2(0.5f, 1f);
-            titleRT.anchoredPosition = new Vector2(0f, -12f);
+            titleRT.anchoredPosition = new Vector2(0f, -pad * 0.6f);
             titleRT.sizeDelta        = new Vector2(0f, 36f);
             _titleText           = titleGO.AddComponent<TextMeshProUGUI>();
             _titleText.fontSize  = 20;
@@ -178,9 +182,12 @@ namespace WebOfPlanets
             closeBtnRT.anchorMin        = new Vector2(1f, 1f);
             closeBtnRT.anchorMax        = new Vector2(1f, 1f);
             closeBtnRT.pivot            = new Vector2(1f, 1f);
-            closeBtnRT.anchoredPosition = new Vector2(-10f, -10f);
+            closeBtnRT.anchoredPosition = new Vector2(-pad * 0.6f, -pad * 0.6f);
             closeBtnRT.sizeDelta        = new Vector2(28f, 28f);
-            closeBtn.AddComponent<Image>().color = new Color(0.6f, 0.1f, 0.1f);
+            var closeImg = closeBtn.AddComponent<Image>();
+            UiTheme.StyleButton(closeImg);
+            // S temom: crvenkasti tint preko sprite okvira; bez teme stara puna crvena.
+            closeImg.color = UiTheme.Tint(new Color(1f, 0.5f, 0.5f), new Color(0.6f, 0.1f, 0.1f));
             var closeButton = closeBtn.AddComponent<Button>();
             closeButton.onClick.AddListener(Close);
             var closeLabelGO = new GameObject("Label");
@@ -202,8 +209,8 @@ namespace WebOfPlanets
             var scrollRT = scrollGO.AddComponent<RectTransform>();
             scrollRT.anchorMin = new Vector2(0f, 0f);
             scrollRT.anchorMax = new Vector2(1f, 1f);
-            scrollRT.offsetMin = new Vector2(16f, bottomOffset);
-            scrollRT.offsetMax = new Vector2(-16f, -56f);
+            scrollRT.offsetMin = new Vector2(pad, bottomOffset);
+            scrollRT.offsetMax = new Vector2(-pad, -(pad * 0.6f + 40f));
             scrollGO.AddComponent<RectMask2D>();
             var scrollRect = scrollGO.AddComponent<ScrollRect>();
             scrollRect.horizontal   = false;
@@ -238,8 +245,8 @@ namespace WebOfPlanets
             var emptyRT = emptyGO.AddComponent<RectTransform>();
             emptyRT.anchorMin = new Vector2(0f, 0f);
             emptyRT.anchorMax = new Vector2(1f, 1f);
-            emptyRT.offsetMin = new Vector2(0f, emptyBottom);
-            emptyRT.offsetMax = new Vector2(0f, -40f);
+            emptyRT.offsetMin = new Vector2(pad, emptyBottom);
+            emptyRT.offsetMax = new Vector2(-pad, -(pad * 0.6f + 40f));
             _emptyLabel           = emptyGO.AddComponent<TextMeshProUGUI>();
             _emptyLabel.text      = EmptyText;
             _emptyLabel.fontSize  = 14;
@@ -254,7 +261,7 @@ namespace WebOfPlanets
                 hintRT.anchorMin        = new Vector2(0f, 0f);
                 hintRT.anchorMax        = new Vector2(1f, 0f);
                 hintRT.pivot            = new Vector2(0.5f, 0f);
-                hintRT.anchoredPosition = new Vector2(0f, 6f);
+                hintRT.anchoredPosition = new Vector2(0f, pad * 0.4f);
                 hintRT.sizeDelta        = new Vector2(0f, 20f);
                 var hint           = hintGO.AddComponent<TextMeshProUGUI>();
                 hint.text          = HintText;
@@ -271,9 +278,11 @@ namespace WebOfPlanets
                 actionBtnRT.anchorMin        = new Vector2(0f, 0f);
                 actionBtnRT.anchorMax        = new Vector2(1f, 0f);
                 actionBtnRT.pivot            = new Vector2(0.5f, 0f);
-                actionBtnRT.anchoredPosition = new Vector2(0f, 12f);
-                actionBtnRT.sizeDelta        = new Vector2(-32f, 36f);
-                actionBtn.AddComponent<Image>().color = BottomButtonColor;
+                actionBtnRT.anchoredPosition = new Vector2(0f, pad);
+                actionBtnRT.sizeDelta        = new Vector2(-2f * pad, 36f);
+                var actionImg = actionBtn.AddComponent<Image>();
+                UiTheme.StyleButton(actionImg);
+                actionImg.color = BottomButtonColor; // tinta i sprite i fallback ploču
                 var actionButton = actionBtn.AddComponent<Button>();
                 actionButton.onClick.AddListener(OnBottomButtonClicked);
                 var actionLabelGO = new GameObject("Label");

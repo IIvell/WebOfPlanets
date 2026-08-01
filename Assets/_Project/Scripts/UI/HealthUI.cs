@@ -23,12 +23,33 @@ namespace WebOfPlanets
         private TextMeshProUGUI _label;
         private Image _damageFlash;
         private GameObject _deathPanel;
+        private GameObject _barRoot;
 
         private float _flashAlpha;
 
+        public static HealthUI Instance { get; private set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() => Instance = null;
+
+        // Sakriva SAMO traku zdravlja — damage flash i death overlay moraju ostati
+        // aktivni i dok je fullscreen panel (npr. NetworkMapUI) otvoren.
+        // Traka je dijete Canvasa, ne ovog objekta, pa gašenje komponente ne pomaže.
+        public static void SetBarVisible(bool visible)
+        {
+            if (Instance != null && Instance._barRoot != null)
+                Instance._barRoot.SetActive(visible);
+        }
+
         void Awake()
         {
+            Instance = this;
             BuildUI();
+        }
+
+        void OnDestroy()
+        {
+            if (Instance == this) Instance = null;
         }
 
         void OnEnable()
@@ -92,6 +113,7 @@ namespace WebOfPlanets
         private void BuildBar(Transform uiRoot)
         {
             var barGO = new GameObject("HealthBar");
+            _barRoot = barGO;
             barGO.transform.SetParent(uiRoot, false);
             var barRT = barGO.AddComponent<RectTransform>();
             barRT.anchorMin = new Vector2(0f, 1f);
@@ -102,20 +124,25 @@ namespace WebOfPlanets
 
             var bg = barGO.AddComponent<Image>();
             bg.color = BackgroundColor;
+            UiTheme.StyleBarFrame(bg); // itch.io pack; bez sprite-a ostaje stara crna ploča
 
             var fillGO = new GameObject("Fill");
             fillGO.transform.SetParent(barGO.transform, false);
             var fillRT = fillGO.AddComponent<RectTransform>();
             fillRT.anchorMin = Vector2.zero;
             fillRT.anchorMax = Vector2.one;
-            fillRT.offsetMin = new Vector2(2f, 2f);
-            fillRT.offsetMax = new Vector2(-2f, -2f);
+            // S temom veći inset da punjenje ne prekrije rub okvira.
+            float inset = UiTheme.HasTheme ? 6f : 2f;
+            fillRT.offsetMin = new Vector2(inset, inset);
+            fillRT.offsetMax = new Vector2(-inset, -inset);
 
             _fillImage = fillGO.AddComponent<Image>();
             _fillImage.color = HealthyColor;
             _fillImage.type = Image.Type.Filled;
             _fillImage.fillMethod = Image.FillMethod.Horizontal;
             _fillImage.fillAmount = 1f;
+            // Bijeli segmentirani strip — tintaju ga postojeće boje zdravlja.
+            UiTheme.StyleBarFill(_fillImage);
 
             var labelGO = new GameObject("Label");
             labelGO.transform.SetParent(barGO.transform, false);

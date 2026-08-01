@@ -171,6 +171,7 @@ namespace WebOfPlanets
 
             var bg = _panel.AddComponent<Image>();
             bg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StylePanel(bg); // itch.io pack; bez sprite-a stara ploča
 
             // Title
             var title = MakeText(_panel.transform, "Choose action", 20,
@@ -227,6 +228,7 @@ namespace WebOfPlanets
 
             var img = go.AddComponent<Image>();
             img.color = Color.white;
+            UiTheme.StyleButton(img); // boje tipa veze idu kroz Button color block
 
             var btn = go.AddComponent<Button>();
 
@@ -257,6 +259,7 @@ namespace WebOfPlanets
 
             var img = go.AddComponent<Image>();
             img.color = new Color(0f, 0.55f, 1f);
+            UiTheme.StyleButton(img); // plavu nosi Button color block u RefreshButtons
 
             var btn = go.AddComponent<Button>();
 

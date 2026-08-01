@@ -176,7 +176,9 @@ namespace WebOfPlanets
             rowRT.anchoredPosition = new Vector2(0f, yPos);
             rowRT.sizeDelta        = new Vector2(-16f, RowH);   // 8px inset each side
 
-            row.AddComponent<Image>().color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+            var rowImg = row.AddComponent<Image>();
+            rowImg.color = new Color(0.04f, 0.07f, 0.12f, 0.95f);
+            UiTheme.StyleButton(rowImg); // red kao uokvirena kartica
 
             // Klik na red (izvan CRAFT gumba) otvara opis rezultata recepta.
             var rowBtn = row.AddComponent<Button>();
@@ -223,6 +225,7 @@ namespace WebOfPlanets
             btnRT.anchoredPosition = new Vector2(-10f, 0f);
             btnRT.sizeDelta        = new Vector2(88f, 44f);
             var btnImg = btnGO.AddComponent<Image>();
+            UiTheme.StyleButton(btnImg); // boju (zeleno/sivo) postavlja logika ispod
             var btn    = btnGO.AddComponent<Button>();
 
             var lblGO = new GameObject("Label");
@@ -337,7 +340,9 @@ namespace WebOfPlanets
             panelRT.pivot     = new Vector2(0.5f, 0.5f);
             panelRT.sizeDelta = new Vector2(560f, 430f);
 
-            _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            var panelImg = _panel.AddComponent<Image>();
+            panelImg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StylePanel(panelImg); // itch.io pack; bez sprite-a stara ploča
 
             MakeLabel(_panel.transform, "CRAFTING", 20, new Vector2(0f, 196f), new Vector2(500f, 36f))
                 .alignment = TextAlignmentOptions.Center;
@@ -689,7 +694,9 @@ namespace WebOfPlanets
             panelRT.anchoredPosition = new Vector2(445f, 0f);
             panelRT.sizeDelta        = new Vector2(310f, 340f);
 
-            _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            var infoImg = _panel.AddComponent<Image>();
+            infoImg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StylePanelTall(infoImg); // itch.io pack; bez sprite-a stara ploča
 
             var textGO = new GameObject("Description");
             textGO.transform.SetParent(_panel.transform, false);

@@ -47,7 +47,9 @@ Assets/
         Input/        PlayerInputActions.cs — GENERATED from the .inputactions asset. Do not hand-edit.
       Tools/          Tool + ToolData-style SOs (GasMaskData + GasMaskVisual, NetworkMapDeviceData),
                       PlayerToolSystem
-      UI/             One *UI MonoBehaviour per screen/overlay (uGUI + TextMesh Pro), UiFocus.
+      UI/             One *UI MonoBehaviour per screen/overlay (uGUI + TextMesh Pro), UiFocus,
+                      UiTheme (static, null-safe skin iz Resources/UISprites — SunGraphica itch.io
+                      pack; sprite-ove priprema Editor alat Tools/Web of Planets/Uvezi UI sprite-ove).
                       Exceptions since 2026-07-31: ItemInfoUI in CraftingUI.cs, HubProgressUI in
                       ComputerMenuUI.cs, VictoryUI in MainMenuUI.cs
       Vfx/            VfxManager.cs — runtime-generated particle systems, no VFX assets

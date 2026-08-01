@@ -80,12 +80,14 @@ namespace WebOfPlanets
 
             var img = go.AddComponent<Image>();
             img.color = new Color(0.1f, 0.35f, 0.6f);
+            UiTheme.StyleButton(img);
 
             var btn = go.AddComponent<Button>();
             var block = btn.colors;
-            block.normalColor      = new Color(0.1f, 0.35f, 0.6f);
-            block.highlightedColor = new Vector4(0.2f, 0.55f, 0.85f, 1f);
-            block.pressedColor     = new Color(0.05f, 0.2f, 0.4f);
+            // S temom sprite nosi boju pa tranzicije idu svjetlinom; bez teme stare plave.
+            block.normalColor      = UiTheme.Tint(new Color(0.85f, 0.85f, 0.85f), new Color(0.1f, 0.35f, 0.6f));
+            block.highlightedColor = UiTheme.Tint(Color.white,                    new Color(0.2f, 0.55f, 0.85f));
+            block.pressedColor     = UiTheme.Tint(new Color(0.6f, 0.6f, 0.6f),    new Color(0.05f, 0.2f, 0.4f));
             block.selectedColor    = block.normalColor;
             btn.colors = block;
             btn.targetGraphic = img;
@@ -118,7 +120,9 @@ namespace WebOfPlanets
             panelRT.anchoredPosition = Vector2.zero;
             panelRT.sizeDelta        = new Vector2(400f, 400f);
 
-            _panel.AddComponent<Image>().color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            var panelImg = _panel.AddComponent<Image>();
+            panelImg.color = new Color(0f, 0.05f, 0.1f, 0.93f);
+            UiTheme.StylePanelTall(panelImg); // itch.io pack; bez sprite-a stara ploča
 
             // Title
             var titleGO = new GameObject("Title");

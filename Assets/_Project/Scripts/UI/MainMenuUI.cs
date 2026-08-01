@@ -53,6 +53,7 @@ namespace WebOfPlanets
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
+            UiScale.Apply(scaler); // globalno +20%; bootstrap UiScale-a ne vidi ovaj canvas
             go.AddComponent<GraphicRaycaster>();
             go.AddComponent<MainMenuUI>();
 
@@ -248,6 +249,7 @@ namespace WebOfPlanets
 
             var bg = _controlsPanel.AddComponent<Image>();
             bg.color = PanelColor;
+            UiTheme.StylePanel(bg); // itch.io pack; bez sprite-a stara crna ploča
 
             var textGO = new GameObject("Text");
             textGO.transform.SetParent(_controlsPanel.transform, false);
@@ -293,6 +295,7 @@ namespace WebOfPlanets
 
             var img = go.AddComponent<Image>();
             img.color = ButtonColor;
+            UiTheme.StyleButton(img); // itch.io pack; Button tinte rade i preko sprite-a
 
             var btn = go.AddComponent<Button>();
             btn.targetGraphic = img;
@@ -359,6 +362,7 @@ namespace WebOfPlanets
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
+            UiScale.Apply(scaler); // globalno +20%; bootstrap UiScale-a ne vidi ovaj canvas
             go.AddComponent<GraphicRaycaster>();
             go.AddComponent<VictoryUI>();
 
@@ -496,6 +500,7 @@ namespace WebOfPlanets
 
             var img = go.AddComponent<Image>();
             img.color = ButtonColor;
+            UiTheme.StyleButton(img); // itch.io pack; Button tinte rade i preko sprite-a
 
             var btn = go.AddComponent<Button>();
             btn.targetGraphic = img;
