@@ -12,7 +12,7 @@ namespace WebOfPlanets
     public class EnemyMob : MonoBehaviour
     {
         [Tooltip("Brzina kretanja (m/s). Konstantna — bez ubrzanja i usporavanja; namjerno malo manja od igračeve (3).")]
-        [SerializeField] private float moveSpeed = 2.5f;
+        [SerializeField] private float moveSpeed = 7f;
         [Tooltip("Udaljenost na kojoj mob primijeti igrača i krene u potjeru.")]
         [SerializeField] private float detectionRadius = 12f;
         [Tooltip("Udaljenost na kojoj mob odustane od potjere — veća od detekcije da potjera ne treperi na rubu radijusa.")]

@@ -959,12 +959,14 @@ MonoBehaviour:
   - {fileID: 185320357}
   - {fileID: 1460231137}
   exclusionRadius: 10
-  weakCost: []
+  weakCost:
+  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
+    amount: 2
   weakLifespan: 60
   weakThickness: 0.4
   midCost:
   - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
-    amount: 1
+    amount: 3
   midLifespan: 180
   midThickness: 0.6
   strongCost:
@@ -974,7 +976,7 @@ MonoBehaviour:
   strongThickness: 0.9
   unstableDegradationPerEnd: 0.5
   teleportCost:
-  - item: {fileID: 11400000, guid: f88f717e142d12e449ff09da0984b8df, type: 2}
+  - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
     amount: 1
   teleportCostDistanceStep: 2000
   maxPotentialPerPlanet: 3
@@ -2594,7 +2596,7 @@ MonoBehaviour:
   playerHealth: {fileID: 762044620}
   planetCreator: {fileID: 366273103}
   hubTotemData: {fileID: 11400000, guid: d9eef945555e4d3c8e455035f4504288, type: 2}
-  testingMode: 1
+  testingMode: 0
 --- !u!1 &1900000011
 GameObject:
   m_ObjectHideFlags: 0

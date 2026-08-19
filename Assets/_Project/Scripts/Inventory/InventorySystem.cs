@@ -65,6 +65,26 @@ namespace WebOfPlanets
             }
         }
 
+        // Kazna za smrt (kolovoz 2026.): igrač gubi pola svakog stacka, zaokruženo
+        // PREMA GORE (7 → gubi 4, ostaje 3; 9 → gubi 5; 1 → gubi 1). Poziva
+        // GameManager.HandlePlayerDied; TestingMode se provjerava tamo, ne ovdje.
+        public void RemoveHalfOfEachStack()
+        {
+            for (int i = inventory.Count - 1; i >= 0; i--)
+            {
+                InventoryItem item = inventory[i];
+                int loss = (item.GetStackSize() + 1) / 2;
+                for (int j = 0; j < loss; j++)
+                    item.RemoveFromStack();
+
+                if (item.GetStackSize() == 0)
+                {
+                    inventory.RemoveAt(i);
+                    _itemDictionary.Remove(item.data);
+                }
+            }
+        }
+
         // ── Save/load ─────────────────────────────────────────────────────────
 
         public void ClearForLoad()

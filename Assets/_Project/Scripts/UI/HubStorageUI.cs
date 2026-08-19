@@ -15,6 +15,8 @@ namespace WebOfPlanets
         protected override string EmptyText => "Hub storage empty.";
         protected override string BottomButtonLabel => "Deposit all";
         protected override Color BottomButtonColor => new Color(0.1f, 0.35f, 0.6f);
+        protected override string SecondButtonLabel => "Withdraw all";
+        protected override Color SecondButtonColor => new Color(0.15f, 0.45f, 0.25f);
 
         protected override void Awake()
         {
@@ -38,6 +40,13 @@ namespace WebOfPlanets
         {
             if (_target == null) return;
             _target.DepositAll();
+            Refresh();
+        }
+
+        protected override void OnSecondButtonClicked()
+        {
+            if (_target == null) return;
+            _target.WithdrawAll();
             Refresh();
         }
 

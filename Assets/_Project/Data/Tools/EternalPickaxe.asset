@@ -19,6 +19,8 @@ MonoBehaviour:
   miningSpeedMultiplier: 3
   maxDurability: 0
   miningTier: 1
+  toolClass: 0
+  bonusMiningChanceBonus: 0.5
   tintColor: {r: 1, g: 0.75, b: 0.1, a: 1}
   holdPositionOffset: {x: 0, y: 0, z: 0}
   holdRotationOffset: {x: 0, y: 0, z: 0}

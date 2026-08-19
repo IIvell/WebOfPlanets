@@ -18,6 +18,9 @@ namespace WebOfPlanets
         [Tooltip("Klasa alata — resurs mogu skupljati samo alati iste klase kao njegov requiredTool (npr. drvo traži Woodcutting, ruda Mining).")]
         public ToolClass toolClass = ToolClass.Mining;
 
+        [Tooltip("Dodatna šansa (0-1) za bonusMiningItem dok je ovaj alat opremljen — zbraja se s bonusMiningChance resursa (npr. pickaxe diže šansu rude iz kamena). Vrijedi samo ako klasa alata odgovara requiredTool klasi bonus resursa.")]
+        [Range(0f, 1f)] public float bonusMiningChanceBonus = 0f;
+
         [Tooltip("Boja kojom se tonira vizual alata u ruci (bijelo = originalne boje prefaba).")]
         public Color tintColor = Color.white;
 

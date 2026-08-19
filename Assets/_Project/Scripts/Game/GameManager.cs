@@ -141,10 +141,15 @@ namespace WebOfPlanets
             SetState(GameState.GameOver);
             ResolveReferences();
             if (playerController != null) playerController.SetInputEnabled(false);
+
+            // Kazna za smrt: pola svakog resursa (zaokruženo prema gore, 7 → gubi 4).
+            // TestingMode preskače kaznu — isti prekidač kao svi ostali troškovi.
+            if (!TestingMode && InventorySystem.Instance != null)
+                InventorySystem.Instance.RemoveHalfOfEachStack();
         }
 
-        // Respawn na aktivnom totemu (default: glavni na Hubu): puno zdravlje,
-        // inventar ostaje (smrt košta samo povratak).
+        // Respawn na aktivnom totemu (default: glavni na Hubu): puno zdravlje;
+        // pola svakog resursa već je izgubljeno pri smrti (HandlePlayerDied).
         public void Respawn()
         {
             ResolveReferences();

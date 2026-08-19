@@ -1,0 +1,493 @@
+================================================================================
+ PlayerController.cs — objašnjenje liniju po liniju
+ Datoteka: Assets/_Project/Scripts/Player/PlayerController.cs
+ Projekt: Web of Planets | Izrađeno: 4.8.2026.
+================================================================================
+
+Skripta drži igrača na sferičnom planetu: gravitacija prema centru planeta,
+kretanje kroz linearVelocity i "surface lock" koji sprječava penjanje na objekte.
+
+
+--------------------------------------------------------------------------------
+ 1. ZAGLAVLJE I POLJA (linije 1–42)
+--------------------------------------------------------------------------------
+
+  1 | using UnityEngine;
+  3 | namespace WebOfPlanets
+  5 | public class PlayerController : MonoBehaviour
+
+    Jedini using je UnityEngine. Namespace je WebOfPlanets — projektna
+    konvencija: flat namespace za sve runtime skripte, folder ne stvara
+    pod-namespace. Klasa je MonoBehaviour, visi na Player objektu u sceni.
+
+  7 | public Rigidbody rig;
+  8 | public Transform currentPlanet;
+  9 | public bool freezeRotation = true;
+
+    Javna polja koja se spajaju u Inspectoru: rig je Rigidbody igrača,
+    currentPlanet je Transform planeta na kojem igrač trenutno stoji,
+    freezeRotation određuje smije li fizika rotirati tijelo (vidi Ini).
+
+ 11 | [SerializeField] private float moveSpeed = 3f;
+
+    Brzina hoda u m/s. SerializeField + private je projektna konvencija za
+    tunable vrijednosti.
+
+ 13 | [Header("Visual")]
+ 15 | [SerializeField] private Transform visualModel;
+ 16 | public Transform VisualModel => visualModel;
+ 18 | [SerializeField] private float turnSpeed = 10f;
+
+    visualModel je Transform 3D modela robota. Ključna odluka: VIZUAL SE
+    ROTIRA, COLLIDER NE — kapsula na Playeru stoji fiksno, samo se model
+    okreće prema smjeru kretanja brzinom turnSpeed. Linija 16 je javni
+    read-only pristup za druge skripte (npr. alat u ruci robota).
+
+ 20 | // Namjerno NOVA imena polja (bez FormerlySerializedAs): scena je imala
+ 21 | // serijalizirane iceAcceleration=25 / iceDeceleration=0.3 koje bi pregazile
+ 22 | // code defaulte — s njima je ubrzanje bilo praktički trenutno, a zaustavljanje
+ 23 | // sa 7 m/s trajalo ~23 s ("beskonačno" klizanje). Ne vraćati stara imena.
+ 25 | [SerializeField] private float iceAccelTime = 1f;
+ 27 | [SerializeField] private float iceStopTime = 1.5f;
+
+    Parametri klizanja po ledu: iceAccelTime = sekunde do pune brzine,
+    iceStopTime = sekunde do zaustavljanja bez inputa. Komentar je bitan:
+    polja su NAMJERNO preimenovana bez FormerlySerializedAs jer je scena
+    imala stare serijalizirane vrijednosti koje bi pregazile code defaulte
+    i vratile bug "beskonačnog klizanja" (~23 s do zaustavljanja).
+    Preimenovanjem su vrijednosti iz scene odbačene — zato upozorenje da se
+    stara imena nikad ne vraćaju.
+
+ 29 | [Header("Surface lock")]
+ 31 | [SerializeField] private float surfaceSkin = 0.15f;
+ 33 | [SerializeField] private float maxSnapPerStep = 0.2f;
+
+    Tunables surface locka: surfaceSkin je dopuštena visina dna kapsule
+    iznad tla — mora pokriti nagibe i rubove faceta mesh-planeta (~0.1),
+    ali ostati manja od visine resursa (inače bi stajanje na resursu bilo
+    "legalno"). maxSnapPerStep ograničava koliko se igrač smije povući
+    prema tlu po jednom fizičkom koraku, da korekcija nikad ne bude trzaj.
+
+ 35 | private Planet _planet;
+ 36 | private float _defaultLinearDamping;
+ 37 | private Vector3 _faceDirection;
+ 38 | private CapsuleCollider _capsule;
+ 39 | private bool _grounded;
+ 40 | private Vector3 _lastStepPos;
+ 42 | PlayerInputActions _input;
+
+    Privatno stanje:
+    _planet               keširana Planet komponenta (zbog Gravity i Type)
+    _defaultLinearDamping originalni damping Rigidbodyja, spremljen prije
+                          nego se ugasi (treba ga ApplyGravity)
+    _faceDirection        zadnji smjer kretanja — most iz FixedUpdate
+                          (fizika) u Update (rotacija vizuala)
+    _capsule              keširan CapsuleCollider
+    _grounded             je li surface lock aktivan
+    _lastStepPos          pozicija prošlog fizičkog koraka (detekcija
+                          teleporta/loada)
+    _input                generirani Input System wrapper (projekt koristi
+                          isključivo novi Input System)
+
+
+--------------------------------------------------------------------------------
+ 2. ŽIVOTNI CIKLUS INPUTA (linije 44–56)
+--------------------------------------------------------------------------------
+
+ 44 | void Awake()
+ 46 |     _input = new PlayerInputActions();
+
+    Awake instancira PlayerInputActions — klasu generiranu iz .inputactions
+    asseta (ne uređivati ručno; pokriva Movement / Jump / MouseLook).
+
+ 49 | void OnEnable()  => _input?.Enable();
+ 50 | void OnDisable() => _input?.Disable();
+
+    Input mapa se pali/gasi zajedno s objektom. Operator ?. štiti od
+    slučaja da se OnEnable pozove prije Awake (npr. nakon recompilea).
+
+ 52 | public void SetInputEnabled(bool enabled)
+ 54 |     if (enabled) _input.Enable();
+ 55 |     else _input.Disable();
+
+    Javna kvaka kojom drugi sustavi (meni, dijalog) gase igračev input bez
+    gašenja cijele komponente — fizika i surface lock nastavljaju raditi.
+
+
+--------------------------------------------------------------------------------
+ 3. START (linije 58–69)
+--------------------------------------------------------------------------------
+
+ 60 |     Ini();
+ 61 |     AlignColliderWithVisual();
+ 62 |     if (currentPlanet != null)
+ 63 |         _planet = currentPlanet.GetComponent<Planet>();
+ 67 |     TryGetComponent(out _capsule);
+ 68 |     _lastStepPos = rig.position;
+
+    Redoslijed je bitan: Ini konfigurira Rigidbody i trenje, zatim
+    AlignColliderWithVisual centrira model i kapsulu, pa se kešira Planet
+    s početnog planeta. Kapsula se kešira tek NAKON poravnanja — surface
+    lock mora mjeriti dno kapsule iz stvarnog (runtime poravnatog) centra,
+    ne iz pretpostavke gdje je pivot. _lastStepPos se inicijalizira da
+    prvi FixedUpdate ne detektira lažni "teleport".
+
+--------------------------------------------------------------------------------
+ 4. ALIGNCOLLIDERWITHVISUAL (linije 71–102)
+--------------------------------------------------------------------------------
+
+ 71 | // Vizualni robot rotira oko visualModel pivota (FaceDirection), a kapsula je
+ 72 | // fiksna na Playeru. U sceni je mesh robota stajao pomaknut od pivota
+ 73 | // (~1.3 po z), pa je pri okretanju KRUŽIO oko pivota umjesto da se vrti u
+ 74 | // mjestu — vizual i fizika su se razilazili do ~2.5 jedinice ...
+
+    Komentar opisuje defekt koji metoda popravlja: mesh robota u sceni je
+    stajao ~1.3 jedinice od pivota, pa je pri rotaciji KRUŽIO oko pivota
+    umjesto da se vrti u mjestu — vizual i fizika razilazili su se do ~2.5
+    jedinice ovisno o smjeru gledanja. Umjesto ručnog popravka scene, kod
+    pri pokretanju izmjeri geometriju i centrira je.
+
+ 82 |     if (visualModel == null) return;
+
+    Bez modela nema što raditi (null-safe izlaz).
+
+ 86 |     if (SurfacePlacement.TryGetLocalBounds(visualModel.gameObject, out Bounds local))
+
+    TryGetLocalBounds računa AABB stvarne geometrije (uključivo skinned
+    vrhove) u prostoru pivota. Pri Startu alat još nije opremljen, pa se
+    mjeri samo robot.
+
+ 88 |         Vector3 delta = new Vector3(local.center.x, 0f, local.center.z);
+ 89 |         if (delta.sqrMagnitude > 0.01f)
+ 91 |             foreach (Transform child in visualModel)
+ 92 |                 child.localPosition -= delta;
+ 93 |             Debug.Log($"PlayerController: vizual robota centriran na pivot (pomak {delta}).");
+
+    delta je horizontalni pomak centra geometrije od pivota — y se ne dira
+    jer je visina stajanja namještena u sceni i bila je ispravna. Ako je
+    pomak značajan, SVA djeca pivota se pomiču zajedno za -delta, da alat
+    u ruci zadrži odnos prema mešu. Pomak se logira.
+
+ 97 |     if (TryGetComponent(out CapsuleCollider capsule))
+ 99 |         Vector3 pivotLocal = transform.InverseTransformPoint(visualModel.position);
+100 |         capsule.center = new Vector3(pivotLocal.x, capsule.center.y, pivotLocal.z);
+
+    Kapsuli se center postavi točno na horizontalnu poziciju pivota vizuala
+    (pretvorenu u lokalni prostor Playera); y komponenta centra ostaje.
+
+
+--------------------------------------------------------------------------------
+ 5. SETPLANET (linije 104–110)
+--------------------------------------------------------------------------------
+
+104 | public void SetPlanet(Transform planet)
+106 |     currentPlanet = planet;
+107 |     _planet = planet != null ? planet.GetComponent<Planet>() : null;
+109 |     _grounded = false;
+
+    Poziva se pri prelasku na drugi planet (teleport). Postavi novi
+    Transform i Planet komponentu, i RUŠI _grounded — nova površina znači
+    da se tlo mora ponovno uhvatiti iz zraka, što daje meki pad umjesto
+    trenutnog snapa na novu površinu.
+
+
+--------------------------------------------------------------------------------
+ 6. PETLJE (linije 112–124)
+--------------------------------------------------------------------------------
+
+112 | void FixedUpdate()
+114 |     ApplyGravity();
+115 |     Move();
+116 |     EnforceSurfaceLock();
+
+    Fizička petlja (50 Hz): gravitacija -> kretanje -> surface lock, tim
+    redom. Redoslijed je bitan: lock na kraju reže sve što su gravitacija,
+    kretanje i PhysX depenetracija napravili u tom koraku.
+
+119 | void Update()
+123 |     FaceDirection(_faceDirection);
+
+    Rotacija vizuala ide u Updateu (render framerate), ne u FixedUpdateu —
+    inače bi na monitorima s refreshom višim od 50 Hz rotacija modela
+    štucala.
+
+
+--------------------------------------------------------------------------------
+ 7. APPLYGRAVITY (linije 126–138)
+--------------------------------------------------------------------------------
+
+128 |     if (_planet == null) return;
+129 |     Vector3 down = (currentPlanet.position - transform.position).normalized;
+130 |     rig.AddForce(down * _planet.Gravity, ForceMode.Acceleration);
+
+    down je normalizirani vektor od igrača prema centru planeta — gravitacija
+    je radijalna, ne globalna. ForceMode.Acceleration primjenjuje
+    _planet.Gravity kao ubrzanje neovisno o masi tijela.
+
+135 |     float d = _defaultLinearDamping * Time.fixedDeltaTime;
+136 |     Vector3 vertical = Vector3.Project(rig.linearVelocity, down);
+137 |     rig.linearVelocity -= vertical * (d / (1f + d));
+
+    Ručna simulacija dampinga SAMO na vertikali. Kontekst: fizički
+    linearDamping je isključen (gušio bi i horizontalno kretanje koje ide
+    kroz linearVelocity), ali je originalni damping davao željeni "meki
+    pad". Zato se reproducira ručno: projekcijom se izdvoji vertikalna
+    komponenta brzine i primijeni ista formula kojom PhysX interno računa
+    damping: v -= v * d/(1+d), gdje je d = damping * dt.
+
+
+--------------------------------------------------------------------------------
+ 8. INI (linije 140–164)
+--------------------------------------------------------------------------------
+
+142 |     rig.useGravity = false;
+
+    Unityjeva ugrađena (globalna) gravitacija se gasi — svaki planet vuče
+    svojom, radijalno.
+
+143 |     rig.interpolation = RigidbodyInterpolation.Interpolate;
+
+    Glatka vizualna pozicija između fizičkih koraka (50 Hz fizika na
+    npr. 144 Hz ekranu).
+
+144 |     _defaultLinearDamping = rig.linearDamping;
+
+    Sprema originalni damping za ApplyGravity, prije nego ga Move ugasi.
+
+145 |     if (freezeRotation)
+146 |         rig.constraints = RigidbodyConstraints.FreezeRotation;
+148 |         rig.constraints = RigidbodyConstraints.None;
+
+    Fizika ne smije rotirati tijelo — rotaciju prema normali planeta
+    kontrolira Attractor slerpom.
+
+155 |     if (TryGetComponent(out CapsuleCollider capsule))
+156 |         capsule.material = new PhysicsMaterial("PlayerFrictionless")
+158 |             staticFriction = 0f,
+159 |             dynamicFriction = 0f,
+160 |             bounciness = 0f,
+161 |             frictionCombine = PhysicsMaterialCombine.Minimum,
+162 |             bounceCombine = PhysicsMaterialCombine.Minimum
+
+    Igrač dobiva potpuno frictionless fizički materijal, izrađen u kodu.
+    frictionCombine = Minimum znači da 0 pobjeđuje bez obzira na materijal
+    planeta. Razlog (komentar 150–154): PhysX trenje na kontaktu kapsule s
+    poligonalnim planetom trošilo je naslijeđenu brzinu na ledu, najjače
+    na rubovima faceta — klizanje je bilo mjestimično sporije. Običan hod
+    ne ovisi o trenju (brzina se prepisuje svaki tick), a stajanje u
+    mjestu čuva kod, ne trenje.
+
+--------------------------------------------------------------------------------
+ 9. MOVE (linije 166–188)
+--------------------------------------------------------------------------------
+
+168 |     Vector2 input = _input.PlayerActionmap.Movement.ReadValue<Vector2>();
+169 |     bool onIce = _planet != null && _planet.Type == PlanetType.Ice;
+
+    Čita 2D input (WASD) iz generirane akcije Movement i provjerava je li
+    planet ledeni.
+
+175 |     rig.linearDamping = 0f;
+
+    Ključna odluka (komentar 171–174): kretanje UVIJEK ide kroz
+    linearVelocity, nikad MovePosition — na dinamičkom rigidbodyju
+    MovePosition je teleport koji svaki fizički korak resetira
+    interpolaciju i radi trzaje. Damping je zato uvijek 0: horizontalu
+    postavljamo sami svaki korak, a meki pad na vertikali simulira
+    ApplyGravity.
+
+177 |     if (onIce)
+179 |         MoveOnIce(input);
+180 |         return;
+
+    Na ledu se delegira u MoveOnIce i izlazi.
+
+183 |     Vector3 verticalVelocity = Vector3.Project(rig.linearVelocity, transform.up);
+184 |     Vector3 moveDir = transform.right * input.x + transform.forward * input.y;
+185 |     rig.linearVelocity = moveDir * moveSpeed + verticalVelocity;
+
+    Normalno kretanje: sačuva se vertikalna komponenta brzine (projekcija
+    na transform.up — pad/meki pad se ne smije pregaziti), smjer se računa
+    iz inputa u lokalnom prostoru tijela (right*x + forward*y), i brzina se
+    DIREKTNO postavi. Zato je hod trenutan: nema inercije — pustiš tipku,
+    staneš.
+
+187 |     _faceDirection = moveDir;
+
+    Zapamti smjer za rotaciju vizuala u Updateu.
+
+
+--------------------------------------------------------------------------------
+ 10. MOVEONICE (linije 190–217)
+--------------------------------------------------------------------------------
+
+    Umjesto direktnog postavljanja brzine, brzina TEŽI cilju ograničenim
+    ubrzanjem — to daje klizanje: igrač ne staje odmah i ne skreće trenutno.
+
+196 |     Vector3 up = currentPlanet != null
+197 |         ? (transform.position - currentPlanet.position).normalized
+198 |         : transform.up;
+
+    up je STVARNA radijala od centra planeta, ne transform.up. Razlog:
+    Attractor poravnava tijelo slerpom, pa transform.up kasni za stvarnom
+    normalom — split na horizontalu/vertikalu bi rezao krivo.
+
+200 |     Vector3 verticalVelocity = Vector3.Project(rig.linearVelocity, up);
+201 |     Vector3 horizontalVelocity = rig.linearVelocity - verticalVelocity;
+
+    Brzina se rastavi na vertikalu (projekcija na up) i horizontalu
+    (ostatak).
+
+203 |     Vector3 targetVelocity = (transform.right * input.x + transform.forward * input.y) * moveSpeed;
+
+    Ciljna brzina iz inputa, isto kao u Move.
+
+208 |     bool hasInput = input.sqrMagnitude > 0.0001f;
+211 |     float rate = Mathf.Max(0.5f, moveSpeed / Mathf.Max(0.05f, hasInput ? iceAccelTime : iceStopTime));
+
+    rate = promjena brzine po sekundi: moveSpeed/iceAccelTime uz input,
+    moveSpeed/iceStopTime bez njega. Izvođenje iz moveSpeed znači da
+    promjena brzine hoda u Inspectoru čuva isti "osjećaj" leda (ista
+    vremena zaleta i zaustavljanja). Donji prag 0.5 osigurava da i uz
+    moveSpeed = 0 (lock kretanja u Inspectoru) naslijeđena brzina otklizi
+    u stop, a Mathf.Max(0.05, ...) štiti od dijeljenja s ~0.
+
+213 |     horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, targetVelocity, rate * Time.fixedDeltaTime);
+214 |     rig.linearVelocity = horizontalVelocity + verticalVelocity;
+
+    MoveTowards pomiče horizontalu prema cilju za rate*dt — konstantna
+    deceleracija odgovara kinetičkom trenju i GARANTIRA potpuni stop (za
+    razliku od Lerp-a, koji usporava asimptotski i nikad ne stane).
+    Vertikala se vrati netaknuta.
+
+216 |     _faceDirection = horizontalVelocity;
+
+    Vizual gleda u smjer STVARNOG klizanja, ne inputa — na ledu robot
+    gleda kamo klizi.
+
+
+--------------------------------------------------------------------------------
+ 11. ENFORCESURFACELOCK (linije 219–287)
+--------------------------------------------------------------------------------
+
+    Najsloženiji dio. Veliki komentar (219–242) je povijest dizajna:
+
+    PROBLEM: guranjem u box collider (resurs, stroj, totem) PhysX
+    depenetracija gura kapsulu preko ruba prema gore, a Move čuva
+    vertikalnu brzinu — bez ovoga se dalo popeti na objekte.
+
+    RJEŠENJE: dok je igrač prizemljen (_grounded), dno kapsule iznad
+    surfaceSkin gubi outward brzinu i višak visine. Visina se mjeri
+    raycastom koji priznaje SAMO planetov collider kao tlo (objekti na
+    površini nisu tlo).
+
+    Dvije dizajnerske odluke iz komentara:
+    (1) _grounded gating čuva legitimne letove — teleport/respawn/load
+        spuštaju igrača ~1 m iznad tla s namjernim mekim padom; skok
+        pozicije > 1 m ruši _grounded pa se tlo ponovno hvata iz zraka.
+    (2) NEMA otpuštanja locka po visini (staro ungroundHeight uklonjeno u
+        srpnju 2026): depenetracija na visokom collideru znala je u jednom
+        koraku prebaciti prag, lock bi se otpustio i nikad više uhvatio —
+        igrač trajno "clippan" iznad površine. Depenetracija ne može
+        doseći skok > 1 m jer je PhysX maxDepenetrationVelocity 10 m/s =
+        0.2 m po koraku. Silazak s litice sad rješava lock (spust
+        maxSnapPerStep po koraku) — na kuglastim planetima neprimjetno.
+
+245 |     if (_planet == null || _capsule == null) return;
+
+    Null-safe izlaz.
+
+247 |     Vector3 pos = rig.position;
+248 |     if ((pos - _lastStepPos).sqrMagnitude > 1f) _grounded = false;
+249 |     _lastStepPos = pos;
+
+    Detekcija teleporta/loada: pomak veći od 1 jedinice od prošlog koraka
+    (uspoređuje se kvadrat, > 1) ruši _grounded.
+
+256 |     Vector3 rayOrigin = pos + transform.rotation * new Vector3(_capsule.center.x, 0f, _capsule.center.z);
+257 |     Vector3 up = (rayOrigin - currentPlanet.position).normalized;
+
+    Origin zrake je POD KAPSULOM, ne pod pivotom: capsule.center je nakon
+    AlignColliderWithVisual ~0.8 bočno od rig.position, pa bi zraka ispod
+    pivota na nagibu ili rubu facete mjerila tuđu visinu (greška
+    ±offset*tan(theta)) — lažni prekršaji ili propušteno penjanje, ovisno
+    o yawu tijela (koji se s kretanjem ne rotira, jer se rotira samo
+    vizual). up je opet stvarna radijala od centra.
+
+261 |     if (!SurfacePlacement.TryRaycastSurface(currentPlanet, rayOrigin, -up, 30f, out RaycastHit hit))
+262 |         return;
+
+    Zraka prema dolje do 30 jedinica, prihvaća samo planetov collider.
+    Promašaj (npr. stale PhysX poza planeta) -> odustani u ovom koraku:
+    analitički fallback (idealna sfera radijusa R) bio bi na mesh
+    planetima do ~1.3% R kriv i lagao bi.
+
+266 |     Vector3 feet = pos + transform.rotation * (_capsule.center + Vector3.down * (_capsule.height * 0.5f));
+267 |     float altitude = Vector3.Dot(feet - hit.point, up);
+
+    feet = dno kapsule računato iz FIZIČKE poze (rig.position + rotacija),
+    ne iz transform.position — uz interpolaciju i isključen
+    autoSyncTransforms transform ne mora odgovarati fizici. altitude je
+    projekcija (feet - hit.point) na up: visina dna kapsule iznad tla.
+
+269 |     if (!_grounded)
+271 |         _grounded = altitude <= surfaceSkin;
+272 |         return;
+
+    Ako lock nije aktivan: uhvati ga tek kad visina padne na <= surfaceSkin
+    (meki pad se ne dira), pa izađi.
+
+275 |     if (altitude <= surfaceSkin) return;
+
+    Unutar skina — sve u redu, ništa se ne dira. Običan hod nikad ne
+    prijeđe ovu granicu.
+
+283 |     float outward = Vector3.Dot(rig.linearVelocity, up);
+284 |     if (outward > 0f) rig.linearVelocity -= up * outward;
+286 |     rig.position = pos - up * Mathf.Min(altitude - surfaceSkin, maxSnapPerStep);
+
+    Prekršaj (aktivno penjanje): odreže se outward komponenta brzine
+    (projekcija na stvarnu radijalu — opet ne transform.up) i vrati višak
+    visine, omeđeno s maxSnapPerStep. Direktno pisanje rig.position
+    resetira interpolaciju, ali samo u koracima stvarnog prekršaja. Blagi
+    pritisak u rub collidera koji time nastane PhysX razriješi bočno, pa
+    igrač sklizne s objekta.
+
+
+--------------------------------------------------------------------------------
+ 12. FACEDIRECTION (linije 289–295)
+--------------------------------------------------------------------------------
+
+291 |     if (visualModel == null || direction.sqrMagnitude < 0.0001f) return;
+
+    Bez modela ili bez kretanja ne rotiraj — model zadrži zadnji smjer
+    kad igrač stane.
+
+293 |     Quaternion targetRotation = Quaternion.LookRotation(-direction.normalized, transform.up);
+
+    Ciljna rotacija: MINUS ispred smjera jer je mesh robota modeliran
+    licem prema -Z. Up je transform.up tijela, pa robot stoji uspravno
+    na sferi.
+
+294 |     visualModel.rotation = Quaternion.Slerp(visualModel.rotation, targetRotation, turnSpeed * Time.deltaTime);
+
+    Slerp s faktorom turnSpeed*deltaTime: glatko eksponencijalno
+    približavanje cilju — brzo, ali ne trenutno okretanje.
+
+
+================================================================================
+ SAŽETAK ARHITEKTURE
+================================================================================
+
+Podjela odgovornosti: Attractor rotira tijelo prema normali planeta,
+PlayerController upravlja brzinom i visinom, PlayerCamera gleda.
+
+Tri obrambena mehanizma u datoteci — frictionless materijal (Ini), ručni
+vertikalni damping (ApplyGravity) i surface lock (EnforceSurfaceLock) —
+postoje jer je kretanje u potpunosti "code-driven": linearVelocity se
+prepisuje svaki tick, pa se sve što bi PhysX inače radio sam (trenje,
+damping, depenetracija) mora ili ugasiti ili kontrolirano reproducirati.
+
+Blok-komentari u kodu bilježe konkretne defekte koji su do tih odluka
+doveli — po projektnoj konvenciji ne brišu se pri refaktoriranju, nego se
+nadopunjuju.

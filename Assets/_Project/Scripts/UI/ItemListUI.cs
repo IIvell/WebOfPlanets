@@ -45,6 +45,13 @@ namespace WebOfPlanets
         protected virtual Color BottomButtonColor => default;
         protected virtual void OnBottomButtonClicked() { }
 
+        // Opcionalni drugi donji gumb (kolovoz 2026., Withdraw all na hub
+        // skladištu). Postoji li, oba gumba dijele donji red popola; null =
+        // prvi gumb zadržava punu širinu kao prije.
+        protected virtual string SecondButtonLabel => null;
+        protected virtual Color SecondButtonColor => default;
+        protected virtual void OnSecondButtonClicked() { }
+
         // Izvor redaka za Refresh; null = nema izvora (lista ostaje prazna, a
         // empty label se ne dira). Podklasa ovdje po potrebi ažurira naslov.
         protected abstract IReadOnlyList<InventoryItem> GetItems();
@@ -270,34 +277,49 @@ namespace WebOfPlanets
                 hint.color         = new Color(0.6f, 0.6f, 0.6f);
             }
 
-            if (BottomButtonLabel != null)
+            if (BottomButtonLabel != null && SecondButtonLabel != null)
             {
-                var actionBtn = new GameObject($"{BottomButtonLabel}Button");
-                actionBtn.transform.SetParent(_panel.transform, false);
-                var actionBtnRT = actionBtn.AddComponent<RectTransform>();
-                actionBtnRT.anchorMin        = new Vector2(0f, 0f);
-                actionBtnRT.anchorMax        = new Vector2(1f, 0f);
-                actionBtnRT.pivot            = new Vector2(0.5f, 0f);
-                actionBtnRT.anchoredPosition = new Vector2(0f, pad);
-                actionBtnRT.sizeDelta        = new Vector2(-2f * pad, 36f);
-                var actionImg = actionBtn.AddComponent<Image>();
-                UiTheme.StyleButton(actionImg);
-                actionImg.color = BottomButtonColor; // tinta i sprite i fallback ploču
-                var actionButton = actionBtn.AddComponent<Button>();
-                actionButton.onClick.AddListener(OnBottomButtonClicked);
-                var actionLabelGO = new GameObject("Label");
-                actionLabelGO.transform.SetParent(actionBtn.transform, false);
-                var actionLabelRT = actionLabelGO.AddComponent<RectTransform>();
-                actionLabelRT.anchorMin = Vector2.zero;
-                actionLabelRT.anchorMax = Vector2.one;
-                actionLabelRT.offsetMin = Vector2.zero;
-                actionLabelRT.offsetMax = Vector2.zero;
-                var actionTxt = actionLabelGO.AddComponent<TextMeshProUGUI>();
-                actionTxt.text      = BottomButtonLabel;
-                actionTxt.fontSize  = 15;
-                actionTxt.alignment = TextAlignmentOptions.Center;
-                actionTxt.color     = Color.white;
+                // Dva gumba: dijele red popola, 3px razmaka od sredine.
+                CreateBottomButton(BottomButtonLabel, BottomButtonColor, OnBottomButtonClicked, 0f, 0.5f, pad, 3f);
+                CreateBottomButton(SecondButtonLabel, SecondButtonColor, OnSecondButtonClicked, 0.5f, 1f, 3f, pad);
             }
+            else if (BottomButtonLabel != null)
+            {
+                CreateBottomButton(BottomButtonLabel, BottomButtonColor, OnBottomButtonClicked, 0f, 1f, pad, pad);
+            }
+        }
+
+        // Donji akcijski gumb; anchorMinX/anchorMaxX + uvlake određuju širinu
+        // (puni red ili polovica). Izdvojeno iz BuildUI zbog drugog gumba.
+        private void CreateBottomButton(string label, Color color, UnityEngine.Events.UnityAction onClick,
+            float anchorMinX, float anchorMaxX, float leftInset, float rightInset)
+        {
+            float pad = UiTheme.WindowPadding;
+
+            var actionBtn = new GameObject($"{label}Button");
+            actionBtn.transform.SetParent(_panel.transform, false);
+            var actionBtnRT = actionBtn.AddComponent<RectTransform>();
+            actionBtnRT.anchorMin = new Vector2(anchorMinX, 0f);
+            actionBtnRT.anchorMax = new Vector2(anchorMaxX, 0f);
+            actionBtnRT.offsetMin = new Vector2(leftInset, pad);
+            actionBtnRT.offsetMax = new Vector2(-rightInset, pad + 36f);
+            var actionImg = actionBtn.AddComponent<Image>();
+            UiTheme.StyleButton(actionImg);
+            actionImg.color = color; // tinta i sprite i fallback ploču
+            var actionButton = actionBtn.AddComponent<Button>();
+            actionButton.onClick.AddListener(onClick);
+            var actionLabelGO = new GameObject("Label");
+            actionLabelGO.transform.SetParent(actionBtn.transform, false);
+            var actionLabelRT = actionLabelGO.AddComponent<RectTransform>();
+            actionLabelRT.anchorMin = Vector2.zero;
+            actionLabelRT.anchorMax = Vector2.one;
+            actionLabelRT.offsetMin = Vector2.zero;
+            actionLabelRT.offsetMax = Vector2.zero;
+            var actionTxt = actionLabelGO.AddComponent<TextMeshProUGUI>();
+            actionTxt.text      = label;
+            actionTxt.fontSize  = 15;
+            actionTxt.alignment = TextAlignmentOptions.Center;
+            actionTxt.color     = Color.white;
         }
     }
 }

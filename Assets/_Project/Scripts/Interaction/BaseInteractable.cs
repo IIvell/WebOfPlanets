@@ -125,7 +125,8 @@ namespace WebOfPlanets
             for (int i = 0; i < yieldCount; i++)
                 InventorySystem.Instance.Add(referenceItem);
 
-            if (!isPickup && referenceItem.bonusMiningItem != null && Random.value < referenceItem.bonusMiningChance)
+            if (!isPickup && referenceItem.bonusMiningItem != null &&
+                Random.value < referenceItem.bonusMiningChance + GetEquippedBonusChance(referenceItem.bonusMiningItem))
                 InventorySystem.Instance.Add(referenceItem.bonusMiningItem);
 
             PlayerToolSystem.Instance?.OnResourceMined();
@@ -137,6 +138,19 @@ namespace WebOfPlanets
                 // Raspadanje s dimom umjesto trenutnog nestanka (dorada vizuala,
                 // srpanj 2026.) — Play() odmah gasi collider i ovu skriptu.
                 DisintegrationEffect.Play(gameObject);
+        }
+
+        // Opremljen alat povećava šansu bonus itema (kolovoz 2026.): bonus alata
+        // (Tool.bonusMiningChanceBonus) zbraja se sa šansom resursa, ali samo ako
+        // klasa alata odgovara requiredTool klasi BONUS resursa — pickaxe (Mining)
+        // diže šansu rude iz kamena, sjekira (Woodcutting) ne. Bonus resurs bez
+        // requiredTool prima bonus bilo kojeg alata.
+        private static float GetEquippedBonusChance(Item bonusItem)
+        {
+            var equipped = PlayerToolSystem.Instance != null ? PlayerToolSystem.Instance.EquippedTool : null;
+            if (equipped == null || equipped.bonusMiningChanceBonus <= 0f) return 0f;
+            if (bonusItem.requiredTool != null && bonusItem.requiredTool.toolClass != equipped.toolClass) return 0f;
+            return equipped.bonusMiningChanceBonus;
         }
 
         // Koristi stroj umjesto igrača — preskače tool provjeru, ne dodaje u player inventory

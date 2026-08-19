@@ -14,11 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Ore Collector
   resultType: 1
-  unlockTier: 1
+  unlockTier: 0
   resultTool: {fileID: 0}
   resultMachine: {fileID: 11400000, guid: c1b94187e5de48c9959c857b77f5f516, type: 2}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 0}
+  resultExtractorMachine: {fileID: 0}
+  resultUplinkMachine: {fileID: 0}
+  resultTeleporterMachine: {fileID: 0}
+  resultTwoWayTeleporterMachine: {fileID: 0}
+  resultNetworkMapDevice: {fileID: 0}
+  resultRespawnTotem: {fileID: 0}
+  resultGasMask: {fileID: 0}
+  resultComputer: {fileID: 0}
   ingredients:
   - item: {fileID: 11400000, guid: dfb97f1fdff442078bf1b59dbddbf790, type: 2}
     amount: 2

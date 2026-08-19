@@ -14,10 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::xyz.germanfica.unity.planet.gravity.CraftingRecipe
   displayName: Smelter
   resultType: 3
+  unlockTier: 1
   resultTool: {fileID: 0}
   resultMachine: {fileID: 0}
   resultStorageMachine: {fileID: 0}
   resultSmelterMachine: {fileID: 11400000, guid: 8dde938ea45a4328ac7cedce884dd971, type: 2}
+  resultExtractorMachine: {fileID: 0}
+  resultUplinkMachine: {fileID: 0}
+  resultTeleporterMachine: {fileID: 0}
+  resultTwoWayTeleporterMachine: {fileID: 0}
+  resultNetworkMapDevice: {fileID: 0}
+  resultRespawnTotem: {fileID: 0}
+  resultGasMask: {fileID: 0}
+  resultComputer: {fileID: 0}
   ingredients:
   - item: {fileID: 11400000, guid: 14e160364f292a04985ceaba5e47d5e3, type: 2}
     amount: 3

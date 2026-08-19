@@ -70,35 +70,38 @@ namespace WebOfPlanets
         // Kumulativno: na max pragu skladište je baznih 100 + 250.
         public static readonly TierInfo[] Tiers =
         {
+            // Balans kolovoz 2026.: ruda praga 1 i metal pragova 2-5 prepolovljeni
+            // (6→3, 6/8/10/12 → 3/4/5/6) — stari su iznosi predugo držali igrača
+            // na farmanju istog resursa prije prvog otključavanja.
             new TierInfo(new[]
             {
                 new Requirement("Mining_stone", 10),
-                new Requirement("Mining_ore",    6),
-            }, 25, "Collector Machine, Ore Collector, Network Scanner, Hub Storage +25"),
+                new Requirement("Mining_ore",    3),
+            }, 25, "Collector Machine, Smelter, Network Scanner, Hub Storage +25"),
 
             new TierInfo(new[]
             {
-                new Requirement("Metal_ingot",   6),
+                new Requirement("Metal_ingot",   3),
                 new Requirement("Organic_wood",  5),
                 new Requirement("Organic_plant", 4),
             }, 25, "Drill, Hub Uplink, Teleporter, Gas Mask, Hub Storage +25"),
 
             new TierInfo(new[]
             {
-                new Requirement("Metal_ingot",   8),
+                new Requirement("Metal_ingot",   4),
                 new Requirement("Water_ice",     6),
                 new Requirement("Gaseous_plin",  4),
             }, 50, "Ore Extractor, Gas Extractor, Cryo Harvester, Rune Drill, Respawn Totem, Hub Storage +50"),
 
             new TierInfo(new[]
             {
-                new Requirement("Metal_ingot",  10),
+                new Requirement("Metal_ingot",   5),
                 new Requirement("Volcanic_rune", 4),
             }, 50, "Blast Furnace, Eternal Pickaxe, Network Computer, Hub Storage +50"),
 
             new TierInfo(new[]
             {
-                new Requirement("Metal_ingot",  12),
+                new Requirement("Metal_ingot",   6),
                 new Requirement("Volcanic_rune", 6),
                 new Requirement("Gaseous_plin",  6),
                 new Requirement("Water_ice",     6),

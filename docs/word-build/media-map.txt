@@ -11,3 +11,4 @@ slika-09-strojevi.png|rIdT10
 slika-10-vulkanski.png|rIdT11
 slika-11a-karta-mreze.png|rIdT12
 slika-11b-glavni-izbornik.png|rIdT13
+slika-02-mapa-data.png|rIdT14

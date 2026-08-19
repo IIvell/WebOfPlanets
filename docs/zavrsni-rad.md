@@ -1090,8 +1090,8 @@ Datoteke su u `docs/slike/`; slike 1–3 treba snimiti ručno jer prikazuju
 sučelje Editora, ostale su snimljene.)*
 
 1. Sučelje Unity Editora s otvorenim projektom (§2.1) — **snimiti ručno**
-2. Mapa Data/ sa ScriptableObject assetima (§2.2) — **snimiti ručno**
-3. Asset PlayerInputActions u Input Actions editoru (§2.3) — **snimiti ručno**
+2. Mapa Data/ sa ScriptableObject assetima (§2.2) — `slika-02-mapa-data.png` (snimljeno 2.8.2026.)
+3. Asset PlayerInputActions u Input Actions editoru (§2.3) — `slika-03-input-actions.png` (snimljeno 2.8.2026.)
 4. Dijagram osnovne petlje igre (§3.2) — `slika-04-osnovna-petlja.svg`
 5. Planeti svih pet tipova (§3.3) — `slika-05a` … `slika-05e`
 6. Dio proceduralnog svijeta (§4.2) — `slika-06-svemir.png`

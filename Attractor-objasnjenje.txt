@@ -1,0 +1,163 @@
+ATTRACTOR.CS — OBJAŠNJENJE LINIJU PO LINIJU
+Datoteka: Assets/_Project/Scripts/Planet/Attractor.cs
+Projekt: Web of Planets
+
+============================================================
+LINIJE 1–2 — USING DIREKTIVE
+============================================================
+
+    using System.Collections.Generic;
+    using UnityEngine;
+
+Uvoze List<T> (za registar attractora) i Unityjeve tipove
+(MonoBehaviour, Rigidbody, Vector3...).
+
+============================================================
+LINIJE 4–6 — NAMESPACE I KLASA
+============================================================
+
+    namespace WebOfPlanets
+    {
+        public class Attractor : MonoBehaviour
+
+Standardni projektni namespace. Attractor je komponenta koja se
+stavlja i na planete (izvori gravitacije) i na igrača (tijelo
+koje gravitacija orijentira).
+
+============================================================
+LINIJA 8 — GLOBALNI REGISTAR
+============================================================
+
+    public static List<Attractor> Attractors = new();
+
+Statička lista svih trenutno aktivnih attractora u sceni.
+Puni se u OnEnable, prazni u OnDisable (linije 48–56).
+
+============================================================
+LINIJE 10–12 — ORIENTTOGRAVITY
+============================================================
+
+    [SerializeField] private bool orientToGravity = true;
+    public bool OrientToGravity { get => orientToGravity; set => orientToGravity = value; }
+
+Prekidač: treba li se OVO tijelo rotirati prema gravitaciji
+drugih. Tooltip objašnjava ključni detalj — na planetima mora
+biti ISKLJUČENO, jer bi inače igrač (koji je i sam attractor)
+rotirao planet dok hoda po njemu. Property je javni wrapper da
+drugi kod (npr. teleport) može paliti/gasiti.
+
+============================================================
+LINIJA 14 — CACHE RIGIDBODYJA
+============================================================
+
+    private Rigidbody _rigidbody;
+
+Sprema referencu da se GetComponent ne zove svaki FixedUpdate.
+
+============================================================
+LINIJA 16 — KRAĆI OVERLOAD
+============================================================
+
+    public void Attract(Transform body) => Attract(body, body.GetComponent<Rigidbody>());
+
+Pogodnost: ako pozivatelj nema Rigidbody pri ruci, dohvati ga
+sam i proslijedi glavnoj metodi.
+
+============================================================
+LINIJE 18–24 — SRŽ SKRIPTE, ATTRACT
+============================================================
+
+    public void Attract(Transform body, Rigidbody rb)
+    {
+        Vector3 gravityUp = (body.position - transform.position).normalized;
+
+Smjer "gore" za tijelo = normalizirani vektor od centra planeta
+(transform.position — attractor koji privlači) prema tijelu.
+Na sferi je "gore" uvijek radijalno od centra.
+
+        Vector3 bodyUp = body.up;
+        Quaternion targetRotation = Quaternion.FromToRotation(bodyUp, gravityUp) * body.rotation;
+
+FromToRotation izračuna rotaciju koja trenutni "up" tijela
+preslika u gravitacijski "up"; množenjem s trenutnom rotacijom
+dobije se ciljna orijentacija — tijelo uspravno na površini,
+a yaw (smjer gledanja) ostaje netaknut.
+
+        rb.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 50f * Time.fixedDeltaTime));
+    }
+
+Glatka interpolacija prema ciljnoj rotaciji kroz fiziku
+(MoveRotation, ne izravno transform.rotation). Faktor
+50f * fixedDeltaTime ≈ 1 pri defaultnih 0.02 s, pa je
+poravnanje praktički trenutno, ali ostaje frame-rate neovisno.
+
+============================================================
+LINIJE 26–31 — START
+============================================================
+
+    void Start()
+    {
+        _rigidbody = GetComponent<Rigidbody>();
+        _rigidbody.constraints = RigidbodyConstraints.FreezeRotation;
+        _rigidbody.useGravity = false;
+    }
+
+Zamrzava fizičku rotaciju (rotira se samo kontrolirano kroz
+MoveRotation) i gasi Unityjevu ugrađenu gravitaciju (globalni
+-Y), jer je ovdje gravitacija radijalna po planetu. Samo
+privlačenje prema površini radi PlayerController, ne ova
+skripta — Attractor rješava samo ORIJENTACIJU.
+
+============================================================
+LINIJE 33–46 — FIXEDUPDATE
+============================================================
+
+    // Invarijanta: attractori planeta su ugašeni osim onog na kojem igrač
+    // trenutno jest (PlanetCreator/teleport gase stari i pale novi), pa
+    // registar tipično sadrži samo igrača + aktivni planet.
+    void FixedUpdate()
+    {
+        if (!orientToGravity) return;
+        if (_rigidbody == null) return;
+
+        foreach (Attractor attractor in Attractors)
+        {
+            if (attractor != this)
+                attractor.Attract(transform, _rigidbody);
+        }
+    }
+
+Svaki fizički korak: ako je ovo tijelo koje se orijentira
+(igrač), zamoli svaki DRUGI attractor da ga orijentira.
+Komentar iznad dokumentira invarijantu koja ovo čini jeftinim
+i determinističkim: PlanetCreator/teleport drže upaljen samo
+attractor planeta na kojem igrač stoji, pa lista tipično sadrži
+samo dva elementa (igrač + aktivni planet) — nema natjecanja
+više planeta oko igračeve orijentacije. Null-check na
+_rigidbody štiti od poziva prije Start.
+
+============================================================
+LINIJE 48–56 — REGISTRACIJA
+============================================================
+
+    void OnEnable()
+    {
+        Attractors.Add(this);
+    }
+
+    void OnDisable()
+    {
+        Attractors.Remove(this);
+    }
+
+Samoregistracija u statički registar pri (de)aktivaciji —
+upravo mehanizam kojim gašenje attractora planeta
+(SetActive/enabled) uklanja planet iz gravitacijskog sustava.
+
+============================================================
+SAŽETAK
+============================================================
+
+Planeti su pasivni izvori (orientToGravity = false), igrač je
+aktivni potrošač koji se svaki FixedUpdate uspravlja prema
+jedinom upaljenom planetu.

@@ -32,6 +32,26 @@ namespace WebOfPlanets
             PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic, PlanetType.Gaseous
         };
 
+        // Težinski odabir tipa (kolovoz 2026., zamjena za uniformni Random.Range):
+        // rudarski najčešći (ruda je okosnica ekonomije), pa organski i ledeni;
+        // vulkanski i plinski (nestabilni/opasni) najrjeđi. Indeksi prate AllTypes.
+        // Omjeri: 12:10:8:5:5 = Mining 30%, Organic 25%, Ice 20%, Volcanic 12.5%, Gaseous 12.5%.
+        private static readonly float[] TypeWeights = { 12f, 10f, 8f, 5f, 5f };
+
+        private static PlanetType RandomWeightedType()
+        {
+            float total = 0f;
+            foreach (float w in TypeWeights) total += w;
+
+            float roll = Random.value * total;
+            for (int i = 0; i < AllTypes.Length; i++)
+            {
+                roll -= TypeWeights[i];
+                if (roll < 0f) return AllTypes[i];
+            }
+            return AllTypes[AllTypes.Length - 1];
+        }
+
         void Start()
         {
             _currentPlanet = player.currentPlanet;
@@ -104,7 +124,7 @@ namespace WebOfPlanets
 
             Vector3 planetPos = FindOpenPosition(origin, minSep, maxDist, positionValid);
             string  name      = index >= 0 ? $"Planet_{index:D2}" : $"GeneratedPlanet_{++_debugSpawnCount:D2}";
-            PlanetType type   = AllTypes[Random.Range(0, AllTypes.Length)];
+            PlanetType type   = RandomWeightedType();
 
             return CreatePlanetObject(name, planetPos, scale, gravity, type);
         }

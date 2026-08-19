@@ -1,0 +1,586 @@
+# PlanetCreator.cs — detaljno objašnjenje
+
+Datoteka: `Assets/_Project/Scripts/Planet/PlanetCreator.cs`
+
+Sadrži dvije klase: `PlanetCreator` (MonoBehaviour u sceni) i `PlanetTeleporter`
+(statični servis, konsolidiran ovdje 31. 7. 2026.).
+
+---
+
+## Zaglavlje i polja (linije 1–33)
+
+```csharp
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace WebOfPlanets
+{
+    public class PlanetCreator : MonoBehaviour
+    {
+        [SerializeField] private PlayerController player;
+        [SerializeField] private PlayerCamera playerCamera;
+
+        [SerializeField] private float minGravity = 10f;
+        [SerializeField] private float maxGravity = 40f;
+
+        private Transform _currentPlanet;
+
+        [SerializeField] private int startingPlanets = 30;
+        [SerializeField] private float minSpawnDistance = 1500f;
+        [SerializeField] private float maxSpawnDistance = 5000f;
+        [SerializeField] private float minPlanetSeparation = 200f;
+        [SerializeField] private int maxPlacementAttempts = 30;
+
+        [SerializeField] private Material iceMaterial;
+        [SerializeField] private Material miningMaterial;
+        [SerializeField] private Material volcanicMaterial;
+        [SerializeField] private Material gaseousMaterial;
+        [SerializeField] private Material organicMaterial;
+
+        private readonly System.Collections.Generic.List<Vector3> _spawnedPositions = new();
+
+        private static readonly PlanetType[] AllTypes =
+        {
+            PlanetType.Mining, PlanetType.Organic, PlanetType.Ice, PlanetType.Volcanic, PlanetType.Gaseous
+        };
+```
+
+- **1–2** — `UnityEngine` za osnovne tipove; `UnityEngine.InputSystem` jer projekt
+  koristi isključivo novi Input System.
+- **4–6** — sve je u ravnom namespaceu `WebOfPlanets` (konvencija projekta).
+- **8–9** — serijalizirane reference na igrača i kameru; postavljene u Inspectoru,
+  koriste se kod teleporta (treba im reći na kojem su planetu zbog gravitacije).
+- **11–12** — raspon gravitacije koji novi planet nasumično dobiva (10–40).
+- **14** — `_currentPlanet` prati na kojem je planetu igrač; polazi od
+  `player.currentPlanet`.
+- **16–20** — parametri world-gena: 30 početnih planeta, novi planet pada
+  1500–5000 jedinica od sidra, minimalno 200 jedinica razmaka među planetima,
+  maksimalno 30 pokušaja traženja slobodne pozicije prije fallbacka.
+- **22–26** — materijali po tipu planeta (dodijeljeni u Inspectoru; asseti su
+  zamijenili proceduralne teksture u srpnju 2026.).
+- **28** — lista pozicija svih dosad spawnanih planeta; služi za provjeru razmaka
+  i kao bazen sidara za lančani spawn.
+- **30–33** — statični niz svih pet tipova planeta iz kojeg se nasumično bira tip.
+
+---
+
+## `Start()` — lančani world-gen (linije 35–83)
+
+```csharp
+        void Start()
+        {
+            _currentPlanet = player.currentPlanet;
+
+            if (_currentPlanet == null)
+                Debug.LogWarning("PlanetCreator: player.currentPlanet nije postavljen.");
+
+            Vector3 origin = _currentPlanet != null ? _currentPlanet.position : Vector3.zero;
+            if (_currentPlanet != null)
+                _spawnedPositions.Add(origin);
+
+            // Lančani spawn: svaki planet se sidri na NASUMIČNO odabran već
+            // spawnani planet (ili hub) i mora pasti unutar dometa veze od
+            // sidra — graf potencijalnih veza je time po konstrukciji povezan,
+            // pa je svaki planet dostižan iz huba lancem totema. Sa spawnom
+            // uvijek-od-huba (raspon širi od dometa) prosječno je ~12 od 30
+            // planeta bilo trajno nedostižno. Domet se čita runtime lookupom
+            // (bez novog scene polja), uz 1% margine jer ConnectionManager par
+            // odbacuje strogim ">" na točnoj granici. Par sidren na hub mora
+            // imati i čistu hub stranu: par totema se uopće ne spawna ako hub
+            // točka padne u exclusion zonu (oba-ili-nijedan pravilo).
+            // Smjer ovisnosti u ciklusu PlanetCreator↔ConnectionManager: PC ovdje
+            // (prije CM-ovog Starta) smije čitati SAMO serijalizirana polja CM-a
+            // (MaxConnectionRange, exclusion provjere) — nikakvo runtime stanje.
+            // CM-ova serijalizirana polja drže scene overridove (npr.
+            // maxConnectionRange 2000 vs default 5000), pa se ovo NE smije
+            // preseliti u "config objekt" bez editiranja scene.
+            ConnectionManager connectionManager = FindFirstObjectByType<ConnectionManager>();
+            if (connectionManager == null)
+                Debug.LogWarning("PlanetCreator: ConnectionManager nije pronađen, planeti bez garancije veze.");
+
+            float chainMaxDist = connectionManager != null
+                ? Mathf.Min(maxSpawnDistance, connectionManager.MaxConnectionRange * 0.99f)
+                : maxSpawnDistance;
+
+            Transform hub = _currentPlanet;
+            System.Predicate<Vector3> hubSideClear = connectionManager != null && hub != null
+                ? pos => !connectionManager.IsConnectionPointBlocked(hub, pos)
+                : null;
+
+            for (int i = 0; i < startingPlanets; i++)
+            {
+                Vector3 anchor = _spawnedPositions.Count > 0
+                    ? _spawnedPositions[Random.Range(0, _spawnedPositions.Count)]
+                    : origin;
+                bool anchorIsHub = anchor == origin;
+                SpawnPlanet(anchor, i, chainMaxDist, anchorIsHub ? hubSideClear : null);
+            }
+        }
+```
+
+- **37–44** — pročita hub planet od igrača, upozori ako nije postavljen, i doda
+  hubovu poziciju u `_spawnedPositions` — hub time postaje prvo moguće sidro.
+- **46–61** — ključni (load-bearing) komentar: svaki novi planet sidri se na
+  *nasumično odabran već spawnani* planet i mora pasti unutar dometa veze od
+  sidra. Time je graf potencijalnih veza povezan **po konstrukciji** — svaki
+  planet dostižan iz huba. Stari pristup (sve od huba, raspon širi od dometa
+  veze) ostavljao je ~12 od 30 planeta trajno nedostižno. Komentar također
+  fiksira smjer ovisnosti: `PlanetCreator` smije čitati samo *serijalizirana*
+  polja `ConnectionManagera` (ne runtime stanje), jer se njegov `Start` izvršava
+  prije CM-ovog; scene override (`maxConnectionRange` 2000 umjesto defaultnih
+  5000) razlog je zašto se to ne smije prebaciti u config objekt.
+- **62–64** — runtime lookup `ConnectionManagera`; ako ga nema, world-gen radi,
+  ali bez garancije povezanosti.
+- **66–68** — `chainMaxDist`: gornja granica udaljenosti spawna =
+  min(maxSpawnDistance, domet veze × 0.99). 1 % margine postoji jer
+  `ConnectionManager` odbacuje par strogim `>` točno na granici.
+- **70–73** — `hubSideClear`: predikat koji provjerava da točka veze na *hub
+  strani* nije u exclusion zoni. Pravilo "oba-ili-nijedan": ako bi hub totem pao
+  u blokiranu zonu, par totema se uopće ne spawna, pa kandidat pozicije mora
+  proći ovu provjeru.
+- **75–82** — petlja spawna 30 planeta. Sidro je nasumična pozicija iz
+  `_spawnedPositions` (u prvoj iteraciji samo hub). `anchorIsHub` uspoređuje
+  pozicije — predikat čiste hub strane prosljeđuje se **samo** kad je sidro hub,
+  jer se exclusion provjera odnosi na hub točku.
+
+---
+
+## `Update()` i debug spawn (linije 85–95)
+
+```csharp
+        void Update()
+        {
+            if (!GameManager.IsPlaying) return;
+            if (!GameKeys.WasPressed(GameKeys.DebugSpawnPlanet)) return;
+            CreatePlanetAndTeleport();
+        }
+
+        // Debug/stress spawnovi (T) moraju imati JEDINSTVENA imena: save
+        // referencira planete po imenu, pa bi dva "GeneratedPlanet" na loadu
+        // tiho zakačila veze/strojeve/igrača na krivi planet.
+        private int _debugSpawnCount;
+```
+
+- **87–89** — gejtano kroz `GameManager.IsPlaying` (null-safe) i
+  `GameKeys.WasPressed(DebugSpawnPlanet)` (tipka T, centralizirana u `GameKeys`
+  po konvenciji projekta). Pritisak spawna planet i teleportira igrača na njega.
+- **92–95** — `_debugSpawnCount` daje debug planetima jedinstvena imena
+  (`GeneratedPlanet_01`…), jer save referencira planete **po imenu** — dva ista
+  imena bi na loadu tiho zakačila strojeve/veze/igrača na krivi planet.
+
+---
+
+## `SpawnPlanet` (linije 97–110)
+
+```csharp
+        private Transform SpawnPlanet(Vector3 origin, int index = -1, float maxDist = -1f, System.Predicate<Vector3> positionValid = null)
+        {
+            if (maxDist <= 0f) maxDist = maxSpawnDistance;
+
+            float scale   = Random.Range(35f, 100f);
+            float gravity = Random.Range(minGravity, maxGravity);
+            float minSep  = minPlanetSeparation + scale;
+
+            Vector3 planetPos = FindOpenPosition(origin, minSep, maxDist, positionValid);
+            string  name      = index >= 0 ? $"Planet_{index:D2}" : $"GeneratedPlanet_{++_debugSpawnCount:D2}";
+            PlanetType type   = AllTypes[Random.Range(0, AllTypes.Length)];
+
+            return CreatePlanetObject(name, planetPos, scale, gravity, type);
+        }
+```
+
+- **99** — `maxDist <= 0` znači "koristi default" (debug put ne prosljeđuje
+  domet veze).
+- **101–103** — nasumična veličina (35–100), gravitacija, i efektivna separacija
+  = bazna + veličina (veći planet treba više prostora).
+- **105–107** — nađi slobodnu poziciju; ime je `Planet_NN` za world-gen (indeks)
+  ili `GeneratedPlanet_NN` za debug; nasumičan tip iz `AllTypes`.
+- **109** — delegira stvarno stvaranje objekta.
+
+---
+
+## `SpawnPlanetFromSave` (linije 112–114)
+
+```csharp
+        // Load iz save datoteke: planet s točno zadanim svojstvima umjesto nasumičnih.
+        public Transform SpawnPlanetFromSave(string name, Vector3 pos, float scale, float gravity, PlanetType type)
+            => CreatePlanetObject(name, pos, scale, gravity, type);
+```
+
+Javna ulazna točka za `SaveSystem`: load ne generira nasumično nego stvara
+planet s točno spremljenim imenom/pozicijom/veličinom/gravitacijom/tipom, kroz
+isti `CreatePlanetObject` put (obrazac projekta: load ide istim code pathom kao
+world-gen, bez reloada scene).
+
+---
+
+## `CreatePlanetObject` (linije 116–190)
+
+```csharp
+        private Transform CreatePlanetObject(string name, Vector3 planetPos, float scale, float gravity, PlanetType type)
+        {
+            _spawnedPositions.Add(planetPos);
+
+            GameObject planetGO = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            planetGO.name = name;
+            planetGO.layer = LayerMask.NameToLayer("Planet");
+            planetGO.transform.position = planetPos;
+            planetGO.transform.localScale = Vector3.one * scale;
+
+            Rigidbody rb = planetGO.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+            rb.useGravity = false;
+
+            // Primitivna sfera nosi analitički SphereCollider (savršena kugla), a
+            // vidljivi mesh je poligonalna aproksimacija koja između vrhova pada do
+            // ~1.3% radijusa ISPOD te kugle (R=50 → ~0.65). Sve što se prizemljuje
+            // raycastom sjelo bi na nevidljivu analitičku kuglu i lebdjelo iznad
+            // vidljivog tla — ista klasa problema kao convex hull na Hubu
+            // (Planet.Awake), samo u suprotnom smjeru. Fizičku površinu zato
+            // izjednačavamo s vidljivim mesheom; non-convex MeshCollider smije na
+            // kinematic rigidbody. Disable prije Destroy: Destroy je odgođen do kraja
+            // framea, a resursi se spawnaju event-lančano još ISTI frame — aktivni
+            // SphereCollider bi bio bliži pogodak od mesha i sve bi opet lebdjelo.
+            SphereCollider sphereCollider = planetGO.GetComponent<SphereCollider>();
+            sphereCollider.enabled = false;
+            Destroy(sphereCollider);
+            MeshCollider meshCollider = planetGO.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = planetGO.GetComponent<MeshFilter>().sharedMesh;
+
+            Attractor attractor = planetGO.AddComponent<Attractor>();
+            attractor.OrientToGravity = false;
+            attractor.enabled = false;
+
+            Planet planet = planetGO.AddComponent<Planet>();
+            planet.Gravity = gravity;
+            planet.Type = type;
+
+            if (planet.Type == PlanetType.Ice && iceMaterial != null)
+                planetGO.GetComponent<Renderer>().material = iceMaterial;
+            else if (planet.Type == PlanetType.Mining && miningMaterial != null)
+            {
+                // Jupiter fotka (equirectangular, horizontalno seamless — venus je
+                // imala šav) dolazi iz Planet_Mining.mat asseta umjesto proceduralnog
+                // kamena; rotacija za varijaciju kao kod plinovitih.
+                planetGO.GetComponent<Renderer>().material = miningMaterial;
+                planetGO.transform.rotation = Random.rotation;
+            }
+            else if (planet.Type == PlanetType.Volcanic && volcanicMaterial != null)
+                planetGO.GetComponent<Renderer>().material = volcanicMaterial;
+            else if (planet.Type == PlanetType.Gaseous && gaseousMaterial != null)
+            {
+                // Planeta_Base_Color + Planeta_MetallicSmoothness (1 - roughness u
+                // alphi) iz Planet_Gaseous.mat asseta umjesto proceduralnih traka;
+                // nasumična rotacija sfere daje varijaciju među planetima.
+                planetGO.GetComponent<Renderer>().material = gaseousMaterial;
+                planetGO.transform.rotation = Random.rotation;
+            }
+            else if (planet.Type == PlanetType.Organic)
+            {
+                if (organicMaterial != null)
+                {
+                    // QonoS teksture (green_textures: Diff/Normal/Smoothness/Emit) iz
+                    // Planet_Organic.mat asseta umjesto proceduralne "prirode";
+                    // rotacija za varijaciju kao kod plinovitih/kamenih.
+                    planetGO.GetComponent<Renderer>().material = organicMaterial;
+                    planetGO.transform.rotation = Random.rotation;
+                }
+                else
+                    // Fallback tint dok materijal nije dodijeljen u Inspectoru.
+                    planetGO.GetComponent<Renderer>().material.color = new Color(0.30f, 0.55f, 0.25f);
+            }
+
+            return planetGO.transform;
+        }
+```
+
+- **118** — pozicija ide u listu odmah (i za save-load planete, da provjera
+  razmaka vrijedi i tada).
+- **120–124** — planet je Unity primitivna sfera; ime, layer `Planet` (za
+  raycaste), pozicija, uniformna skala (skala = promjer).
+- **126–128** — kinematic Rigidbody bez gravitacije: planet je statičan, ali
+  fizika ga treba kao rigidbody (i zbog MeshCollidera dolje).
+- **130–144** — drugi load-bearing komentar: primitivna sfera ima analitički
+  `SphereCollider` (savršena kugla), a vidljivi mesh između vrhova pada ~1.3 %
+  radijusa *ispod* nje. Sve što se raycastom prizemljuje sjelo bi na nevidljivu
+  kuglu i lebdjelo iznad tla. Rješenje: zamijeni SphereCollider non-convex
+  `MeshColliderom` s istim mesheom (dopušteno jer je rigidbody kinematic).
+  Bitan detalj: `enabled = false` **prije** `Destroy`, jer je Destroy odgođen do
+  kraja framea, a resursi se spawnaju event-lančano isti frame — aktivni
+  SphereCollider bi im bio bliži raycast pogodak.
+- **146–148** — `Attractor` (gravitacija prema centru), isključen dok igrač nije
+  na planetu; `OrientToGravity = false` jer planet sebe ne orijentira.
+- **150–152** — `Planet` komponenta dobiva gravitaciju i tip. Njezin `Start`
+  kasnije raiša `OnPlanetDiscovered`, što okida spawn hazarda i mobova.
+- **154–187** — dodjela materijala po tipu. Ice i Volcanic samo zamijene
+  materijal; Mining, Gaseous i Organic uz materijal dobiju i `Random.rotation` —
+  teksture su fotografske/equirectangular pa nasumična rotacija sfere daje
+  vizualnu varijaciju među planetima istog tipa. Organic jedini ima fallback
+  tint (zelena boja) ako materijal nije dodijeljen u Inspectoru.
+- **189** — vraća `Transform` novog planeta.
+
+---
+
+## `FindOpenPosition` (linije 192–226)
+
+```csharp
+        private Vector3 FindOpenPosition(Vector3 origin, float minSep, float maxDist, System.Predicate<Vector3> positionValid = null)
+        {
+            // Domet veze može biti manji od minSpawnDistance — donju granicu tada
+            // stišćemo pod gornju da planet ipak stane unutar dometa.
+            float minDist = Mathf.Min(minSpawnDistance, maxDist);
+
+            for (int attempt = 0; attempt < maxPlacementAttempts; attempt++)
+            {
+                float dist = Random.Range(minDist, maxDist);
+                Vector3 candidate = origin + Random.onUnitSphere * dist;
+
+                if (positionValid != null && !positionValid(candidate)) continue;
+
+                bool tooClose = false;
+                foreach (Vector3 existing in _spawnedPositions)
+                {
+                    if (Vector3.Distance(candidate, existing) < minSep)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+
+                if (!tooClose) return candidate;
+            }
+
+            // All attempts failed — just place at a random far distance. Uvjet
+            // pozicije (čista hub strana) i tada pokušavamo ispoštovati: on čuva
+            // garanciju veze, a separacija je samo estetika.
+            Vector3 fallback = origin + Random.onUnitSphere * maxDist;
+            if (positionValid != null)
+                for (int attempt = 0; attempt < maxPlacementAttempts && !positionValid(fallback); attempt++)
+                    fallback = origin + Random.onUnitSphere * maxDist;
+            return fallback;
+        }
+```
+
+- **196** — ako je domet veze manji od `minSpawnDistance`, donja granica se
+  stisne pod gornju da raspon ne bude invertiran.
+- **198–216** — do 30 pokušaja: nasumična udaljenost u rasponu × nasumičan smjer
+  (`Random.onUnitSphere`) od sidra. Kandidat mora proći (1) predikat pozicije
+  ako postoji (čista hub strana) i (2) provjeru razmaka od svih postojećih
+  planeta. Prvi valjan kandidat se vraća.
+- **218–225** — fallback ako svi pokušaji padnu: nasumična točka na `maxDist`.
+  Predikat pozicije se **i tada** pokušava ispoštovati (do još 30 pokušaja), jer
+  on čuva garanciju povezanosti — a separacija je samo estetika pa se žrtvuje.
+
+---
+
+## `CreatePlanetAndTeleport` (linije 228–256)
+
+```csharp
+        private void CreatePlanetAndTeleport()
+        {
+            if (_currentPlanet != null)
+            {
+                if (_currentPlanet.TryGetComponent(out Attractor oldAttractor))
+                    oldAttractor.enabled = false;
+            }
+
+            Vector3 origin = _currentPlanet != null ? _currentPlanet.position : Vector3.zero;
+            Transform newPlanet = SpawnPlanet(origin);
+            if (newPlanet.TryGetComponent(out Attractor newAttractor))
+                newAttractor.enabled = true;
+
+            float scale = newPlanet.localScale.x;
+            float radius = scale * 0.5f;
+            Vector3 surfaceNormal = (newPlanet.position - origin).normalized;
+            Vector3 playerPos = newPlanet.position - surfaceNormal * (radius + 2f);
+            Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, -surfaceNormal);
+
+            Rigidbody playerRb = player.rig;
+            playerRb.linearVelocity = Vector3.zero;
+            playerRb.angularVelocity = Vector3.zero;
+            playerRb.position = playerPos;
+            playerRb.rotation = playerRot;
+
+            _currentPlanet = newPlanet;
+            player.SetPlanet(_currentPlanet);
+            if (playerCamera != null) playerCamera.SetPlanet(_currentPlanet);
+        }
+```
+
+Debug put (tipka T): ugasi `Attractor` starog planeta, spawna novi od trenutne
+pozicije, upali njegov `Attractor`, pa ručno pozicionira igrača: radius =
+skala/2, igrač se stavi na stranu novog planeta okrenutu starome (`radius + 2`
+od centra), rotiran tako da mu "gore" gleda od centra planeta. Rigidbodyju se
+nulira brzina i postavlja pozicija/rotacija direktno (ne kroz transform — zbog
+fizike). Na kraju se `_currentPlanet` ažurira i javi igraču i kameri.
+
+---
+
+## `TeleportToPlanet` — delegacijski shim (linije 258–263)
+
+```csharp
+        // Delegacijski shim: izvedba teleporta živi u PlanetTeleporteru, a ova
+        // metoda ostaje javna ulazna točka jer scena drži serijalizirane
+        // planetCreator reference (ConnectionManager, GameManager, MachinePlacer).
+        public void TeleportToPlanet(Transform targetPlanet, Transform fromPlanet = null, Transform destinationMarker = null)
+            => _currentPlanet = PlanetTeleporter.Teleport(player, playerCamera, _currentPlanet,
+                targetPlanet, fromPlanet, destinationMarker);
+```
+
+Prava logika je u `PlanetTeleporter.Teleport`, ali metoda ostaje ovdje jer scena
+drži tri serijalizirane `planetCreator` reference (ConnectionManager,
+GameManager, MachinePlacer) — puna selidba bi riskirala pucanje GUID referenci.
+Vraćeni planet se sprema kao novi `_currentPlanet`.
+
+---
+
+## `PlanetTeleporter` (linije 266–383)
+
+Statični servis za sve teleporte (veze, teleporter strojevi, respawn, load).
+Premješten iz `PlanetTeleporter.cs` konsolidacijom malih datoteka 31. 7. 2026.
+
+### Prebacivanje Attractora (linije 278–285)
+
+```csharp
+            if (currentPlanet != null)
+            {
+                if (currentPlanet.TryGetComponent(out Attractor oldAttractor))
+                    oldAttractor.enabled = false;
+            }
+
+            if (targetPlanet.TryGetComponent(out Attractor newAttractor))
+                newAttractor.enabled = true;
+```
+
+Ugasi gravitaciju na starom planetu, upali na ciljnom — aktivan je uvijek samo
+Attractor planeta na kojem igrač stoji.
+
+### Grana s markerom (linije 290–333)
+
+```csharp
+            if (destinationMarker != null)
+            {
+                // Sletimo blizu stvarne pozicije markera/totema (umjesto da ponovno
+                // računamo površinu iz centra planeta, što na nesferičnim meshovima
+                // zna promašiti stvarnu točku markera).
+                Vector3 markerUp = destinationMarker.up;
+                Vector3 tangent = Vector3.Cross(markerUp, Vector3.up);
+                if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(markerUp, Vector3.right);
+                tangent.Normalize();
+
+                // Marker sa solid colliderom (teleporter gate, totemi veza): sleti duž
+                // forward osi tik uz rub collidera — izvan njega (inače fizika izbaci
+                // igrača), ali ne dalje nego što je nužno. Za eventualni trigger marker
+                // bez solid collidera ostaje paušalnih 2 m.
+                float lateral = 2f;
+                if (destinationMarker.TryGetComponent(out Collider markerCollider) && !markerCollider.isTrigger)
+                {
+                    tangent = destinationMarker.forward;
+
+                    float probe = markerCollider.bounds.extents.magnitude + 2f;
+                    Ray edgeRay = new Ray(destinationMarker.position + markerUp * 1f + tangent * probe, -tangent);
+                    lateral = markerCollider.Raycast(edgeRay, out RaycastHit edgeHit, probe)
+                        ? (probe - edgeHit.distance) + 1.5f
+                        : markerCollider.bounds.extents.magnitude + 1.5f;
+                }
+
+                Vector3 rayOrigin = destinationMarker.position + markerUp * 2f + tangent * lateral;
+                if (Physics.Raycast(rayOrigin, -markerUp, out RaycastHit hit, 10f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                {
+                    // +2, ne +1: dno kapsule je 1.69 ISPOD pivota, pa bi +1 kapsulu
+                    // startno ukopao 0.69 u pogođenu površinu. Zraka pogađa SVE solid
+                    // collidere — na niskom objektu (npr. pickup kamen, krov ~0.6) bi
+                    // se surface-lock uhvatio u penetraciji i zaglavio u deadlocku sa
+                    // PhysX depenetracijom. S +2 stopala kreću ~0.3 iznad pogođenog:
+                    // meki pad na tlo, a niski objekt ostaje "krov" (negrounded) s
+                    // kojeg igrač normalno siđe. Isto radi i sibling T-spawn (+2).
+                    playerPos = hit.point + hit.normal * 2f;
+                    playerUp = hit.normal;
+                }
+                else
+                {
+                    playerPos = destinationMarker.position + tangent * lateral;
+                    playerUp = markerUp;
+                }
+            }
+```
+
+Slijeće se blizu stvarne pozicije markera (totem/teleporter gate) umjesto
+računanja iz centra planeta, koje na nesferičnim meshovima promašuje. Izračuna
+se tangenta na površinu; ako marker ima solid collider, raycastom se izmjeri
+stvarni rub collidera i igrač se stavi tik izvan njega (inače bi ga fizika
+izbacila), uz +1.5 sigurnosti; za trigger markere ostaje paušalnih 2 m. Zatim
+raycast prema dolje pronađe tlo; `hit.point + normal * 2` jer je dno kapsule
+1.69 ispod pivota — +1 bi kapsulu ukopao 0.69 u tlo i izazvao deadlock s PhysX
+depenetracijom. S +2 igrač kreće ~0.3 iznad površine i meko padne; niski objekti
+(kamen, krov) ostaju "krov" s kojeg se normalno siđe.
+
+### Grana bez markera (linije 335–363)
+
+```csharp
+            else
+            {
+                // localScale laže za mesh planete (Hub: localScale 1000, stvarni radijus
+                // ~19) — fallback bi igrača ostavio stotine jedinica iznad površine.
+                float radius = SurfacePlacement.GetPlanetRadius(targetPlanet);
+
+                Vector3 surfaceNormal = fromPlanet != null
+                    ? (fromPlanet.position - targetPlanet.position).normalized
+                    : Random.onUnitSphere;
+
+                Vector3 tangent = Vector3.Cross(surfaceNormal, Vector3.up);
+                if (tangent.sqrMagnitude < 0.01f) tangent = Vector3.Cross(surfaceNormal, Vector3.right);
+                tangent.Normalize();
+
+                float lateralOffset = Mathf.Min(6f, radius * 0.5f);
+                Vector3 aimDirection = (surfaceNormal * radius + tangent * lateralOffset).normalized;
+
+                Vector3 rayOrigin = targetPlanet.position + aimDirection * (radius * 1.5f);
+                if (Physics.Raycast(rayOrigin, -aimDirection, out RaycastHit hit, radius * 3f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                {
+                    // +2 iz istog razloga kao marker-grana gore (dno kapsule -1.69).
+                    playerPos = hit.point + hit.normal * 2f;
+                    playerUp = hit.normal;
+                }
+                else
+                {
+                    playerPos = targetPlanet.position + aimDirection * (radius + 2f);
+                    playerUp = aimDirection;
+                }
+            }
+```
+
+Za respawn i load: radius se čita kroz `SurfacePlacement.GetPlanetRadius` jer
+`localScale` laže za mesh planete (Hub: localScale 1000, stvarni radijus ~19).
+Točka slijetanja je na strani okrenutoj izvorišnom planetu (ili nasumična), s
+malim tangencijalnim odmakom, pa raycast prema površini s istim +2 pravilom;
+ako raycast promaši, analitički fallback `radius + 2`.
+
+### Završetak teleporta (linije 366–382)
+
+```csharp
+            Quaternion playerRot = Quaternion.FromToRotation(Vector3.up, playerUp);
+
+            Rigidbody playerRb = player.rig;
+            playerRb.linearVelocity = Vector3.zero;
+            playerRb.angularVelocity = Vector3.zero;
+            playerRb.position = playerPos;
+            playerRb.rotation = playerRot;
+
+            player.SetPlanet(targetPlanet);
+            if (playerCamera != null) playerCamera.SetPlanet(targetPlanet);
+
+            // Centralna točka svih teleporta (veze, strojevi, respawn); trenutni
+            // subscriber (AudioManager) treba samo činjenicu teleporta.
+            GameEventBus.Raise(new PlayerTeleportEvent { FromPlanet = fromPlanet, ToPlanet = targetPlanet });
+
+            return targetPlanet;
+        }
+```
+
+Rotacija igrača (up = normala površine), nuliranje brzina, direktno postavljanje
+rigidbody pozicije/rotacije, pa `SetPlanet` na igraču i kameri (surface-lock i
+gravitacija sad ciljaju novi planet). `GameEventBus.Raise(PlayerTeleportEvent)`
+je centralna točka svih teleporta (trenutno jedini subscriber: `AudioManager`).
+Metoda vraća `targetPlanet`; pozivatelj je dužan to zapamtiti kao svoje novo
+stanje (`TeleportToPlanet` shim to i radi).
